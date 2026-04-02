@@ -8,31 +8,45 @@ import Link from 'next/link';
 import { Patient } from '../../lib/types';
 import { AreaChart, Area, ResponsiveContainer, YAxis, Tooltip } from 'recharts';
 
+import { useAuth } from '../../contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+
 export default function PatientsPage() {
   const { patients, vitalsHistory } = useSimulation();
+  const { currentUser } = useAuth();
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredPatients = patients.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  // RBAC: Patients cannot view the directory
+  React.useEffect(() => {
+    if (currentUser?.role === 'patient') {
+      router.push('/');
+    }
+  }, [currentUser, router]);
+
+  if (currentUser?.role === 'patient') return null;
+
+  const filteredPatients = patients.filter(p =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.ward.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-6 w-full h-full">
-      
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-1">Patient Directory</h1>
           <p className="text-slate-500">View and manage all active admissions across departments.</p>
         </div>
-        
+
         <div className="flex gap-3 w-full md:w-auto">
           <div className="flex items-center bg-white border border-slate-200 shadow-sm rounded-xl px-4 py-2 flex-1 md:w-72 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all">
             <Search className="w-5 h-5 text-slate-400 mr-2" />
-            <input 
-              type="text" 
-              placeholder="Search by name, ID, ward..." 
+            <input
+              type="text"
+              placeholder="Search by name, ID, ward..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="bg-transparent border-none outline-none text-sm w-full text-slate-700 placeholder:text-slate-400"
@@ -63,9 +77,9 @@ export default function PatientsPage() {
               ))}
               {filteredPatients.length === 0 && (
                 <tr>
-                   <td colSpan={6} className="p-12 text-center text-slate-500 bg-slate-50/50">
-                        No patients found matching your search criteria.
-                   </td>
+                  <td colSpan={6} className="p-12 text-center text-slate-500 bg-slate-50/50">
+                    No patients found matching your search criteria.
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -77,7 +91,7 @@ export default function PatientsPage() {
 }
 
 function PatientRow({ patient, history }: { patient: Patient, history: any[] }) {
-  
+
   const currentHr = history.length > 0 ? history[history.length - 1].heartRate : '--';
   const isCriticalHr = currentHr !== '--' && (currentHr > 120 || currentHr < 50);
 
@@ -105,15 +119,15 @@ function PatientRow({ patient, history }: { patient: Patient, history: any[] }) 
       </td>
       <td className="p-4 hidden sm:table-cell">
         <div className="flex items-center justify-between gap-3 h-10 w-32 bg-slate-50 px-3 py-1.5 border border-slate-100 rounded-xl shadow-inner">
-           <div className="flex-1 h-full opacity-60">
-              <ResponsiveContainer width="100%" height="100%">
-                 <AreaChart data={history.map(h => ({ val: h.heartRate }))}>
-                    <YAxis domain={['auto', 'auto']} hide />
-                    <Area type="monotone" dataKey="val" stroke={isCriticalHr ? '#f43f5e' : '#6366f1'} fill="none" strokeWidth={2.5} isAnimationActive={false} />
-                 </AreaChart>
-              </ResponsiveContainer>
-           </div>
-           <span className={cn("text-sm font-bold w-7 text-right tracking-tighter", isCriticalHr ? "text-rose-600" : "text-slate-700")}>{currentHr}</span>
+          <div className="flex-1 h-full opacity-60">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={history.map(h => ({ val: h.heartRate }))}>
+                <YAxis domain={['auto', 'auto']} hide />
+                <Area type="monotone" dataKey="val" stroke={isCriticalHr ? '#f43f5e' : '#6366f1'} fill="none" strokeWidth={2.5} isAnimationActive={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <span className={cn("text-sm font-bold w-7 text-right tracking-tighter", isCriticalHr ? "text-rose-600" : "text-slate-700")}>{currentHr}</span>
         </div>
       </td>
       <td className="p-4 pr-8 text-right">
@@ -135,10 +149,10 @@ function RiskBadge({ score }: { score: string }) {
 
   return (
     <div className={cn("px-3 py-1.5 rounded-xl text-xs uppercase tracking-wider inline-flex items-center gap-2 border shadow-sm", styles[score] || styles.Low)}>
-      <div className={cn("w-2 h-2 rounded-full", 
+      <div className={cn("w-2 h-2 rounded-full",
         score === 'Critical' ? 'bg-rose-500 animate-pulse' :
-        score === 'High' ? 'bg-orange-500' :
-        score === 'Medium' ? 'bg-amber-500' : 'bg-slate-400'
+          score === 'High' ? 'bg-orange-500' :
+            score === 'Medium' ? 'bg-amber-500' : 'bg-slate-400'
       )} />
       {score}
     </div>

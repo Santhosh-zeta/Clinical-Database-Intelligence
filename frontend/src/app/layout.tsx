@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   description: "Real-time clinical decision support and vitals monitoring.",
 };
 
+import { AuthProvider } from "../contexts/AuthContext";
+import { AuthGuard } from "../components/layout/AuthGuard";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -30,11 +33,13 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-          <SimulationProvider>
-              <Shell>
-                {children}
-              </Shell>
-          </SimulationProvider>
+        <AuthProvider>
+          <AuthGuard>
+            <SimulationProvider>
+              {children}
+            </SimulationProvider>
+          </AuthGuard>
+        </AuthProvider>
       </body>
     </html>
   );

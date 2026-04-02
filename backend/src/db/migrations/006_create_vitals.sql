@@ -35,6 +35,9 @@ SELECT create_hypertable(
     if_not_exists => TRUE
 );
 
+-- Enable compression on the hypertable first
+ALTER TABLE vitals SET (timescaledb.compress, timescaledb.compress_orderby = 'recorded_at DESC', timescaledb.compress_segmentby = 'admission_id');
+
 -- Compression policy: compress chunks older than 7 days
 SELECT add_compression_policy('vitals', INTERVAL '7 days', if_not_exists => TRUE);
 

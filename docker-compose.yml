@@ -1,0 +1,39 @@
+services:
+  db:
+    image: timescale/timescaledb:latest-pg16
+    container_name: clinical-db
+    environment:
+      - POSTGRES_DB=clinical_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432" # host 5433 → container 5432 (avoids local postgres conflict)
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d clinical_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: clinical-api
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/clinical_db
+      - PORT=3001
+      - NODE_ENV=development
+      - JWT_SECRET=clinical_system_secure_secret_771
+    depends_on:
+      db:
+        condition: service_healthy
+    # Wait for DB, then migrate, then start
+    command: >
+      sh -c "npm run migrate && npm start"
+
+volumes:
+  timescale_data:

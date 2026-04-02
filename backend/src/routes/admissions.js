@@ -88,7 +88,8 @@ router.get('/', async (req, res, next) => {
         const { status = 'active', page = 1, limit = 20 } = req.query;
         const offset = (page - 1) * limit;
         const result = await db.query(
-            `SELECT a.id, a.admitted_at, a.status, a.diagnosis,
+            `SELECT a.id, a.patient_id, a.admitted_at, a.status, a.diagnosis,
+              p.gender, p.date_of_birth,
               p.name AS patient_name, d.name AS doctor_name,
               w.name AS ward_name, b.bed_number,
               rs.score AS risk_score, rs.category AS risk_category
