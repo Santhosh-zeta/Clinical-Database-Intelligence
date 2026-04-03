@@ -10,6 +10,12 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     v_rec           vitals%ROWTYPE;
+    v_conf          JSONB;
+    v_hr_max        INT;
+    v_hr_min        INT;
+    v_sys_max       INT;
+    v_spo2_min      INT;
+    v_temp_max      NUMERIC;
     v_hr_score      SMALLINT := 0;
     v_bp_score      SMALLINT := 0;
     v_spo2_score    SMALLINT := 0;
@@ -17,6 +23,15 @@ DECLARE
     v_total         SMALLINT := 0;
     v_category      VARCHAR(20);
 BEGIN
+    -- Fetch the global clinical thresholds
+    SELECT value INTO v_conf FROM system_configurations WHERE key = 'clinical_thresholds';
+    
+    v_hr_max   := COALESCE((v_conf->>'hrMax')::INT, 140);
+    v_hr_min   := COALESCE((v_conf->>'hrMin')::INT, 40);
+    v_sys_max  := COALESCE((v_conf->>'sysMax')::INT, 180);
+    v_spo2_min := COALESCE((v_conf->>'spo2Min')::INT, 85);
+    v_temp_max := COALESCE((v_conf->>'tempMax')::NUMERIC, 40.0);
+
     -- Fetch the most recent vitals for this admission
     SELECT *
     INTO v_rec
@@ -35,7 +50,7 @@ BEGIN
     -- High:   <50 | 121-140  →  2 pts
     -- Critical: <40 | >140  →  3 pts
     IF v_rec.heart_rate IS NOT NULL THEN
-        IF v_rec.heart_rate < 40 OR v_rec.heart_rate > 140 THEN
+        IF v_rec.heart_rate < v_hr_min OR v_rec.heart_rate > v_hr_max THEN
             v_hr_score := 3;
         ELSIF v_rec.heart_rate < 50 OR v_rec.heart_rate > 120 THEN
             v_hr_score := 2;
@@ -52,7 +67,7 @@ BEGIN
     -- High:   70-79 | 161-180  →  2 pts
     -- Critical: <70 | >180  →  3 pts
     IF v_rec.systolic_bp IS NOT NULL THEN
-        IF v_rec.systolic_bp < 70 OR v_rec.systolic_bp > 180 THEN
+        IF v_rec.systolic_bp < 70 OR v_rec.systolic_bp > v_sys_max THEN
             v_bp_score := 3;
         ELSIF v_rec.systolic_bp < 80 OR v_rec.systolic_bp > 160 THEN
             v_bp_score := 2;
@@ -69,7 +84,7 @@ BEGIN
     -- High:   85-89%  →  2 pts
     -- Critical: <85%  →  3 pts
     IF v_rec.spo2 IS NOT NULL THEN
-        IF v_rec.spo2 < 85 THEN
+        IF v_rec.spo2 < v_spo2_min THEN
             v_spo2_score := 3;
         ELSIF v_rec.spo2 < 90 THEN
             v_spo2_score := 2;
@@ -86,7 +101,7 @@ BEGIN
     -- High:   34-34.9 | 39.1-40.0  →  2 pts
     -- Critical: <34 | >40  →  3 pts
     IF v_rec.temperature IS NOT NULL THEN
-        IF v_rec.temperature < 34 OR v_rec.temperature > 40 THEN
+        IF v_rec.temperature < 34 OR v_rec.temperature > v_temp_max THEN
             v_temp_score := 3;
         ELSIF v_rec.temperature < 35 OR v_rec.temperature > 39 THEN
             v_temp_score := 2;

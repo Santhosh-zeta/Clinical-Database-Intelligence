@@ -23,6 +23,28 @@ const API = process.env.API_URL || 'http://localhost:3001';
 const INTERVAL = parseInt(process.env.VITALS_INTERVAL_MS || '5000', 10);
 const api = axios.create({ baseURL: API, timeout: 8000 });
 
+// ── Authentication ────────────────────────────────────────────────────────────
+
+/**
+ * Login to the backend to get a JWT token.
+ * Uses a mock account since the backend has dev fallback.
+ */
+async function login() {
+    try {
+        const res = await api.post('/api/auth/login', {
+            email: 'simulator@hospital.com',
+            password: 'simulator_pass'
+        });
+        const token = res.data.token;
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        return token;
+    } catch (err) {
+        console.error(chalk.red(' ✗ Authentication failed:'), err.response?.data?.error || err.message);
+        process.exit(1);
+    }
+}
+
+
 // ── Patient Profiles ─────────────────────────────────────────────────────────
 
 /**
@@ -259,8 +281,10 @@ const args = process.argv.slice(2).map(Number).filter(Boolean);
 
 console.log(chalk.bold.blue('\n🏥  Clinical Intelligence System — Vitals Simulator\n'));
 api.get('/health')
-    .then(() => {
+    .then(async () => {
         console.log(chalk.green(' ✓ API reachable'));
+        await login();
+        console.log(chalk.green(' ✓ Authenticated successfully'));
         simulate(args);
     })
     .catch(() => {

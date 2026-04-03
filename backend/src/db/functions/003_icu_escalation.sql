@@ -11,7 +11,7 @@ AS $$
 DECLARE
     v_icu_bed_id    INT;
     v_icu_ward_id   INT;
-    v_current_bed   INT;
+    v_current_bed   BOOLEAN;
     v_admission     RECORD;
 BEGIN
     -- Fetch current admission
@@ -21,7 +21,7 @@ BEGIN
     SELECT b.is_icu INTO STRICT v_current_bed
     FROM beds b WHERE b.id = v_admission.bed_id;
 
-    IF v_current_bed = 1 THEN
+    IF v_current_bed THEN
         RETURN;  -- Already in ICU
     END IF;
 

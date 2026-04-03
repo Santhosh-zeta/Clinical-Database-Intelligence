@@ -14,6 +14,7 @@ import { motion } from 'framer-motion';
 import { useSimulation } from '../../contexts/SimulationContext';
 import { Patient, RiskLevel } from '../../lib/types';
 import { cn } from '../../lib/utils';
+import { RiskBadge } from '../../components/ui/RiskBadge';
 
 export default function VitalsMonitor() {
   const { patients, vitalsHistory } = useSimulation();
@@ -81,6 +82,7 @@ export default function VitalsMonitor() {
             </div>
 
             {/* Vitals Grid */}
+            {vitalsHistory[selectedPatient.id] && vitalsHistory[selectedPatient.id].length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 shrink-0">
               <VitalStatCard 
                 title="Heart Rate" 
@@ -115,6 +117,11 @@ export default function VitalsMonitor() {
                 color="#f97316"
               />
             </div>
+            ) : (
+                <div className="bg-white border border-slate-200 border-dashed rounded-3xl p-8 text-center text-slate-400">
+                    Waiting for initial telemetry data stream...
+                </div>
+            )}
 
             {/* Main Graph */}
             <div className="flex-1 min-h-[400px] lg:min-h-0 bg-white border border-slate-200/80 rounded-[2rem] p-6 lg:p-8 shadow-[0_8px_40px_rgba(0,0,0,0.03)] flex flex-col relative overflow-hidden">
@@ -139,16 +146,18 @@ export default function VitalsMonitor() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                    <XAxis dataKey="timestamp" hide />
-                    <YAxis domain={['auto', 'auto']} stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickMargin={10} />
+                    <XAxis dataKey="timestamp" tickFormatter={(time) => time ? new Date(time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}) : ''} stroke="#94a3b8" fontSize={10} tickMargin={10} tickLine={false} axisLine={false} />
+                    <YAxis yAxisId="left" domain={['auto', 'auto']} stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickMargin={10} />
+                    <YAxis yAxisId="right" orientation="right" domain={[80, 100]} stroke="#0ea5e9" fontSize={12} tickLine={false} axisLine={false} tickMargin={10} />
                     <Tooltip 
                       contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', borderColor: '#e2e8f0', borderRadius: '12px', color: '#0f172a', backdropFilter: 'blur(8px)', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)' }}
                       itemStyle={{ color: '#0f172a', fontWeight: 'bold' }}
                       labelStyle={{ color: '#64748b', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase' }}
+                      labelFormatter={(label) => label ? new Date(label).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}) : ''}
                     />
                     {/* Changed HR color to indigo for better light mode contrast instead of rose */}
-                    <Area type="monotone" dataKey="heartRate" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorHr)" isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 0, fill: '#6366f1' }} />
-                    <Area type="monotone" dataKey="oxygenLevel" stroke="#0ea5e9" strokeWidth={3} fillOpacity={1} fill="url(#colorO2)" isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 0, fill: '#0ea5e9' }} />
+                    <Area yAxisId="left" type="monotone" dataKey="heartRate" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorHr)" isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 0, fill: '#6366f1' }} name="HR (bpm)" />
+                    <Area yAxisId="right" type="monotone" dataKey="oxygenLevel" stroke="#0ea5e9" strokeWidth={3} fillOpacity={1} fill="url(#colorO2)" isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 0, fill: '#0ea5e9' }} name="SpO2 (%)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -197,25 +206,7 @@ function PatientCard({ patient, isActive, onClick, latestVitals }: { patient: Pa
   );
 }
 
-function RiskBadge({ score }: { score: RiskLevel }) {
-  const styles = {
-    Critical: 'bg-rose-50 text-rose-600 border-rose-200',
-    High: 'bg-orange-50 text-orange-600 border-orange-200',
-    Medium: 'bg-amber-50 text-amber-700 border-amber-200',
-    Low: 'bg-slate-50 text-slate-600 border-slate-200',
-  };
 
-  return (
-    <div className={cn("px-4 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-widest border flex items-center gap-2 shadow-sm", styles[score])}>
-      <div className={cn("w-2 h-2 rounded-full", 
-        score === 'Critical' ? 'bg-rose-500 animate-pulse' :
-        score === 'High' ? 'bg-orange-500' :
-        score === 'Medium' ? 'bg-amber-500' : 'bg-slate-400'
-      )} />
-      {score}
-    </div>
-  );
-}
 
 function VitalStatCard({ title, value, unit, icon, data, color }: { title: string, value: string | number, unit: string, icon: React.ReactNode, data: any[], color: string }) {
   return (

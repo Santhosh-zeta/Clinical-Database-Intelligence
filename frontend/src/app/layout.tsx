@@ -34,11 +34,11 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          <AuthGuard>
-            <SimulationProvider>
+          <SimulationProvider>
+            <AuthGuard>
               {children}
-            </SimulationProvider>
-          </AuthGuard>
+            </AuthGuard>
+          </SimulationProvider>
         </AuthProvider>
       </body>
     </html>

@@ -17,6 +17,9 @@ const bedRoutes = require('./routes/beds');
 const dashboardRoutes = require('./routes/dashboard');
 const auditRoutes = require('./routes/audit');
 const doctorRoutes = require('./routes/doctors');
+const settingsRoutes = require('./routes/settings');
+const authRoutes = require('./routes/auth');
+const { authenticate } = require('./middleware/auth');
 
 const app = express();
 
@@ -30,16 +33,18 @@ app.use(express.json());
 app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
 // ── API Routes ────────────────────────────────────────────────────────────────
-app.use('/api/patients', patientRoutes);
-app.use('/api/doctors', doctorRoutes);
-app.use('/api/admissions', admissionRoutes);
-app.use('/api/vitals', vitalsRoutes);
-app.use('/api/alerts', alertRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/beds', bedRoutes);
-app.use('/api/icu', bedRoutes);        // ICU queries share the beds router
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/audit-logs', auditRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/patients', authenticate, patientRoutes);
+app.use('/api/doctors', authenticate, doctorRoutes);
+app.use('/api/admissions', authenticate, admissionRoutes);
+app.use('/api/vitals', authenticate, vitalsRoutes);
+app.use('/api/alerts', authenticate, alertRoutes);
+app.use('/api/notifications', authenticate, notificationRoutes);
+app.use('/api/beds', authenticate, bedRoutes);
+app.use('/api/icu', authenticate, bedRoutes);        // ICU queries share the beds router
+app.use('/api/dashboard', authenticate, dashboardRoutes);
+app.use('/api/audit-logs', authenticate, auditRoutes);
+app.use('/api/settings', authenticate, settingsRoutes);
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));

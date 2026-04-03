@@ -7,6 +7,7 @@ import { Search, Filter, ChevronRight, Activity } from 'lucide-react';
 import Link from 'next/link';
 import { Patient } from '../../lib/types';
 import { AreaChart, Area, ResponsiveContainer, YAxis, Tooltip } from 'recharts';
+import { RiskBadge } from '../../components/ui/RiskBadge';
 
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -16,13 +17,9 @@ export default function PatientsPage() {
   const { currentUser } = useAuth();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
-
-  // RBAC: Patients cannot view the directory
-  React.useEffect(() => {
-    if (currentUser?.role === 'patient') {
-      router.push('/');
-    }
-  }, [currentUser, router]);
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   if (currentUser?.role === 'patient') return null;
 
@@ -31,6 +28,36 @@ export default function PatientsPage() {
     p.ward.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const sortedPatients = React.useMemo(() => {
+    let sortablePatients = [...filteredPatients];
+    if (sortConfig !== null) {
+      sortablePatients.sort((a, b) => {
+        let aVal: any = a[sortConfig.key as keyof Patient];
+        let bVal: any = b[sortConfig.key as keyof Patient];
+        
+        if (sortConfig.key === 'riskScore') {
+          const riskWeight: Record<string, number> = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
+          aVal = riskWeight[a.riskScore] || 0;
+          bVal = riskWeight[b.riskScore] || 0;
+        }
+
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortablePatients;
+  }, [filteredPatients, sortConfig]);
+
+  const totalPages = Math.ceil(sortedPatients.length / itemsPerPage);
+  const paginatedPatients = sortedPatients.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const requestSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
+    setSortConfig({ key, direction });
+  };
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-6 w-full h-full">
@@ -63,19 +90,19 @@ export default function PatientsPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/80 text-slate-500 text-sm border-b border-slate-100">
-                <th className="p-5 font-semibold pl-8 tracking-wide">Patient Name</th>
-                <th className="p-5 font-semibold tracking-wide">ID & Admission</th>
-                <th className="p-5 font-semibold tracking-wide">Location</th>
-                <th className="p-5 font-semibold tracking-wide">Risk Status</th>
+                <th className="p-5 font-semibold pl-8 tracking-wide cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => requestSort('name')}>Patient Name</th>
+                <th className="p-5 font-semibold tracking-wide cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => requestSort('admissionDate')}>ID & Admission</th>
+                <th className="p-5 font-semibold tracking-wide cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => requestSort('ward')}>Location</th>
+                <th className="p-5 font-semibold tracking-wide cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => requestSort('riskScore')}>Risk Status</th>
                 <th className="p-5 font-semibold tracking-wide w-40 hidden sm:table-cell">Live HR Trends</th>
                 <th className="p-5 font-semibold text-right pr-8 tracking-wide">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredPatients.map((patient) => (
+              {paginatedPatients.map((patient) => (
                 <PatientRow key={patient.id} patient={patient} history={vitalsHistory[patient.id] || []} />
               ))}
-              {filteredPatients.length === 0 && (
+              {paginatedPatients.length === 0 && (
                 <tr>
                   <td colSpan={6} className="p-12 text-center text-slate-500 bg-slate-50/50">
                     No patients found matching your search criteria.
@@ -85,6 +112,29 @@ export default function PatientsPage() {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50">
+            <span className="text-sm text-slate-500 font-medium">Page {currentPage} of {totalPages}</span>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                disabled={currentPage === 1}
+                className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm disabled:opacity-50 hover:bg-slate-50 shadow-sm"
+              >
+                Previous
+              </button>
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm disabled:opacity-50 hover:bg-slate-50 shadow-sm"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -139,22 +189,4 @@ function PatientRow({ patient, history }: { patient: Patient, history: any[] }) 
   );
 }
 
-function RiskBadge({ score }: { score: string }) {
-  const styles: Record<string, string> = {
-    Critical: 'bg-rose-50 text-rose-600 border-rose-200 font-bold',
-    High: 'bg-orange-50 text-orange-600 border-orange-200 font-bold',
-    Medium: 'bg-amber-50 text-amber-700 border-amber-200 font-bold',
-    Low: 'bg-slate-50 text-slate-600 border-slate-200 font-semibold',
-  };
 
-  return (
-    <div className={cn("px-3 py-1.5 rounded-xl text-xs uppercase tracking-wider inline-flex items-center gap-2 border shadow-sm", styles[score] || styles.Low)}>
-      <div className={cn("w-2 h-2 rounded-full",
-        score === 'Critical' ? 'bg-rose-500 animate-pulse' :
-          score === 'High' ? 'bg-orange-500' :
-            score === 'Medium' ? 'bg-amber-500' : 'bg-slate-400'
-      )} />
-      {score}
-    </div>
-  );
-}

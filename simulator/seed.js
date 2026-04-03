@@ -15,6 +15,25 @@ const chalk = require('chalk');
 const API = process.env.API_URL || 'http://localhost:3001';
 const api = axios.create({ baseURL: API, timeout: 10000 });
 
+// ── Authentication ────────────────────────────────────────────────────────────
+
+async function login() {
+    try {
+        const res = await api.post('/api/auth/login', {
+            email: 'seeder@hospital.com',
+            password: 'seeder_pass'
+        });
+        const token = res.data.token;
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        log.ok('Authenticated successfully');
+        return token;
+    } catch (err) {
+        log.err('Authentication failed: ' + (err.response?.data?.error || err.message));
+        process.exit(1);
+    }
+}
+
+
 const log = {
     ok: (msg) => console.log(chalk.green('  ✓'), msg),
     info: (msg) => console.log(chalk.cyan('  ▶'), msg),
@@ -79,7 +98,8 @@ async function seed() {
         process.exit(1);
     }
 
-    // 2. Create Doctors
+    // 2. Auth & Doctors
+    await login();
     log.info('Creating doctors...');
     const doctors = [];
     for (const d of DOCTORS) {

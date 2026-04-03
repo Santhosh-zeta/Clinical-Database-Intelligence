@@ -75,7 +75,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
         <div className="p-4 border-t border-slate-100 flex flex-col gap-1">
           {(currentUser?.role === 'admin' || currentUser?.role === 'doctor') && (
-            <NavItem href="#" icon={<Settings size={20} />} label="Settings" active={false} />
+            <NavItem href="/settings" icon={<Settings size={20} />} label="Settings" active={pathname === '/settings'} />
           )}
           <button onClick={logout} className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 text-rose-500 hover:bg-rose-50 font-medium">
             <LogOut size={20} />

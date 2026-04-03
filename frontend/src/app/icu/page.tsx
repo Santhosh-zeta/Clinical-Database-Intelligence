@@ -4,30 +4,51 @@ import React, { useMemo } from 'react';
 import { BedDouble, AlertCircle, CheckCircle2, HeartPulse, UserCircle } from 'lucide-react';
 import { useSimulation } from '../../contexts/SimulationContext';
 import { cn } from '../../lib/utils';
+import { RiskBadge } from '../../components/ui/RiskBadge';
 import { Patient } from '../../lib/types';
 import Link from 'next/link';
 
 export default function ICUAllocationPage() {
   const { patients, vitalsHistory } = useSimulation();
 
-  // Mock ICU floor plan setup
+  // Dynamic ICU floor plan setup
   const icuLayout = useMemo(() => {
-    const icuA_patients = patients.filter(p => p.ward === 'ICU-A');
-    const icuB_patients = patients.filter(p => p.ward === 'ICU-B');
+    const icuPatients = patients.filter(p => p.ward && p.ward.includes('ICU'));
+    
+    // Extract unique ICU wards from active patients, fallback to default 'ICU' if none
+    let icuWards = Array.from(new Set(icuPatients.map(p => p.ward)));
+    if (icuWards.length === 0) {
+       icuWards = ['ICU'];
+    }
 
-    const buildWard = (prefix: string, active: Patient[]) => {
-      return Array.from({ length: 4 }).map((_, i) => {
-         const bedName = `Bed 0${i + 1}`;
-         const occupant = active.find(p => p.bed === bedName);
+    return icuWards.map(wardName => {
+      const activeInWard = icuPatients.filter(p => p.ward === wardName);
+      
+      // Dynamically generate beds for the ward based on occupied ones plus empty ones to make a grid of 5
+      const beds = Array.from({ length: 7 }).map((_, i) => {
+         const bedName = `ICU-0${i + 1}`;
+         const occupant = activeInWard.find(p => p.bed === bedName || (p.bed && p.bed.includes(`0${i+1}`)));
          return { bedName, occupant };
       });
-    };
-
-    return [
-      { name: 'Critical Care Unit A', beds: buildWard('ICU-A', icuA_patients) },
-      { name: 'Critical Care Unit B', beds: buildWard('ICU-B', icuB_patients) }
-    ];
+      return { name: wardName, beds };
+    });
   }, [patients]);
+
+  const handleDragStart = (e: React.DragEvent, patientId: string) => {
+    e.dataTransfer.setData('patientId', patientId);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetBedName: string, targetWardName: string) => {
+    e.preventDefault();
+    const patientId = e.dataTransfer.getData('patientId');
+    if (!patientId) return;
+    alert(`Transferring Patient ${patientId} to ${targetWardName} - ${targetBedName}`);
+    // A real implementation would call the backend here
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-10 w-full">
@@ -52,8 +73,14 @@ export default function ICUAllocationPage() {
                   const isCritical = bed.occupant && bed.occupant.riskScore === 'Critical';
                   
                   return (
-                    <div key={idx} className={cn(
-                      "relative rounded-[2rem] border p-6 flex flex-col h-64 transition-all group overflow-hidden",
+                    <div 
+                      key={idx} 
+                      onDrop={(e) => !bed.occupant && handleDrop(e, bed.bedName, ward.name)}
+                      onDragOver={handleDragOver}
+                      draggable={!!bed.occupant}
+                      onDragStart={(e) => bed.occupant && handleDragStart(e, bed.occupant.id)}
+                      className={cn(
+                      "relative rounded-[2rem] border p-6 flex flex-col h-64 transition-all group overflow-hidden cursor-grab active:cursor-grabbing",
                       bed.occupant 
                         ? "bg-white shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1" 
                         : "bg-slate-50/50 border-slate-200 border-dashed hover:bg-slate-50 hover:border-slate-300"
@@ -138,18 +165,4 @@ export default function ICUAllocationPage() {
   );
 }
 
-function RiskBadge({ score }: { score: string }) {
-  const isCritical = score === 'Critical';
-  return (
-    <div className={cn("px-3 py-1 rounded-xl text-[10px] font-extrabold uppercase tracking-widest border shadow-sm", 
-       isCritical ? "bg-rose-50 text-rose-600 border-rose-200 shadow-[0_2px_10px_rgba(244,63,94,0.1)]" : 
-       score === 'High' ? "bg-orange-50 text-orange-600 border-orange-200" : 
-       score === 'Medium' ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-white text-slate-600 border-slate-200"
-    )}>
-      <div className="flex items-center gap-1.5">
-         {isCritical && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />}
-         {score}
-      </div>
-    </div>
-  );
-}
+

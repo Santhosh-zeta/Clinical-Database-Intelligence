@@ -22,6 +22,40 @@ export default function IncidentLogsPage() {
   const criticalCount = alerts.filter(a => a.type === 'Critical' && !a.resolved).length;
   const warningCount = alerts.filter(a => a.type === 'Warning' && !a.resolved).length;
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+  const reversed = filteredAlerts.slice().reverse();
+  const totalPages = Math.ceil(reversed.length / itemsPerPage);
+  const paginatedAlerts = reversed.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const resolveAll = async () => {
+     for (const alert of filteredAlerts) {
+        if (!alert.resolved) {
+           markAlertResolved(alert.id);
+        }
+     }
+  };
+
+  const exportCSV = () => {
+    const header = ['Timestamp', 'Severity', 'Patient', 'Metric', 'Message', 'Status'].join(',');
+    const rows = filteredAlerts.map(a => [
+      `"${new Date(a.timestamp).toLocaleString()}"`,
+      `"${a.type}"`,
+      `"${a.patientName} (${a.patientId})"`,
+      `"${a.metric}"`,
+      `"${a.message}"`,
+      `"${a.resolved ? 'Resolved' : 'Active'}"`
+    ].join(','));
+    const csvContent = "data:text/csv;charset=utf-8," + [header, ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'incident_logs.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-8 w-full h-full">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -50,9 +84,11 @@ export default function IncidentLogsPage() {
                 <option value="All">All Severities</option>
                 <option value="Critical">Critical Only</option>
                 <option value="Warning">Warning Only</option>
-             </select>
+              </select>
              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
           </div>
+          <button onClick={exportCSV} className="bg-white border border-slate-200 shadow-sm px-4 py-2 text-sm font-semibold rounded-xl hover:bg-slate-50 transition-all text-slate-600">Export CSV</button>
+          <button onClick={resolveAll} className="bg-indigo-600 border border-indigo-700 shadow-sm px-4 py-2 text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-all text-white">Acknowledge All</button>
         </div>
       </div>
 
@@ -88,10 +124,10 @@ export default function IncidentLogsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredAlerts.slice().reverse().map((alert) => (
+              {paginatedAlerts.map((alert) => (
                 <AlertRow key={alert.id} alert={alert} onResolve={() => markAlertResolved(alert.id)} />
               ))}
-              {filteredAlerts.length === 0 && (
+              {paginatedAlerts.length === 0 && (
                 <tr>
                    <td colSpan={6} className="p-16 text-center text-slate-500 bg-slate-50/50">No incident logs matching your filters.</td>
                 </tr>
@@ -99,6 +135,29 @@ export default function IncidentLogsPage() {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50">
+            <span className="text-sm text-slate-500 font-medium">Page {currentPage} of {totalPages}</span>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                disabled={currentPage === 1}
+                className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm disabled:opacity-50 hover:bg-slate-50 shadow-sm"
+              >
+                Previous
+              </button>
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm disabled:opacity-50 hover:bg-slate-50 shadow-sm"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

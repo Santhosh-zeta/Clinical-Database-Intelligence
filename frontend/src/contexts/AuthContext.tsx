@@ -13,7 +13,7 @@ export interface User {
 
 interface AuthContextType {
     currentUser: User | null;
-    login: (user: User) => void;
+    login: (user: User, token?: string) => void;
     logout: () => void;
 }
 
@@ -30,14 +30,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    const login = (user: User) => {
+    const login = (user: User, token?: string) => {
         setCurrentUser(user);
+        if (token) {
+            localStorage.setItem('__intellicare_token', token);
+        }
         localStorage.setItem('__intellicare_auth', JSON.stringify(user));
+        document.cookie = `__intellicare_role=${user.role}; path=/`;
     };
 
     const logout = () => {
         setCurrentUser(null);
         localStorage.removeItem('__intellicare_auth');
+        localStorage.removeItem('__intellicare_token');
+        document.cookie = '__intellicare_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
     };
 
     return (

@@ -44,8 +44,14 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
 
     const fetchState = async () => {
       try {
+        const getToken = () => localStorage.getItem('__intellicare_token') || '';
+        const token = getToken();
+        if (!token) return;
+
+        const headers = { 'Authorization': `Bearer ${token}` };
+
         // 1. Fetch Active Admissions (Patients)
-        const admitRes = await fetch(`${API_BASE}/admissions?status=active`);
+        const admitRes = await fetch(`${API_BASE}/admissions?status=active`, { headers });
         if (!admitRes.ok) return;
         const admitData = await admitRes.json();
 
@@ -66,7 +72,7 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
         const newVitalsHistory: Record<string, Vitals[]> = {};
         for (const p of fetchedPatients) {
           try {
-            const vitalsRes = await fetch(`${API_BASE}/vitals/${(p as any).patientIdForVitals}?limit=20`);
+            const vitalsRes = await fetch(`${API_BASE}/vitals/${(p as any).patientIdForVitals}?limit=20`, { headers });
             if (vitalsRes.ok) {
               const vitalsData = await vitalsRes.json();
               // Backend returns DESC, we want ASC for charts (left-to-right)
@@ -90,7 +96,7 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
 
         // 3. Fetch Unacknowledged Alerts
         try {
-          const alertsRes = await fetch(`${API_BASE}/alerts?limit=50`);
+          const alertsRes = await fetch(`${API_BASE}/alerts?limit=50`, { headers });
           if (alertsRes.ok) {
             const alertsData = await alertsRes.json();
             const fetchedAlerts: Alert[] = (alertsData.data || []).map((a: any) => ({
@@ -129,7 +135,11 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     try {
       // Optimistic URL Update
       setAlerts(prev => prev.map(a => a.id === id ? { ...a, resolved: true } : a));
-      await fetch(`${API_BASE}/alerts/${id}/acknowledge`, { method: 'PUT' });
+      const getToken = () => localStorage.getItem('__intellicare_token') || '';
+      await fetch(`${API_BASE}/alerts/${id}/acknowledge`, { 
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
     } catch (e) {
       console.error(e);
     }

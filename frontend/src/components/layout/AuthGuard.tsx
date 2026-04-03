@@ -9,6 +9,28 @@ import { Shell } from './Shell';
 export function AuthGuard({ children }: { children: React.ReactNode }) {
     const { currentUser, login } = useAuth();
     const [selectedRole, setSelectedRole] = useState<'admin' | 'doctor' | 'patient'>('admin');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSimulatedLogin = async (mockUser: any) => {
+        setIsLoading(true);
+        try {
+            // We pass dummy values to the backend to generate a signed JWT since we are bypassing the UI form
+            const res = await fetch('http://localhost:3001/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: `${mockUser.id}@intellicare.demo`, password: 'password123' })
+            });
+            const data = await res.json();
+            
+            // If the DB doesn't have it, the backend returns a mock token.
+            // We override the role with whatever the user pressed so UI boundaries work perfectly.
+            login({ ...mockUser }, data.token);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     if (!currentUser) {
         // Render Login Screen
@@ -35,7 +57,8 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                                 <LoginOption
                                     title="System Administrator"
                                     desc="Full access to Command Center and RBAC settings"
-                                    onClick={() => login({ id: 'a1', name: 'Super Admin', role: 'admin' })}
+                                    onClick={() => handleSimulatedLogin({ id: 'a1', name: 'Super Admin', role: 'admin' })}
+                                    loading={isLoading}
                                 />
                             )}
                             {selectedRole === 'doctor' && (
@@ -43,12 +66,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                                     <LoginOption
                                         title="Dr. Sarah Connor"
                                         desc="Chief Cardiologist - Access to Patient Directory"
-                                        onClick={() => login({ id: 'd1', name: 'Dr. Sarah Connor', role: 'doctor' })}
+                                        onClick={() => handleSimulatedLogin({ id: 'd1', name: 'Dr. Sarah Connor', role: 'doctor' })}
+                                        loading={isLoading}
                                     />
                                     <LoginOption
                                         title="Dr. Vikram Nair"
                                         desc="Attending Physician"
-                                        onClick={() => login({ id: 'd2', name: 'Dr. Vikram Nair', role: 'doctor' })}
+                                        onClick={() => handleSimulatedLogin({ id: 'd2', name: 'Dr. Vikram Nair', role: 'doctor' })}
+                                        loading={isLoading}
                                     />
                                 </>
                             )}
@@ -57,12 +82,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                                     <LoginOption
                                         title="Rajesh Kumar"
                                         desc="Admitted: Fever • Room GEN-01"
-                                        onClick={() => login({ id: 'p1', name: 'Rajesh Kumar', role: 'patient', patientId: '1' })}
+                                        onClick={() => handleSimulatedLogin({ id: 'p1', name: 'Rajesh Kumar', role: 'patient', patientId: '1' })}
+                                        loading={isLoading}
                                     />
                                     <LoginOption
                                         title="Sunita Devi"
                                         desc="Admitted: Cough • Room GEN-02"
-                                        onClick={() => login({ id: 'p2', name: 'Sunita Devi', role: 'patient', patientId: '2' })}
+                                        onClick={() => handleSimulatedLogin({ id: 'p2', name: 'Sunita Devi', role: 'patient', patientId: '2' })}
+                                        loading={isLoading}
                                     />
                                 </>
                             )}
@@ -105,15 +132,15 @@ function RoleTab({ role, icon, label, selected, onClick }: any) {
     )
 }
 
-function LoginOption({ title, desc, onClick }: any) {
+function LoginOption({ title, desc, onClick, loading }: any) {
     return (
-        <div onClick={onClick} className="p-4 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30 rounded-2xl transition-all cursor-pointer group flex items-center justify-between">
+        <div onClick={loading ? undefined : onClick} className={cn("p-4 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30 rounded-2xl transition-all cursor-pointer group flex items-center justify-between", loading ? "opacity-50 pointer-events-none" : "")}>
             <div>
                 <p className="font-bold text-slate-800 text-sm group-hover:text-indigo-700 transition-colors">{title}</p>
                 <p className="text-xs text-slate-500 mt-1 font-medium">{desc}</p>
             </div>
             <div className="w-8 h-8 rounded-full bg-slate-50 group-hover:bg-indigo-100 flex items-center justify-center transition-colors">
-                <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600" />
+                {loading ? <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" /> : <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600" />}
             </div>
         </div>
     )
