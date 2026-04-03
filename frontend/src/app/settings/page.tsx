@@ -34,20 +34,18 @@ export default function SettingsPage() {
   const [showSaved, setShowSaved] = useState(false);
 
   // Settings State Example
-  const [thresholds, setThresholds] = useState({
-    hrMax: 140,
-    hrMin: 40,
-    spo2Min: 85,
-    tempMax: 40.0,
-    sysMax: 180,
-    sysMin: 70
+  const [settings, setSettings] = useState({
+    ews_high_threshold: 5,
+    ews_urgent_threshold: 7,
+    escalation_wait_minutes: 10
   });
 
   React.useEffect(() => {
-    fetch('http://localhost:3001/api/settings/clinical_thresholds')
+    const token = localStorage.getItem('__intellicare_token');
+    fetch('http://localhost:3001/api/admin/settings', { headers: { 'Authorization': `Bearer ${token}` } })
       .then(res => res.json())
       .then(res => {
-          if (res.data) setThresholds(res.data);
+          if (res.data) setSettings(res.data);
       })
       .catch(console.error);
   }, []);
@@ -68,10 +66,11 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-        await fetch('http://localhost:3001/api/settings/clinical_thresholds', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(thresholds)
+        const token = localStorage.getItem('__intellicare_token');
+        await fetch('http://localhost:3001/api/admin/settings', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(settings)
         });
         setIsSaving(false);
         setShowSaved(true);
@@ -183,85 +182,66 @@ export default function SettingsPage() {
                 <div className="bg-white border border-slate-200/80 rounded-[2rem] shadow-[0_4px_30px_rgba(0,0,0,0.02)] p-8 md:p-10">
                    <div className="mb-10">
                       <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-                         <Activity className="w-7 h-7 text-rose-500" /> Physiological Baseline Engine
+                         <Activity className="w-7 h-7 text-rose-500" /> Physiological Baseline & EWS Engine
                       </h2>
-                      <p className="text-slate-500 mt-2 font-medium">Fine-tune the mathematical bounds for Intellicare's Automated Alert Generation system. Changes made here globally override unit defaults.</p>
+                      <p className="text-slate-500 mt-2 font-medium">Fine-tune the mathematical bounds for Intellicare's Early Warning Score (EWS) system and alert escalation behavior. These govern global risk calculations.</p>
                    </div>
 
-                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                      {/* Heart Rate Block */}
+                   <div className="grid grid-cols-1 gap-8">
+                      {/* EWS High Threshold */}
                       <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 hover:border-slate-300 transition-colors">
                          <div className="flex justify-between items-start mb-6">
                             <div>
-                               <h3 className="font-extrabold text-slate-800 flex items-center gap-2">Heart Rate <HeartPulse className="w-4 h-4 text-rose-500" /></h3>
-                               <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-widest">Tachycardia Limit</p>
-                            </div>
-                            <div className="bg-white border border-slate-200 shadow-sm px-4 py-2 rounded-xl text-rose-600 font-black text-lg">
-                               {thresholds.hrMax} <span className="text-[10px] text-slate-400 uppercase">BPM</span>
-                            </div>
-                         </div>
-                         <input 
-                            type="range" min="100" max="200" step="1" 
-                            value={thresholds.hrMax}
-                            onChange={(e) => setThresholds({...thresholds, hrMax: parseInt(e.target.value)})}
-                            className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-500 hover:accent-rose-600 transition-all shadow-inner"
-                         />
-                      </div>
-
-                      {/* Oxygen Block */}
-                      <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 hover:border-slate-300 transition-colors">
-                         <div className="flex justify-between items-start mb-6">
-                            <div>
-                               <h3 className="font-extrabold text-slate-800 flex items-center gap-2">Oxygen Saturation <Activity className="w-4 h-4 text-sky-500" /></h3>
-                               <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-widest">Hypoxia Floor</p>
-                            </div>
-                            <div className="bg-white border border-slate-200 shadow-sm px-4 py-2 rounded-xl text-sky-600 font-black text-lg">
-                               {thresholds.spo2Min} <span className="text-[10px] text-slate-400 uppercase">% SpO2</span>
-                            </div>
-                         </div>
-                         <input 
-                            type="range" min="80" max="98" step="1" 
-                            value={thresholds.spo2Min}
-                            onChange={(e) => setThresholds({...thresholds, spo2Min: parseInt(e.target.value)})}
-                            className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500 hover:accent-sky-600 transition-all shadow-inner"
-                         />
-                      </div>
-
-                      {/* Temp Block */}
-                      <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 hover:border-slate-300 transition-colors">
-                         <div className="flex justify-between items-start mb-6">
-                            <div>
-                               <h3 className="font-extrabold text-slate-800 flex items-center gap-2">Body Temperature <Thermometer className="w-4 h-4 text-orange-500" /></h3>
-                               <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-widest">Hyperthermia Ceiling</p>
+                               <h3 className="font-extrabold text-slate-800 flex items-center gap-2">EWS 'High' Alert Threshold <AlertTriangle className="w-4 h-4 text-orange-500" /></h3>
+                               <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-widest">Minimum Score for High Alert</p>
                             </div>
                             <div className="bg-white border border-slate-200 shadow-sm px-4 py-2 rounded-xl text-orange-600 font-black text-lg">
-                               {thresholds.tempMax.toFixed(1)} <span className="text-[10px] text-slate-400 uppercase">°C</span>
+                               {settings.ews_high_threshold} <span className="text-[10px] text-slate-400 uppercase">Points</span>
                             </div>
                          </div>
                          <input 
-                            type="range" min="37.0" max="42.0" step="0.1" 
-                            value={thresholds.tempMax}
-                            onChange={(e) => setThresholds({...thresholds, tempMax: parseFloat(e.target.value)})}
+                            type="range" min="3" max="6" step="1" 
+                            value={settings.ews_high_threshold}
+                            onChange={(e) => setSettings({...settings, ews_high_threshold: parseInt(e.target.value)})}
                             className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-orange-500 hover:accent-orange-600 transition-all shadow-inner"
                          />
                       </div>
 
-                      {/* Blood Pressure Systolic */}
+                      {/* EWS Urgent Threshold */}
                       <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 hover:border-slate-300 transition-colors">
                          <div className="flex justify-between items-start mb-6">
                             <div>
-                               <h3 className="font-extrabold text-slate-800 flex items-center gap-2">Systolic Blood Pressure <Activity className="w-4 h-4 text-purple-500" /></h3>
-                               <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-widest">Hypertensive Crisis Threshold</p>
+                               <h3 className="font-extrabold text-slate-800 flex items-center gap-2">EWS 'Urgent' Alert Threshold <Activity className="w-4 h-4 text-rose-500" /></h3>
+                               <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-widest">Score triggering critical ICU response</p>
                             </div>
-                            <div className="bg-white border border-slate-200 shadow-sm px-4 py-2 rounded-xl text-purple-600 font-black text-lg">
-                               {thresholds.sysMax} <span className="text-[10px] text-slate-400 uppercase">mmHg</span>
+                            <div className="bg-white border border-slate-200 shadow-sm px-4 py-2 rounded-xl text-rose-600 font-black text-lg">
+                               {settings.ews_urgent_threshold} <span className="text-[10px] text-slate-400 uppercase">Points</span>
                             </div>
                          </div>
                          <input 
-                            type="range" min="120" max="200" step="1" 
-                            value={thresholds.sysMax}
-                            onChange={(e) => setThresholds({...thresholds, sysMax: parseInt(e.target.value)})}
-                            className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-500 hover:accent-purple-600 transition-all shadow-inner"
+                            type="range" min="6" max="10" step="1" 
+                            value={settings.ews_urgent_threshold}
+                            onChange={(e) => setSettings({...settings, ews_urgent_threshold: parseInt(e.target.value)})}
+                            className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-500 hover:accent-rose-600 transition-all shadow-inner"
+                         />
+                      </div>
+
+                      {/* Escalation Wait Minutes */}
+                      <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 hover:border-slate-300 transition-colors">
+                         <div className="flex justify-between items-start mb-6">
+                            <div>
+                               <h3 className="font-extrabold text-slate-800 flex items-center gap-2">Alert Escalation Delay <Bell className="w-4 h-4 text-indigo-500" /></h3>
+                               <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-widest">Time before escalating from Nurse to Doctor / ICU</p>
+                            </div>
+                            <div className="bg-white border border-slate-200 shadow-sm px-4 py-2 rounded-xl text-indigo-600 font-black text-lg">
+                               {settings.escalation_wait_minutes} <span className="text-[10px] text-slate-400 uppercase">Minutes</span>
+                            </div>
+                         </div>
+                         <input 
+                            type="range" min="1" max="30" step="1" 
+                            value={settings.escalation_wait_minutes}
+                            onChange={(e) => setSettings({...settings, escalation_wait_minutes: parseInt(e.target.value)})}
+                            className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-600 transition-all shadow-inner"
                          />
                       </div>
 

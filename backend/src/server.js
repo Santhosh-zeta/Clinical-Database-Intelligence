@@ -1,61 +1,81 @@
 'use strict';
 
 require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const { errorHandler } = require('./middleware/errorHandler');
+
+const express  = require('express');
+const helmet   = require('helmet');
+const cors     = require('cors');
+const morgan   = require('morgan');
+
+const { authenticate }   = require('./middleware/auth');
+const { tenancy }        = require('./middleware/tenancy');
+const { errorHandler }   = require('./middleware/errorHandler');
 
 // ── Routes ────────────────────────────────────────────────────────────────────
-const patientRoutes = require('./routes/patients');
-const admissionRoutes = require('./routes/admissions');
-const vitalsRoutes = require('./routes/vitals');
-const alertRoutes = require('./routes/alerts');
-const notificationRoutes = require('./routes/notifications');
-const bedRoutes = require('./routes/beds');
-const dashboardRoutes = require('./routes/dashboard');
-const auditRoutes = require('./routes/audit');
-const doctorRoutes = require('./routes/doctors');
-const settingsRoutes = require('./routes/settings');
-const authRoutes = require('./routes/auth');
-const { authenticate } = require('./middleware/auth');
+const authRoutes         = require('./routes/auth.routes');
+const patientRoutes      = require('./routes/patient.routes');
+const vitalsRoutes       = require('./routes/vitals.routes');
+const alertsRoutes       = require('./routes/alerts.routes');
+const admissionsRoutes   = require('./routes/admissions.routes');
+const prescriptionRoutes = require('./routes/prescription.routes');
+const adminRoutes        = require('./routes/admin.routes');
+const notifRoutes        = require('./routes/notifications.routes');
 
-const app = express();
+// Legacy routes (still serviced for frontend backward compat)
+const settingsRoutes     = require('./routes/settings');
+const bedsRoutes         = require('./routes/beds');
 
-// ── Global Middleware ─────────────────────────────────────────────────────────
+const app  = express();
+const PORT = process.env.PORT || 3001;
+
+// ── Security & Parsing ────────────────────────────────────────────────────────
 app.use(helmet());
-app.use(cors());
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
-app.use(express.json());
+app.use(cors({
+    origin:         process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+    methods:        ['GET','POST','PUT','PATCH','DELETE'],
+    allowedHeaders: ['Content-Type','Authorization'],
+    credentials:    true,
+}));
+app.use(express.json({ limit: '1mb' }));
+app.use(morgan('dev'));
 
 // ── Health Check ──────────────────────────────────────────────────────────────
-app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+app.get('/health', (_req, res) => res.json({
+    status: 'ok',
+    service: 'Clinical Intelligence API',
+    architecture: 'routes → controllers → services → functions → DB',
+    timestamp: new Date().toISOString(),
+}));
 
-// ── API Routes ────────────────────────────────────────────────────────────────
+// ── Public Routes ─────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
-app.use('/api/patients', authenticate, patientRoutes);
-app.use('/api/doctors', authenticate, doctorRoutes);
-app.use('/api/admissions', authenticate, admissionRoutes);
-app.use('/api/vitals', authenticate, vitalsRoutes);
-app.use('/api/alerts', authenticate, alertRoutes);
-app.use('/api/notifications', authenticate, notificationRoutes);
-app.use('/api/beds', authenticate, bedRoutes);
-app.use('/api/icu', authenticate, bedRoutes);        // ICU queries share the beds router
-app.use('/api/dashboard', authenticate, dashboardRoutes);
-app.use('/api/audit-logs', authenticate, auditRoutes);
-app.use('/api/settings', authenticate, settingsRoutes);
 
-// ── 404 Handler ───────────────────────────────────────────────────────────────
+// ── Protected Routes (JWT + tenancy on all) ───────────────────────────────────
+const guard = [authenticate, tenancy];
+
+app.use('/api/patients',         ...guard, patientRoutes);
+app.use('/api/vitals',           ...guard, vitalsRoutes);
+app.use('/api/alerts',           ...guard, alertsRoutes);
+app.use('/api/admissions',       ...guard, admissionsRoutes);
+app.use('/api/prescriptions',    ...guard, prescriptionRoutes);
+app.use('/api/admin',            ...guard, adminRoutes);
+app.use('/api/notifications',    ...guard, notifRoutes);
+
+// Legacy routes — kept for frontend backward compat (still JWT-guarded)
+app.use('/api/settings',         ...guard, settingsRoutes);
+app.use('/api/beds',             ...guard, bedsRoutes);
+
+// ── 404 Catch-all ─────────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));
 
-// ── Error Handler (must be last) ──────────────────────────────────────────────
+// ── Global Error Handler ──────────────────────────────────────────────────────
 app.use(errorHandler);
 
 // ── Start Server ──────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-    console.log(`[Server] Clinical Intelligence API running on http://localhost:${PORT}`);
+    console.log(`\n[Server] Clinical Intelligence API running on port ${PORT}`);
+    console.log(`[Server] Architecture: routes → controllers → services → functions → DB`);
+    console.log(`[Server] Multi-tenancy: org_id from JWT → req.orgId → all queries\n`);
 });
 
 module.exports = app;

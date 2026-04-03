@@ -17,17 +17,24 @@ export default function PatientsPage() {
   const { currentUser } = useAuth();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterMode, setFilterMode] = useState<'all' | 'critical' | 'stable' | 'icu'>('all');
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
   if (currentUser?.role === 'patient') return null;
 
-  const filteredPatients = patients.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.ward.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPatients = patients.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          p.ward.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          p.id.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!matchesSearch) return false;
+
+    if (filterMode === 'critical') return p.riskScore === 'Critical' || p.riskScore === 'High';
+    if (filterMode === 'stable') return p.riskScore === 'Low' || p.riskScore === 'Medium';
+    if (filterMode === 'icu') return p.ward.includes('ICU');
+    return true;
+  });
 
   const sortedPatients = React.useMemo(() => {
     let sortablePatients = [...filteredPatients];
@@ -68,7 +75,7 @@ export default function PatientsPage() {
           <p className="text-slate-500">View and manage all active admissions across departments.</p>
         </div>
 
-        <div className="flex gap-3 w-full md:w-auto">
+        <div className="flex flex-wrap gap-3 w-full md:w-auto">
           <div className="flex items-center bg-white border border-slate-200 shadow-sm rounded-xl px-4 py-2 flex-1 md:w-72 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all">
             <Search className="w-5 h-5 text-slate-400 mr-2" />
             <input
@@ -79,9 +86,33 @@ export default function PatientsPage() {
               className="bg-transparent border-none outline-none text-sm w-full text-slate-700 placeholder:text-slate-400"
             />
           </div>
-          <button className="bg-white border border-slate-200 shadow-sm p-2.5 rounded-xl hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200 transition-all text-slate-500">
-            <Filter className="w-5 h-5" />
-          </button>
+          
+          <div className="flex bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+            <button 
+              onClick={() => setFilterMode('all')}
+              className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors", filterMode === 'all' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700')}
+            >
+              All
+            </button>
+            <button 
+              onClick={() => setFilterMode('critical')}
+              className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors border divide-transparent", filterMode === 'critical' ? 'bg-rose-50 border-rose-100 shadow-sm text-rose-700' : 'border-transparent text-slate-500 hover:text-rose-600')}
+            >
+              Critical
+            </button>
+            <button 
+              onClick={() => setFilterMode('stable')}
+              className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors border divide-transparent", filterMode === 'stable' ? 'bg-emerald-50 border-emerald-100 shadow-sm text-emerald-700' : 'border-transparent text-slate-500 hover:text-emerald-600')}
+            >
+              Stable
+            </button>
+            <button 
+              onClick={() => setFilterMode('icu')}
+              className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors border divide-transparent", filterMode === 'icu' ? 'bg-indigo-50 border-indigo-100 shadow-sm text-indigo-700' : 'border-transparent text-slate-500 hover:text-indigo-600')}
+            >
+              ICU
+            </button>
+          </div>
         </div>
       </div>
 
@@ -181,7 +212,7 @@ function PatientRow({ patient, history }: { patient: Patient, history: any[] }) 
         </div>
       </td>
       <td className="p-4 pr-8 text-right">
-        <Link href={`/vitals`} className="inline-flex items-center justify-center p-2 rounded-full border bg-white border-slate-200 shadow-sm text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:border-indigo-200 transition-all mr-2">
+        <Link href={`/patients/${patient.id}`} className="inline-flex items-center justify-center p-2 rounded-full border bg-white border-slate-200 shadow-sm text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:border-indigo-200 transition-all mr-2">
           <ChevronRight className="w-5 h-5" />
         </Link>
       </td>

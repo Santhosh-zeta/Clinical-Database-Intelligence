@@ -2,12 +2,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type UserRole = 'admin' | 'doctor' | 'patient';
+export type UserRole = 'admin' | 'doctor' | 'nurse' | 'patient';
 
 export interface User {
     id: string;
     name: string;
     role: UserRole;
+    org_id?: string;
     patientId?: string; // used if role === 'patient' to look up their own records
 }
 

@@ -32,6 +32,8 @@ export interface Alert {
   timestamp: string;
   type: 'Critical' | 'Warning' | 'Info';
   message: string;
-  metric: 'Heart Rate' | 'Blood Pressure' | 'Oxygen Level' | 'Temperature' | 'Multiple';
+  metric: string;
   resolved: boolean;
+  escalationLevel?: number;
+  alertType?: string;
 }
