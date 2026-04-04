@@ -39,7 +39,7 @@ interface Notification {
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const { alerts } = useSimulation();
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, hasPermission } = useAuth();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const pathname = usePathname();
 
@@ -107,32 +107,39 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </Link>
 
         <nav className="flex-1 py-6 flex flex-col gap-1.5 px-3">
-          {currentUser?.role === 'admin' && (
-            <>
+          {hasPermission('VIEW_DASHBOARD') || ['admin', 'ultra_admin', 'hospital_admin'].includes(currentUser?.role || '') ? (
               <NavItem href="/" icon={<LayoutDashboard size={20} />} label="Command Center" active={pathname === '/'} />
-              <NavItem href="/users" icon={<Users size={20} />} label="Staff Management" active={pathname === '/users'} />
-            </>
-          )}
+          ) : null}
 
-          {(currentUser?.role === 'admin' || currentUser?.role === 'doctor') && (
+          {hasPermission('MANAGE_STAFF') || ['admin', 'ultra_admin'].includes(currentUser?.role || '') ? (
+              <NavItem href="/users" icon={<Users size={20} />} label="Staff Management" active={pathname === '/users'} />
+          ) : null}
+
+          {hasPermission('VIEW_ALL_PATIENTS') && (
             <>
               <NavItem href="/patients" icon={<Users size={20} />} label="Patient Directory" active={pathname === '/patients'} />
               <NavItem href="/vitals" icon={<Activity size={20} />} label="Vitals Monitor" active={pathname === '/vitals'} />
               <NavItem href="/icu" icon={<BedDouble size={20} />} label="ICU Allocation" active={pathname === '/icu'} />
-              <NavItem href="/alerts" icon={<AlertTriangle size={20} />} label="Alerts" active={pathname === '/alerts'} />
-              <NavItem href="/logs" icon={<Database size={20} />} label="Audit Logs" active={pathname === '/logs'} />
             </>
           )}
 
-          {currentUser?.role === 'patient' && (
+          {hasPermission('VIEW_ALERTS') && (
+              <NavItem href="/alerts" icon={<AlertTriangle size={20} />} label="Alerts" active={pathname === '/alerts'} />
+          )}
+
+          {hasPermission('VIEW_AUDIT_LOGS') || ['admin', 'ultra_admin', 'hospital_admin'].includes(currentUser?.role || '') ? (
+              <NavItem href="/logs" icon={<Database size={20} />} label="Audit Logs" active={pathname === '/logs'} />
+          ) : null}
+
+          {hasPermission('VIEW_OWN_PATIENT') && (
             <NavItem href="/my-vitals" icon={<HeartPulse size={20} />} label="My Live Vitals" active={pathname === '/my-vitals'} />
           )}
         </nav>
 
         <div className="p-4 border-t border-slate-100 flex flex-col gap-1">
-          {(currentUser?.role === 'admin' || currentUser?.role === 'doctor') && (
+          {hasPermission('MANAGE_SETTINGS') || ['admin', 'ultra_admin', 'hospital_admin', 'doctor'].includes(currentUser?.role || '') ? (
             <NavItem href="/settings" icon={<Settings size={20} />} label="Settings" active={pathname === '/settings'} />
-          )}
+          ) : null}
           <button onClick={logout} className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 text-rose-500 hover:bg-rose-50 font-medium">
             <LogOut size={20} />
             <span className="hidden lg:block text-sm leading-none">Logout</span>

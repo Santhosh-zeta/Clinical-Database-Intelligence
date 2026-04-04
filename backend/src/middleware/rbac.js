@@ -19,24 +19,35 @@ const requirePermission = (permissionCode) => async (req, res, next) => {
     }
 
     try {
-        const result = await db.query(
-            `SELECT 1
-             FROM user_roles ur
-             JOIN role_permissions rp ON rp.role_id    = ur.role_id
-             JOIN permissions p       ON p.id          = rp.permission_id
-             WHERE ur.doctor_id = $1
-               AND p.code       = $2
-               AND ur.org_id    = $3
-             LIMIT 1`,
-            [req.user.id, permissionCode, req.orgId || req.user.org_id || 1]
-        );
-
-        if (!result.rowCount) {
-            return res.status(403).json({
-                error: `Access denied. Required permission: ${permissionCode}`,
-            });
+        // 1. Fast path: check JWT injected permissions
+        if (req.user.permissions && Array.isArray(req.user.permissions) && req.user.permissions.length > 0) {
+            if (req.user.permissions.includes(permissionCode)) {
+                return next();
+            }
+        } 
+        // 2. Fallback: Role-based heuristics if exact permission mapping is missing
+        else {
+            const role = req.user.role?.toLowerCase() || '';
+            let fallbackGranted = false;
+            
+            if (role === 'admin' || role === 'ultra_admin' || role === 'hospital_admin') {
+                fallbackGranted = true;
+            } else if (role === 'doctor' && ['VIEW_PATIENT','VIEW_ALL_PATIENTS','PRESCRIBE_MEDICATION','VIEW_ALERTS','DISCHARGE_PATIENT'].includes(permissionCode)) {
+                fallbackGranted = true;
+            } else if (role === 'nurse' && ['VIEW_PATIENT','VIEW_ALL_PATIENTS','RECORD_VITALS','VIEW_ALERTS'].includes(permissionCode)) {
+                fallbackGranted = true;
+            } else if (role === 'patient' && ['VIEW_OWN_PATIENT'].includes(permissionCode)) {
+                fallbackGranted = true;
+            }
+            
+            if (fallbackGranted) {
+                return next();
+            }
         }
-        next();
+
+        return res.status(403).json({
+            error: `Access denied. Required permission: ${permissionCode}`,
+        });
     } catch (err) {
         next(err);
     }

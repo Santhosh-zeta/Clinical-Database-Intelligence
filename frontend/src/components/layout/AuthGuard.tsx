@@ -8,7 +8,7 @@ import { Shell } from './Shell';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
     const { currentUser, login } = useAuth();
-    const [selectedRole, setSelectedRole] = useState<'admin' | 'doctor' | 'patient'>('admin');
+    const [selectedRole, setSelectedRole] = useState<'admin' | 'doctor' | 'nurse' | 'patient'>('admin');
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSimulatedLogin = async (mockUser: any) => {
@@ -46,10 +46,11 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
                 <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-xl">
                     <div className="bg-white py-8 px-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:rounded-3xl sm:px-10 border border-slate-200/60">
-                        <div className="grid grid-cols-3 gap-3 mb-8">
+                        <div className="grid grid-cols-4 gap-2 mb-8">
                             <RoleTab role="admin" icon={<Shield size={20} />} label="Admin" selected={selectedRole} onClick={setSelectedRole} />
                             <RoleTab role="doctor" icon={<UserIcon size={20} />} label="Doctor" selected={selectedRole} onClick={setSelectedRole} />
-                            <RoleTab role="patient" icon={<Activity size={20} />} label="Patient" selected={selectedRole} onClick={setSelectedRole} />
+                            <RoleTab role="nurse" icon={<Activity size={20} />} label="Nurse" selected={selectedRole} onClick={setSelectedRole} />
+                            <RoleTab role="patient" icon={<UserIcon size={20} />} label="Patient" selected={selectedRole} onClick={setSelectedRole} />
                         </div>
 
                         <div className="space-y-4">
@@ -76,6 +77,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                                         loading={isLoading}
                                     />
                                 </>
+                            )}
+                            {selectedRole === 'nurse' && (
+                                <LoginOption
+                                    title="Nurse Clara"
+                                    desc="Ward Monitor • Can log vitals, cannot discharge"
+                                    onClick={() => handleSimulatedLogin({ id: 'n1', name: 'Nurse Clara', role: 'nurse' })}
+                                    loading={isLoading}
+                                />
                             )}
                             {selectedRole === 'patient' && (
                                 <>

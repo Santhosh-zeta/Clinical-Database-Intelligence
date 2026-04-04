@@ -22,11 +22,23 @@ const login = async (req, res, next) => {
         const match  = await bcrypt.compare(password, doctor.password_hash);
         if (!match) throw createError('Invalid credentials', 401);
 
+        // Fetch granular permissions from the new RBAC tables
+        const permsResult = await db.query(
+            `SELECT p.code 
+             FROM user_roles ur
+             JOIN role_permissions rp ON rp.role_id = ur.role_id
+             JOIN permissions p ON p.id = rp.permission_id
+             WHERE ur.doctor_id = $1`,
+            [doctor.id]
+        );
+        const permissions = permsResult.rows.map(r => r.code);
+
         const payload = {
-            id:     doctor.id,
-            name:   doctor.name,
-            role:   doctor.role,
-            org_id: doctor.organization_id,
+            id:          doctor.id,
+            name:        doctor.name,
+            role:        doctor.role,
+            org_id:      doctor.organization_id,
+            permissions: permissions
         };
 
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '12h' });

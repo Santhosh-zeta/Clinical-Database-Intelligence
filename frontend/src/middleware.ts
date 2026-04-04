@@ -6,9 +6,9 @@ export function middleware(request: NextRequest) {
   const url = request.nextUrl.pathname;
 
   if (role === 'patient') {
-     const restrictedRoutes = ['/patients', '/icu', '/logs', '/users', '/vitals'];
-     if (restrictedRoutes.some(route => url.startsWith(route))) {
-        return NextResponse.redirect(new URL('/', request.url));
+     const restrictedRoutes = ['/patients', '/icu', '/logs', '/users', '/vitals', '/dashboard'];
+     if (restrictedRoutes.some(route => url.startsWith(route)) || url === '/') {
+        return NextResponse.redirect(new URL('/my-vitals', request.url));
      }
   }
 
@@ -16,5 +16,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/patients/:path*', '/icu/:path*', '/logs/:path*', '/users/:path*', '/vitals/:path*'],
+  matcher: ['/patients/:path*', '/icu/:path*', '/logs/:path*', '/users/:path*', '/vitals/:path*', '/dashboard', '/'],
 };

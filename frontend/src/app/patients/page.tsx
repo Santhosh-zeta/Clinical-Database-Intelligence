@@ -11,6 +11,7 @@ import { RiskBadge } from '../../components/ui/RiskBadge';
 
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { PermissionGuard } from '../../components/layout/PermissionGuard';
 
 export default function PatientsPage() {
   const { patients, vitalsHistory } = useSimulation();
@@ -21,8 +22,6 @@ export default function PatientsPage() {
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
-
-  if (currentUser?.role === 'patient') return null;
 
   const filteredPatients = patients.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -67,107 +66,109 @@ export default function PatientsPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-6 w-full h-full">
+    <PermissionGuard requiredPermission="VIEW_ALL_PATIENTS">
+      <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-6 w-full h-full">
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-1">Patient Directory</h1>
-          <p className="text-slate-500">View and manage all active admissions across departments.</p>
-        </div>
-
-        <div className="flex flex-wrap gap-3 w-full md:w-auto">
-          <div className="flex items-center bg-white border border-slate-200 shadow-sm rounded-xl px-4 py-2 flex-1 md:w-72 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all">
-            <Search className="w-5 h-5 text-slate-400 mr-2" />
-            <input
-              type="text"
-              placeholder="Search by name, ID, ward..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent border-none outline-none text-sm w-full text-slate-700 placeholder:text-slate-400"
-            />
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-1">Patient Directory</h1>
+            <p className="text-slate-500">View and manage all active admissions across departments.</p>
           </div>
-          
-          <div className="flex bg-slate-100 p-1.5 rounded-xl border border-slate-200">
-            <button 
-              onClick={() => setFilterMode('all')}
-              className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors", filterMode === 'all' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700')}
-            >
-              All
-            </button>
-            <button 
-              onClick={() => setFilterMode('critical')}
-              className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors border divide-transparent", filterMode === 'critical' ? 'bg-rose-50 border-rose-100 shadow-sm text-rose-700' : 'border-transparent text-slate-500 hover:text-rose-600')}
-            >
-              Critical
-            </button>
-            <button 
-              onClick={() => setFilterMode('stable')}
-              className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors border divide-transparent", filterMode === 'stable' ? 'bg-emerald-50 border-emerald-100 shadow-sm text-emerald-700' : 'border-transparent text-slate-500 hover:text-emerald-600')}
-            >
-              Stable
-            </button>
-            <button 
-              onClick={() => setFilterMode('icu')}
-              className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors border divide-transparent", filterMode === 'icu' ? 'bg-indigo-50 border-indigo-100 shadow-sm text-indigo-700' : 'border-transparent text-slate-500 hover:text-indigo-600')}
-            >
-              ICU
-            </button>
-          </div>
-        </div>
-      </div>
 
-      <div className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex-1">
-        <div className="overflow-x-auto h-full">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/80 text-slate-500 text-sm border-b border-slate-100">
-                <th className="p-5 font-semibold pl-8 tracking-wide cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => requestSort('name')}>Patient Name</th>
-                <th className="p-5 font-semibold tracking-wide cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => requestSort('admissionDate')}>ID & Admission</th>
-                <th className="p-5 font-semibold tracking-wide cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => requestSort('ward')}>Location</th>
-                <th className="p-5 font-semibold tracking-wide cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => requestSort('riskScore')}>Risk Status</th>
-                <th className="p-5 font-semibold tracking-wide w-40 hidden sm:table-cell">Live HR Trends</th>
-                <th className="p-5 font-semibold text-right pr-8 tracking-wide">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {paginatedPatients.map((patient) => (
-                <PatientRow key={patient.id} patient={patient} history={vitalsHistory[patient.id] || []} />
-              ))}
-              {paginatedPatients.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="p-12 text-center text-slate-500 bg-slate-50/50">
-                    No patients found matching your search criteria.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50">
-            <span className="text-sm text-slate-500 font-medium">Page {currentPage} of {totalPages}</span>
-            <div className="flex gap-2">
+          <div className="flex flex-wrap gap-3 w-full md:w-auto">
+            <div className="flex items-center bg-white border border-slate-200 shadow-sm rounded-xl px-4 py-2 flex-1 md:w-72 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all">
+              <Search className="w-5 h-5 text-slate-400 mr-2" />
+              <input
+                type="text"
+                placeholder="Search by name, ID, ward..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-transparent border-none outline-none text-sm w-full text-slate-700 placeholder:text-slate-400"
+              />
+            </div>
+            
+            <div className="flex bg-slate-100 p-1.5 rounded-xl border border-slate-200">
               <button 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
-                disabled={currentPage === 1}
-                className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm disabled:opacity-50 hover:bg-slate-50 shadow-sm"
+                onClick={() => setFilterMode('all')}
+                className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors", filterMode === 'all' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700')}
               >
-                Previous
+                All
               </button>
               <button 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm disabled:opacity-50 hover:bg-slate-50 shadow-sm"
+                onClick={() => setFilterMode('critical')}
+                className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors border divide-transparent", filterMode === 'critical' ? 'bg-rose-50 border-rose-100 shadow-sm text-rose-700' : 'border-transparent text-slate-500 hover:text-rose-600')}
               >
-                Next
+                Critical
+              </button>
+              <button 
+                onClick={() => setFilterMode('stable')}
+                className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors border divide-transparent", filterMode === 'stable' ? 'bg-emerald-50 border-emerald-100 shadow-sm text-emerald-700' : 'border-transparent text-slate-500 hover:text-emerald-600')}
+              >
+                Stable
+              </button>
+              <button 
+                onClick={() => setFilterMode('icu')}
+                className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors border divide-transparent", filterMode === 'icu' ? 'bg-indigo-50 border-indigo-100 shadow-sm text-indigo-700' : 'border-transparent text-slate-500 hover:text-indigo-600')}
+              >
+                ICU
               </button>
             </div>
           </div>
-        )}
+        </div>
+
+        <div className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex-1">
+          <div className="overflow-x-auto h-full">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/80 text-slate-500 text-sm border-b border-slate-100">
+                  <th className="p-5 font-semibold pl-8 tracking-wide cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => requestSort('name')}>Patient Name</th>
+                  <th className="p-5 font-semibold tracking-wide cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => requestSort('admissionDate')}>ID & Admission</th>
+                  <th className="p-5 font-semibold tracking-wide cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => requestSort('ward')}>Location</th>
+                  <th className="p-5 font-semibold tracking-wide cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => requestSort('riskScore')}>Risk Status</th>
+                  <th className="p-5 font-semibold tracking-wide w-40 hidden sm:table-cell">Live HR Trends</th>
+                  <th className="p-5 font-semibold text-right pr-8 tracking-wide">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {paginatedPatients.map((patient) => (
+                  <PatientRow key={patient.id} patient={patient} history={vitalsHistory[patient.id] || []} />
+                ))}
+                {paginatedPatients.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="p-12 text-center text-slate-500 bg-slate-50/50">
+                      No patients found matching your search criteria.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50">
+              <span className="text-sm text-slate-500 font-medium">Page {currentPage} of {totalPages}</span>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm disabled:opacity-50 hover:bg-slate-50 shadow-sm"
+                >
+                  Previous
+                </button>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm disabled:opacity-50 hover:bg-slate-50 shadow-sm"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </PermissionGuard>
   );
 }
 
