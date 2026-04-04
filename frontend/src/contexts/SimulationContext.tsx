@@ -140,7 +140,7 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       setAlerts(prev => prev.map(a => a.id === id ? { ...a, resolved: true } : a));
       const getToken = () => localStorage.getItem('__intellicare_token') || '';
       await fetch(`${API_BASE}/alerts/${id}/acknowledge`, { 
-          method: 'PUT',
+          method: 'PATCH',
           headers: { 'Authorization': `Bearer ${getToken()}` }
       });
     } catch (e) {

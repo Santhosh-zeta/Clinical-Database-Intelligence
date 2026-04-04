@@ -14,9 +14,18 @@ import {
     Phone,
     Building2,
     Trash2,
-    Edit2
+    Edit2,
+    X,
+    Loader2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
+const API = 'http://localhost:3001/api';
+const getToken = () => localStorage.getItem('__intellicare_token') || '';
+const authHeader = () => ({
+    'Authorization': `Bearer ${getToken()}`,
+    'Content-Type': 'application/json',
+});
 
 interface Doctor {
     id: number;
@@ -29,6 +38,8 @@ interface Doctor {
     department_name: string;
 }
 
+const DEFAULT_FORM = { name: '', email: '', password: '', role: 'doctor', specialization: '', phone: '' };
+
 export default function UsersManagementPage() {
     const { currentUser } = useAuth();
     const router = useRouter();
@@ -36,6 +47,9 @@ export default function UsersManagementPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [form, setForm] = useState(DEFAULT_FORM);
+    const [isCreating, setIsCreating] = useState(false);
+    const [createError, setCreateError] = useState('');
 
     // Redirect if not admin
     useEffect(() => {
@@ -44,28 +58,60 @@ export default function UsersManagementPage() {
         }
     }, [currentUser, router]);
 
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const res = await fetch('http://localhost:3001/api/doctors');
-                if (res.ok) {
-                    const data = await res.json();
-                    setUsers(data.data);
-                }
-            } catch (err) {
-                console.error('Failed to fetch staff:', err);
-            } finally {
-                setLoading(false);
+    const fetchStaff = async () => {
+        setLoading(true);
+        try {
+            // ✅ Correct endpoint + auth header
+            const res = await fetch(`${API}/admin/staff`, { headers: authHeader() });
+            if (res.ok) {
+                const data = await res.json();
+                setUsers(data.data || []);
             }
-        };
-        fetchUsers();
+        } catch (err) {
+            console.error('Failed to fetch staff:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchStaff();
     }, []);
 
     const filteredUsers = users.filter(u =>
-        u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         u.specialization?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // ── Create staff handler ──────────────────────────────────────────────
+    const handleCreateStaff = async () => {
+        if (!form.name || !form.email || !form.password) {
+            setCreateError('Name, email, and password are required.');
+            return;
+        }
+        setIsCreating(true);
+        setCreateError('');
+        try {
+            const res = await fetch(`${API}/admin/staff`, {
+                method: 'POST',
+                headers: authHeader(),
+                body: JSON.stringify(form),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setCreateError(data.error || data.message || 'Failed to create staff member.');
+            } else {
+                setIsAddModalOpen(false);
+                setForm(DEFAULT_FORM);
+                await fetchStaff(); // Refresh list
+            }
+        } catch (err) {
+            setCreateError('Network error. Please try again.');
+        } finally {
+            setIsCreating(false);
+        }
+    };
 
     return (
         <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-6 w-full animate-in fade-in duration-500">
@@ -77,7 +123,7 @@ export default function UsersManagementPage() {
                 </div>
 
                 <button
-                    onClick={() => setIsAddModalOpen(true)}
+                    onClick={() => { setIsAddModalOpen(true); setCreateError(''); setForm(DEFAULT_FORM); }}
                     className="bg-indigo-600 text-white px-5 py-2.5 rounded-2xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95"
                 >
                     <Plus size={20} />
@@ -117,25 +163,63 @@ export default function UsersManagementPage() {
                 )}
             </div>
 
-            {/* Add User Mock Modal */}
+            {/* ── Add Staff Modal ──────────────────────────────────────────── */}
             {isAddModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl p-8 border border-slate-200 animate-in zoom-in-95 duration-300">
-                        <h3 className="text-2xl font-bold text-slate-900 mb-2">New Medical Staff</h3>
-                        <p className="text-slate-500 text-sm mb-8">Register a new doctor or nurse to the hospital intelligence system.</p>
-
-                        <div className="space-y-4">
-                            <Input label="Full Name" placeholder="e.g. Dr. John Doe" />
-                            <div className="grid grid-cols-2 gap-4">
-                                <Input label="Role" placeholder="doctor / nurse" />
-                                <Input label="Department" placeholder="Cardiology" />
+                    <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-300 overflow-hidden">
+                        <div className="p-8 pb-6">
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-2xl font-bold text-slate-900">New Medical Staff</h3>
+                                <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-xl transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
                             </div>
-                            <Input label="Professional Email" placeholder="staff@intellicare.com" />
+                            <p className="text-slate-500 text-sm mb-6">Register a new doctor or nurse to the hospital intelligence system.</p>
+
+                            <div className="space-y-3">
+                                <Input label="Full Name *" placeholder="e.g. Dr. Jane Smith" value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Role *</label>
+                                        <select
+                                            value={form.role}
+                                            onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+                                            className="w-full mt-1 px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/5 outline-none transition-all text-sm font-medium text-slate-700 cursor-pointer"
+                                        >
+                                            <option value="doctor">Doctor</option>
+                                            <option value="nurse">Nurse</option>
+                                            <option value="admin">Admin</option>
+                                        </select>
+                                    </div>
+                                    <Input label="Specialization" placeholder="Cardiology" value={form.specialization} onChange={v => setForm(f => ({ ...f, specialization: v }))} />
+                                </div>
+                                <Input label="Professional Email *" placeholder="staff@intellicare.com" type="email" value={form.email} onChange={v => setForm(f => ({ ...f, email: v }))} />
+                                <Input label="Password *" placeholder="Minimum 6 characters" type="password" value={form.password} onChange={v => setForm(f => ({ ...f, password: v }))} />
+                                <Input label="Phone" placeholder="+91 99999 00000" value={form.phone} onChange={v => setForm(f => ({ ...f, phone: v }))} />
+                            </div>
+
+                            {createError && (
+                                <div className="mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-700 font-medium">
+                                    {createError}
+                                </div>
+                            )}
                         </div>
 
-                        <div className="flex gap-3 mt-10">
-                            <button onClick={() => setIsAddModalOpen(false)} className="flex-1 px-6 py-3 rounded-2xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all">Cancel</button>
-                            <button onClick={() => setIsAddModalOpen(false)} className="flex-1 px-6 py-3 rounded-2xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">Create Account</button>
+                        <div className="flex gap-3 px-8 pb-8">
+                            <button
+                                onClick={() => setIsAddModalOpen(false)}
+                                className="flex-1 px-6 py-3 rounded-2xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCreateStaff}
+                                disabled={isCreating}
+                                className="flex-1 px-6 py-3 rounded-2xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-60 flex items-center justify-center gap-2"
+                            >
+                                {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                                {isCreating ? 'Creating...' : 'Create Account'}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -167,35 +251,52 @@ function StaffCard({ user }: { user: Doctor }) {
             </div>
 
             <div className="space-y-2.5">
-                <div className="flex items-center gap-2.5 text-slate-500">
+                <div className="flex items-center gap-2.5">
                     <Building2 size={16} className="text-slate-400" />
                     <span className="text-xs font-semibold text-slate-600">{user.department_name || 'N/A'} • {user.specialization || 'General'}</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-slate-500">
+                <div className="flex items-center gap-2.5">
                     <Mail size={16} className="text-slate-400" />
                     <span className="text-xs font-medium truncate">{user.email}</span>
                 </div>
+                {user.phone && (
+                    <div className="flex items-center gap-2.5">
+                        <Phone size={16} className="text-slate-400" />
+                        <span className="text-xs font-medium">{user.phone}</span>
+                    </div>
+                )}
             </div>
 
-            <div className="mt-8 pt-6 border-t border-slate-50 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="mt-6 pt-5 border-t border-slate-50 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="flex gap-2">
                     <button className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 transition-all border border-transparent hover:border-indigo-100"><Edit2 size={16} /></button>
                     <button className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all border border-transparent hover:border-rose-100"><Trash2 size={16} /></button>
                 </div>
-                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-bold border border-emerald-100">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    ACTIVE
+                <div className={cn(
+                    'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border',
+                    user.is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-100 text-slate-500 border-slate-200'
+                )}>
+                    <div className={cn('w-1.5 h-1.5 rounded-full', user.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400')} />
+                    {user.is_active ? 'ACTIVE' : 'INACTIVE'}
                 </div>
             </div>
         </div>
     );
 }
 
-function Input({ label, ...props }: any) {
+function Input({ label, value, onChange, type = 'text', placeholder }: {
+    label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string;
+}) {
     return (
         <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">{label}</label>
-            <input className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/5 outline-none transition-all text-sm font-medium text-slate-700" {...props} />
+            <input
+                type={type}
+                placeholder={placeholder}
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/5 outline-none transition-all text-sm font-medium text-slate-700"
+            />
         </div>
-    )
+    );
 }
