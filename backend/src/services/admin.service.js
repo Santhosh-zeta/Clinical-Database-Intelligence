@@ -89,7 +89,7 @@ async function getOrgSettings(orgId) {
 }
 
 async function updateOrgSettings(orgId, settings) {
-    const allowed = ['ews_high_threshold','ews_urgent_threshold','alert_cooldown_minutes','icu_auto_assign','escalation_wait_minutes'];
+    const allowed = ['ews_high_threshold', 'ews_urgent_threshold', 'alert_cooldown_minutes', 'icu_auto_assign', 'escalation_wait_minutes'];
     const sets = [];
     const params = [orgId];
     for (const [k, v] of Object.entries(settings)) {
@@ -176,7 +176,7 @@ async function getAlertsSummary(orgId) {
     );
 
     return {
-        by_severity:   bySeverity.rows,
+        by_severity: bySeverity.rows,
         by_escalation: byEscalation.rows,
         trend_alerts_24h: parseInt(trendAlerts.rows[0]?.count || 0),
         escalation_levels: {
@@ -218,9 +218,79 @@ async function getBedStatus(orgId) {
     return result.rows;
 }
 
+/** Ward-level analytics: occupancy + avg risk score per ward */
+async function getWardAnalytics(orgId) {
+    const result = await db.query(
+        `SELECT
+            w.id AS ward_id, w.name AS ward_name, w.ward_type,
+            COUNT(b.id) AS total_beds,
+            COUNT(b.id) FILTER (WHERE b.is_occupied=TRUE) AS occupied_beds,
+            COUNT(b.id) FILTER (WHERE b.is_occupied=FALSE) AS available_beds,
+            COUNT(b.id) FILTER (WHERE b.is_icu=TRUE) AS icu_beds,
+            ROUND(AVG(rs.score) FILTER (WHERE b.is_occupied=TRUE AND rs.score IS NOT NULL), 1) AS avg_risk_score,
+            COUNT(a.id) FILTER (WHERE rs.category='critical') AS critical_count,
+            COUNT(a.id) FILTER (WHERE al.id IS NOT NULL) AS alert_count
+         FROM wards w
+         LEFT JOIN beds b ON b.ward_id = w.id AND b.organization_id = $1
+         LEFT JOIN admissions a ON a.bed_id = b.id AND a.status = 'active'
+         LEFT JOIN LATERAL (
+             SELECT score, category FROM risk_scores
+             WHERE admission_id = a.id ORDER BY calculated_at DESC LIMIT 1
+         ) rs ON TRUE
+         LEFT JOIN alerts al ON al.admission_id = a.id AND al.is_acknowledged = FALSE
+         WHERE w.organization_id = $1
+         GROUP BY w.id, w.name, w.ward_type
+         ORDER BY w.ward_type, w.name`,
+        [orgId]
+    );
+    return result.rows;
+}
+
+/** Discharge trend: daily discharge count for last 14 days */
+async function getDischargeTrends(orgId) {
+    const result = await db.query(
+        `SELECT
+            DATE(discharged_at) AS day,
+            COUNT(*) AS discharged,
+            COUNT(*) FILTER (WHERE EXTRACT(HOUR FROM discharged_at) BETWEEN 0 AND 11) AS morning,
+            COUNT(*) FILTER (WHERE EXTRACT(HOUR FROM discharged_at) BETWEEN 12 AND 23) AS afternoon
+         FROM admissions
+         WHERE organization_id = $1
+           AND status = 'discharged'
+           AND discharged_at >= NOW() - INTERVAL '14 days'
+         GROUP BY DATE(discharged_at)
+         ORDER BY day`,
+        [orgId]
+    );
+    return result.rows;
+}
+
+/** Staff performance: admissions per doctor in last 30 days */
+async function getStaffPerformance(orgId) {
+    const result = await db.query(
+        `SELECT
+            d.id, d.name, d.specialization, d.is_active,
+            COUNT(a.id) AS total_admissions,
+            COUNT(a.id) FILTER (WHERE a.status='active') AS active_patients,
+            COUNT(a.id) FILTER (WHERE a.status='discharged' AND a.discharged_at >= NOW() - INTERVAL '30 days') AS discharged_30d,
+            ROUND(AVG(rs.score) FILTER (WHERE a.status='active' AND rs.score IS NOT NULL), 1) AS avg_patient_risk
+         FROM doctors d
+         LEFT JOIN admissions a ON a.doctor_id = d.id AND a.organization_id = $1
+         LEFT JOIN LATERAL (
+             SELECT score FROM risk_scores WHERE admission_id = a.id ORDER BY calculated_at DESC LIMIT 1
+         ) rs ON TRUE
+         WHERE d.organization_id = $1 AND d.is_active = TRUE
+         GROUP BY d.id, d.name, d.specialization, d.is_active
+         ORDER BY active_patients DESC`,
+        [orgId]
+    );
+    return result.rows;
+}
+
 module.exports = {
     getDashboardStats, getBedHeatmap, getEWSSummary,
     getOrgSettings, updateOrgSettings,
     getCriticalPatients, getAlertsSummary, getBedStatus,
+    getWardAnalytics, getDischargeTrends, getStaffPerformance,
 };
 

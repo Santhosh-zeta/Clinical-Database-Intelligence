@@ -18,7 +18,7 @@ router.get('/', requirePermission('VIEW_PATIENT'), ctrl.list);
 /** POST /api/patients            — create */
 router.post('/',
     requirePermission('CREATE_PATIENT'),
-    [body('name').notEmpty().trim(), body('gender').isIn(['M','F','O'])],
+    [body('name').notEmpty().trim(), body('gender').isIn(['M', 'F', 'O'])],
     validate,
     ctrl.create
 );
@@ -39,5 +39,32 @@ router.post('/:id/symptoms',
     validate,
     ctrl.addSymptoms
 );
+
+/** GET  /api/patients/:id/appointments — scheduled appointments */
+const db = require('../config/db');
+router.get('/:id/appointments', requirePermission('VIEW_PATIENT'), async (req, res, next) => {
+    try {
+        const result = await db.query(
+            `SELECT a.*, d.name as doctor_name
+             FROM patient_appointments a
+             JOIN doctors d ON d.id = a.doctor_id
+             WHERE a.patient_id = $1 AND a.organization_id = $2
+             ORDER BY a.appointment_at ASC`,
+            [req.params.id, req.orgId]
+        );
+        res.json({ data: result.rows });
+    } catch (e) { next(e); }
+});
+
+/** GET  /api/patients/:id/admissions — admission history */
+router.get('/:id/admissions', requirePermission('VIEW_PATIENT'), async (req, res, next) => {
+    try {
+        const result = await db.query(
+            `SELECT * FROM admissions WHERE patient_id = $1 AND organization_id = $2 ORDER BY admitted_at DESC`,
+            [req.params.id, req.orgId]
+        );
+        res.json({ data: result.rows });
+    } catch (e) { next(e); }
+});
 
 module.exports = router;

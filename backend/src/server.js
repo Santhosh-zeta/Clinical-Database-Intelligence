@@ -2,39 +2,39 @@
 
 require('dotenv').config();
 
-const express  = require('express');
-const helmet   = require('helmet');
-const cors     = require('cors');
-const morgan   = require('morgan');
+const express = require('express');
+const helmet = require('helmet');
+const cors = require('cors');
+const morgan = require('morgan');
 
-const { authenticate }   = require('./middleware/auth');
-const { tenancy }        = require('./middleware/tenancy');
-const { errorHandler }   = require('./middleware/errorHandler');
+const { authenticate } = require('./middleware/auth');
+const { tenancy } = require('./middleware/tenancy');
+const { errorHandler } = require('./middleware/errorHandler');
 
 // ── Routes ────────────────────────────────────────────────────────────────────
-const authRoutes         = require('./routes/auth.routes');
-const patientRoutes      = require('./routes/patient.routes');
-const vitalsRoutes       = require('./routes/vitals.routes');
-const alertsRoutes       = require('./routes/alerts.routes');
-const admissionsRoutes   = require('./routes/admissions.routes');
+const authRoutes = require('./routes/auth.routes');
+const patientRoutes = require('./routes/patient.routes');
+const vitalsRoutes = require('./routes/vitals.routes');
+const alertsRoutes = require('./routes/alerts.routes');
+const admissionsRoutes = require('./routes/admissions.routes');
 const prescriptionRoutes = require('./routes/prescription.routes');
-const adminRoutes        = require('./routes/admin.routes');
-const notifRoutes        = require('./routes/notifications.routes');
+const adminRoutes = require('./routes/admin.routes');
+const notifRoutes = require('./routes/notifications.routes');
 
 // Legacy routes (still serviced for frontend backward compat)
-const settingsRoutes     = require('./routes/settings');
-const bedsRoutes         = require('./routes/beds');
+const settingsRoutes = require('./routes/settings');
+const bedsRoutes = require('./routes/beds');
 
-const app  = express();
+const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ── Security & Parsing ────────────────────────────────────────────────────────
 app.use(helmet());
 app.use(cors({
-    origin:         process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-    methods:        ['GET','POST','PUT','PATCH','DELETE'],
-    allowedHeaders: ['Content-Type','Authorization'],
-    credentials:    true,
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
 }));
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
@@ -53,17 +53,18 @@ app.use('/api/auth', authRoutes);
 // ── Protected Routes (JWT + tenancy on all) ───────────────────────────────────
 const guard = [authenticate, tenancy];
 
-app.use('/api/patients',         ...guard, patientRoutes);
-app.use('/api/vitals',           ...guard, vitalsRoutes);
-app.use('/api/alerts',           ...guard, alertsRoutes);
-app.use('/api/admissions',       ...guard, admissionsRoutes);
-app.use('/api/prescriptions',    ...guard, prescriptionRoutes);
-app.use('/api/admin',            ...guard, adminRoutes);
-app.use('/api/notifications',    ...guard, notifRoutes);
+app.use('/api/patients', ...guard, patientRoutes);
+app.use('/api/vitals', ...guard, vitalsRoutes);
+app.use('/api/alerts', ...guard, alertsRoutes);
+app.use('/api/admissions', ...guard, admissionsRoutes);
+app.use('/api/prescriptions', ...guard, prescriptionRoutes);
+app.use('/api/handovers', ...guard, require('./routes/handover.routes'));
+app.use('/api/admin', ...guard, adminRoutes);
+app.use('/api/notifications', ...guard, notifRoutes);
 
 // Legacy routes — kept for frontend backward compat (still JWT-guarded)
-app.use('/api/settings',         ...guard, settingsRoutes);
-app.use('/api/beds',             ...guard, bedsRoutes);
+app.use('/api/settings', ...guard, settingsRoutes);
+app.use('/api/beds', ...guard, bedsRoutes);
 
 // ── 404 Catch-all ─────────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));

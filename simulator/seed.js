@@ -20,8 +20,8 @@ const api = axios.create({ baseURL: API, timeout: 10000 });
 async function login() {
     try {
         const res = await api.post('/api/auth/login', {
-            email: 'seeder@hospital.com',
-            password: 'seeder_pass'
+            email: 'a1@intellicare.demo',
+            password: 'password123'
         });
         const token = res.data.token;
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -100,13 +100,13 @@ async function seed() {
 
     // 2. Auth & Doctors
     await login();
-    log.info('Creating doctors...');
+    log.info('Creating doctors/staff...');
     const doctors = [];
     for (const d of DOCTORS) {
         try {
-            const doc = await post('/api/doctors', d);
+            const doc = await post('/api/admin/staff', d);
             doctors.push(doc);
-            log.ok(`Doctor: ${doc.name} (id=${doc.id}, role=${doc.role})`);
+            log.ok(`Staff: ${doc.name} (id=${doc.id}, role=${doc.role})`);
         } catch (e) {
             log.warn(`Skipped ${d.name}: ${e.response?.data?.error || e.message}`);
         }

@@ -32,8 +32,8 @@ const api = axios.create({ baseURL: API, timeout: 8000 });
 async function login() {
     try {
         const res = await api.post('/api/auth/login', {
-            email: 'simulator@hospital.com',
-            password: 'simulator_pass'
+            email: 'a1@intellicare.demo',
+            password: 'password123'
         });
         const token = res.data.token;
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -123,8 +123,8 @@ async function postVitals(admissionId, vitals) {
 }
 
 async function getActiveAdmissions() {
-    const res = await api.get('/api/admissions?status=active&limit=10');
-    return res.data.data || [];
+    const res = await api.get('/api/admissions?status=active');
+    return res.data.data || []; // Fixed from res.data.rows
 }
 
 async function getAlerts() {

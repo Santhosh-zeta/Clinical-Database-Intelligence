@@ -27,12 +27,12 @@ const ACTION_COLORS: Record<string, string> = {
 };
 
 const TABLE_COLORS: Record<string, string> = {
-  patients:      'bg-indigo-50 text-indigo-700',
-  admissions:    'bg-purple-50 text-purple-700',
-  vitals:        'bg-sky-50 text-sky-700',
+  patients: 'bg-indigo-50 text-indigo-700',
+  admissions: 'bg-purple-50 text-purple-700',
+  vitals: 'bg-sky-50 text-sky-700',
   prescriptions: 'bg-teal-50 text-teal-700',
-  alerts:        'bg-orange-50 text-orange-700',
-  doctors:       'bg-violet-50 text-violet-700',
+  alerts: 'bg-orange-50 text-orange-700',
+  doctors: 'bg-violet-50 text-violet-700',
 };
 
 export default function AuditLogsPage() {
@@ -52,8 +52,8 @@ export default function AuditLogsPage() {
       const params = new URLSearchParams({
         page: String(page),
         limit: String(itemsPerPage),
-        ...(filterTable  && { table_name: filterTable }),
-        ...(filterAction && { action:     filterAction }),
+        ...(filterTable && { table_name: filterTable }),
+        ...(filterAction && { action: filterAction }),
       });
       const res = await fetch(`${API}/admin/audit-logs?${params}`, { headers: ah() });
       if (res.ok) {
@@ -62,7 +62,7 @@ export default function AuditLogsPage() {
         setTotalCount(data.count || 0);
         setLastRefreshed(new Date());
       }
-    } catch (_) {}
+    } catch (_) { }
     setLoading(false);
   }, [filterTable, filterAction, currentPage]);
 
@@ -228,8 +228,8 @@ export default function AuditLogsPage() {
                     </td>
                     <td className="p-5 text-sm font-bold text-slate-600 font-mono">#{log.record_id}</td>
                     <td className="p-5 text-sm text-slate-500 max-w-xs">
-                      <span className="font-mono text-[11px] bg-slate-50 border border-slate-100 px-2 py-1 rounded-md block truncate" title={JSON.stringify(log.changed_data)}>
-                        {JSON.stringify(log.changed_data).slice(0, 80)}{JSON.stringify(log.changed_data).length > 80 ? '…' : ''}
+                      <span className="font-mono text-[11px] bg-slate-50 border border-slate-100 px-2 py-1 rounded-md block truncate" title={JSON.stringify(log.changed_data || {})}>
+                        {(JSON.stringify(log.changed_data || {})).slice(0, 80)}{(JSON.stringify(log.changed_data || {})).length > 80 ? '…' : ''}
                       </span>
                     </td>
                     <td className="p-5 pr-8 text-sm font-medium text-slate-700">

@@ -60,10 +60,10 @@ ON CONFLICT DO NOTHING;
 -- First, drop the check constraint on role to allow 'PATIENT' role
 ALTER TABLE doctors DROP CONSTRAINT IF EXISTS doctors_role_check;
 
-INSERT INTO doctors (name, email, password_hash, role)
+INSERT INTO doctors (name, email, password_hash, role, organization_id)
 SELECT 'Demo Patient', 'patient@demo.com', 
-       (SELECT password_hash FROM doctors WHERE email = 'doctor@demo.com' LIMIT 1), 
-       'PATIENT'
+       COALESCE((SELECT password_hash FROM doctors WHERE email = 'doctor@demo.com' LIMIT 1), '\$2b\$10\$GLDiv6uy8Pf/qTCqMBSlBOwtmvnrHi2Ebfb/qE0Z3luOPaXoWieaS'), 
+       'PATIENT', 1
 WHERE NOT EXISTS (
     SELECT 1 FROM doctors WHERE email = 'patient@demo.com'
 );

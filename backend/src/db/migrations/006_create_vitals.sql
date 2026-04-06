@@ -2,8 +2,9 @@
 -- Migration 006: Vitals (TimescaleDB Hypertable)
 -- ============================================================
 
--- Requires TimescaleDB extension
-CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
+-- TimescaleDB extension is already pre-loaded by the timescale/timescaledb image.
+-- Manual CREATE EXTENSION can sometimes cause FATAL terminations during container boot.
+-- CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 
 CREATE TABLE IF NOT EXISTS vitals (
     -- TimescaleDB requires the time column to be part of PK for newer versions

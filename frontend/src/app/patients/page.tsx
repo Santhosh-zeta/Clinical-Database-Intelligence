@@ -1,32 +1,64 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useSimulation } from '../../contexts/SimulationContext';
+import React, { useState, useEffect } from 'react';
 import { cn } from '../../lib/utils';
-import { Search, Filter, ChevronRight, Activity } from 'lucide-react';
+import { Search, Filter, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { Patient } from '../../lib/types';
-import { AreaChart, Area, ResponsiveContainer, YAxis, Tooltip } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, YAxis } from 'recharts';
 import { RiskBadge } from '../../components/ui/RiskBadge';
 
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { PermissionGuard } from '../../components/layout/PermissionGuard';
 
+const API = 'http://localhost:3001/api';
+const getToken = () => localStorage.getItem('__intellicare_token') || '';
+const ah = () => ({ Authorization: `Bearer ${getToken()}` });
+
 export default function PatientsPage() {
-  const { patients, vitalsHistory } = useSimulation();
   const { currentUser } = useAuth();
   const router = useRouter();
+  const [patients, setPatients] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMode, setFilterMode] = useState<'all' | 'critical' | 'stable' | 'icu'>('all');
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
+  useEffect(() => {
+    async function fetchAdmissions() {
+      try {
+        const res = await fetch(`${API}/admissions?status=active`, { headers: ah() });
+        if (res.ok) {
+          const data = await res.json();
+          const mapped = (data.data?.rows || data.rows || []).map((a: any) => ({
+            id: String(a.id),
+            patient_id: a.patient_id,
+            admission_id: a.id,
+            name: a.patient_name,
+            age: new Date().getFullYear() - new Date(a.date_of_birth).getFullYear(),
+            gender: a.gender,
+            diagnosis: a.diagnosis,
+            ward: a.ward_name || 'Unassigned',
+            bed: a.bed_number || 'Waitlist',
+            riskScore: a.risk_category === 'critical' ? 'Critical' : a.risk_category === 'high' ? 'High' : (a.risk_category === 'medium' ? 'Medium' : 'Low'),
+            avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(a.patient_name)}&background=random`,
+            admissionDate: a.admitted_at,
+            doctor: a.doctor_name
+          }));
+          setPatients(mapped);
+        }
+      } catch (_) { }
+      setLoading(false);
+    }
+    fetchAdmissions();
+  }, []);
+
   const filteredPatients = patients.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          p.ward.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          p.id.toLowerCase().includes(searchTerm.toLowerCase());
+      p.ward.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.id.toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
 
     if (filterMode === 'critical') return p.riskScore === 'Critical' || p.riskScore === 'High';
@@ -39,9 +71,9 @@ export default function PatientsPage() {
     let sortablePatients = [...filteredPatients];
     if (sortConfig !== null) {
       sortablePatients.sort((a, b) => {
-        let aVal: any = a[sortConfig.key as keyof Patient];
-        let bVal: any = b[sortConfig.key as keyof Patient];
-        
+        let aVal: any = a[sortConfig.key];
+        let bVal: any = b[sortConfig.key];
+
         if (sortConfig.key === 'riskScore') {
           const riskWeight: Record<string, number> = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
           aVal = riskWeight[a.riskScore] || 0;
@@ -86,27 +118,27 @@ export default function PatientsPage() {
                 className="bg-transparent border-none outline-none text-sm w-full text-slate-700 placeholder:text-slate-400"
               />
             </div>
-            
+
             <div className="flex bg-slate-100 p-1.5 rounded-xl border border-slate-200">
-              <button 
+              <button
                 onClick={() => setFilterMode('all')}
                 className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors", filterMode === 'all' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700')}
               >
                 All
               </button>
-              <button 
+              <button
                 onClick={() => setFilterMode('critical')}
                 className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors border divide-transparent", filterMode === 'critical' ? 'bg-rose-50 border-rose-100 shadow-sm text-rose-700' : 'border-transparent text-slate-500 hover:text-rose-600')}
               >
                 Critical
               </button>
-              <button 
+              <button
                 onClick={() => setFilterMode('stable')}
                 className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors border divide-transparent", filterMode === 'stable' ? 'bg-emerald-50 border-emerald-100 shadow-sm text-emerald-700' : 'border-transparent text-slate-500 hover:text-emerald-600')}
               >
                 Stable
               </button>
-              <button 
+              <button
                 onClick={() => setFilterMode('icu')}
                 className={cn("px-3 py-1.5 rounded-lg font-medium text-xs transition-colors border divide-transparent", filterMode === 'icu' ? 'bg-indigo-50 border-indigo-100 shadow-sm text-indigo-700' : 'border-transparent text-slate-500 hover:text-indigo-600')}
               >
@@ -130,10 +162,15 @@ export default function PatientsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {paginatedPatients.map((patient) => (
-                  <PatientRow key={patient.id} patient={patient} history={vitalsHistory[patient.id] || []} />
+                {loading && (
+                  <tr>
+                    <td colSpan={6} className="p-12 text-center text-slate-500 bg-slate-50/50">Loading patients...</td>
+                  </tr>
+                )}
+                {!loading && paginatedPatients.map((patient) => (
+                  <PatientRow key={patient.id} patient={patient} />
                 ))}
-                {paginatedPatients.length === 0 && (
+                {!loading && paginatedPatients.length === 0 && (
                   <tr>
                     <td colSpan={6} className="p-12 text-center text-slate-500 bg-slate-50/50">
                       No patients found matching your search criteria.
@@ -143,21 +180,21 @@ export default function PatientsPage() {
               </tbody>
             </table>
           </div>
-          
+
           {/* Pagination Controls */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50">
               <span className="text-sm text-slate-500 font-medium">Page {currentPage} of {totalPages}</span>
               <div className="flex gap-2">
-                <button 
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                   className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm disabled:opacity-50 hover:bg-slate-50 shadow-sm"
                 >
                   Previous
                 </button>
-                <button 
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                   className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm disabled:opacity-50 hover:bg-slate-50 shadow-sm"
                 >
@@ -172,9 +209,25 @@ export default function PatientsPage() {
   );
 }
 
-function PatientRow({ patient, history }: { patient: Patient, history: any[] }) {
+function PatientRow({ patient }: { patient: any }) {
+  const [history, setHistory] = useState<any[]>([]);
 
-  const currentHr = history.length > 0 ? history[history.length - 1].heartRate : '--';
+  useEffect(() => {
+    async function fetchTrend() {
+      try {
+        // Use the base vitals endpoint for raw history needed by the sparkline
+        const res = await fetch(`${API}/vitals/${patient.id}?limit=12`, { headers: ah() });
+        if (res.ok) {
+          const d = await res.json();
+          // Ensure it's an array for .map()
+          setHistory(Array.isArray(d.data) ? d.data : []);
+        }
+      } catch (_) { }
+    }
+    fetchTrend();
+  }, [patient.id]);
+
+  const currentHr = history.length > 0 ? history[history.length - 1].heart_rate : '--';
   const isCriticalHr = currentHr !== '--' && (currentHr > 120 || currentHr < 50);
 
   return (
@@ -202,8 +255,8 @@ function PatientRow({ patient, history }: { patient: Patient, history: any[] }) 
       <td className="p-4 hidden sm:table-cell">
         <div className="flex items-center justify-between gap-3 h-10 w-32 bg-slate-50 px-3 py-1.5 border border-slate-100 rounded-xl shadow-inner">
           <div className="flex-1 h-full opacity-60">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={history.map(h => ({ val: h.heartRate }))}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+              <AreaChart data={history.map(h => ({ val: h.heart_rate }))}>
                 <YAxis domain={['auto', 'auto']} hide />
                 <Area type="monotone" dataKey="val" stroke={isCriticalHr ? '#f43f5e' : '#6366f1'} fill="none" strokeWidth={2.5} isAnimationActive={false} />
               </AreaChart>

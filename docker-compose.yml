@@ -38,8 +38,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: >
-      sh -c "npm run migrate && npm start"
+    command: npm start
     volumes:
       - ./logs:/app/logs            # Persist morgan access logs
 

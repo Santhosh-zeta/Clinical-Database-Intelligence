@@ -16,9 +16,9 @@ import {
   BellOff,
   Database,
   HeartPulse,
+  Stethoscope,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSimulation } from '../../contexts/SimulationContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '../../lib/utils';
 import Link from 'next/link';
@@ -38,7 +38,6 @@ interface Notification {
 }
 
 export function Shell({ children }: { children: React.ReactNode }) {
-  const { alerts } = useSimulation();
   const { currentUser, logout, hasPermission } = useAuth();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const pathname = usePathname();
@@ -47,23 +46,33 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
 
+  const [criticalAlertCount, setCriticalAlertCount] = useState(0);
+
   const fetchNotifications = useCallback(async () => {
     if (!currentUser || currentUser.role === 'patient') return;
     setNotifLoading(true);
     try {
-      const res = await fetch(`${API}/notifications?limit=20`, { headers: ah() });
+      const [res, alRes] = await Promise.all([
+        fetch(`${API}/notifications?limit=20`, { headers: ah() }),
+        fetch(`${API}/alerts`, { headers: ah() })
+      ]);
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.data || []);
       }
-    } catch (_) {}
+      if (alRes.ok) {
+        const adata = await alRes.json();
+        const activeAlerts = (adata.data || []).filter((a: any) => !a.is_acknowledged && a.status === 'active' && a.severity === 'critical');
+        setCriticalAlertCount(activeAlerts.length);
+      }
+    } catch (_) { }
     setNotifLoading(false);
   }, [currentUser]);
 
   // Fetch on open + poll every 30s
   useEffect(() => {
     fetchNotifications();
-    const id = setInterval(fetchNotifications, 30000);
+    const id = setInterval(fetchNotifications, 5000);
     return () => clearInterval(id);
   }, [fetchNotifications]);
 
@@ -78,7 +87,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       setNotifications(prev =>
         prev.map(n => n.id === notifId ? { ...n, is_read: true } : n)
       );
-    } catch (_) {}
+    } catch (_) { }
   };
 
   const markAllRead = async () => {
@@ -87,9 +96,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
   };
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
-
-  // ── Critical alerts count (from simulation - still useful as backup) ───
-  const criticalAlertCount = alerts.filter(a => !a.resolved && a.type === 'Critical').length;
 
   const totalBadgeCount = unreadCount + criticalAlertCount;
 
@@ -107,32 +113,48 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </Link>
 
         <nav className="flex-1 py-6 flex flex-col gap-1.5 px-3">
-          {hasPermission('VIEW_DASHBOARD') || ['admin', 'ultra_admin', 'hospital_admin'].includes(currentUser?.role || '') ? (
-              <NavItem href="/" icon={<LayoutDashboard size={20} />} label="Command Center" active={pathname === '/'} />
-          ) : null}
+          {/* Main Entry Point (Dashboard) */}
+          {(hasPermission('VIEW_DASHBOARD') || currentUser?.role) && (
+            <NavItem
+              href="/"
+              icon={<LayoutDashboard size={20} />}
+              label={
+                ['admin', 'hospital_admin', 'ultra_admin'].includes(currentUser?.role || '') ? 'Command Center' :
+                  currentUser?.role === 'doctor' ? 'Care Overview' :
+                    currentUser?.role === 'nurse' ? 'Ward Summary' :
+                      'Recovery Hub'
+              }
+              active={pathname === '/'}
+            />
+          )}
 
-          {hasPermission('MANAGE_STAFF') || ['admin', 'ultra_admin'].includes(currentUser?.role || '') ? (
-              <NavItem href="/users" icon={<Users size={20} />} label="Staff Management" active={pathname === '/users'} />
-          ) : null}
+          {/* Administrative Section */}
+          {(['admin', 'ultra_admin'].includes(currentUser?.role || '')) && (
+            <NavItem href="/users" icon={<Users size={20} />} label="Staff Registry" active={pathname === '/users'} />
+          )}
 
-          {hasPermission('VIEW_ALL_PATIENTS') && (
+          {/* Clinical Workspace */}
+          {(currentUser?.role === 'doctor' || currentUser?.role === 'nurse' || ['admin', 'hospital_admin'].includes(currentUser?.role || '')) && (
             <>
-              <NavItem href="/patients" icon={<Users size={20} />} label="Patient Directory" active={pathname === '/patients'} />
-              <NavItem href="/vitals" icon={<Activity size={20} />} label="Vitals Monitor" active={pathname === '/vitals'} />
-              <NavItem href="/icu" icon={<BedDouble size={20} />} label="ICU Allocation" active={pathname === '/icu'} />
+              <NavItem href="/patients" icon={<Stethoscope size={20} />} label="Patient Directory" active={pathname === '/patients'} />
+              <NavItem href="/vitals" icon={<Activity size={20} />} label="Continuous Monitoring" active={pathname === '/vitals'} />
+              <NavItem href="/icu" icon={<BedDouble size={20} />} label="ICU & Bed Status" active={pathname === '/icu'} />
             </>
           )}
 
-          {hasPermission('VIEW_ALERTS') && (
-              <NavItem href="/alerts" icon={<AlertTriangle size={20} />} label="Alerts" active={pathname === '/alerts'} />
+          {/* Incident Management */}
+          {(currentUser?.role !== 'patient') && (
+            <NavItem href="/alerts" icon={<AlertTriangle size={20} />} label="Alert Management" active={pathname === '/alerts'} />
           )}
 
-          {hasPermission('VIEW_AUDIT_LOGS') || ['admin', 'ultra_admin', 'hospital_admin'].includes(currentUser?.role || '') ? (
-              <NavItem href="/logs" icon={<Database size={20} />} label="Audit Logs" active={pathname === '/logs'} />
-          ) : null}
+          {/* Audit Section */}
+          {(['admin', 'ultra_admin', 'hospital_admin'].includes(currentUser?.role || '')) && (
+            <NavItem href="/logs" icon={<Database size={20} />} label="Audit Trail" active={pathname === '/logs'} />
+          )}
 
-          {hasPermission('VIEW_OWN_PATIENT') && (
-            <NavItem href="/my-vitals" icon={<HeartPulse size={20} />} label="My Live Vitals" active={pathname === '/my-vitals'} />
+          {/* Patient Self-Care */}
+          {currentUser?.role === 'patient' && (
+            <NavItem href="/my-vitals" icon={<HeartPulse size={20} />} label="Live Telemetry" active={pathname === '/my-vitals'} />
           )}
         </nav>
 

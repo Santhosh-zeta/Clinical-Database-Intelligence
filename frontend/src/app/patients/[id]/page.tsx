@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, use, useCallback } from 'react';
-import { useSimulation } from '@/contexts/SimulationContext';
 import { VitalsChart } from '@/components/ui/VitalsChart';
 import { AlertCard } from '@/components/ui/AlertCard';
 import { EWSBadge } from '@/components/ui/EWSBadge';
@@ -22,7 +21,7 @@ const authHeader = () => ({ Authorization: `Bearer ${getToken()}`, 'Content-Type
 // ── Helper: map backend event_type → PatientTimeline type ───────────────────
 function mapEventType(t: string): TimelineEvent['type'] {
   if (t === 'admission') return 'admission';
-  if (t === 'alert')     return 'alert';
+  if (t === 'alert') return 'alert';
   if (t === 'prescription') return 'prescription';
   if (t === 'ews_score' || t === 'vitals') return 'vitals_spike';
   return 'vitals_spike';
@@ -31,24 +30,24 @@ function mapEventType(t: string): TimelineEvent['type'] {
 function mapSeverity(detail: any, type: string): TimelineEvent['severity'] {
   if (type === 'alert') {
     if (detail?.severity === 'critical') return 'critical';
-    if (detail?.severity === 'high')     return 'warning';
+    if (detail?.severity === 'high') return 'warning';
     return 'normal';
   }
   if (type === 'ews_score') {
     if (detail?.category === 'urgent') return 'critical';
-    if (detail?.category === 'high')   return 'warning';
+    if (detail?.category === 'high') return 'warning';
   }
   return 'normal';
 }
 
 function buildTimelineTitle(ev: any) {
   switch (ev.event_type) {
-    case 'admission':    return `Admitted — ${ev.detail?.ward_name || ''} · ${ev.detail?.bed_number || ''}`;
-    case 'alert':        return `Alert: ${ev.detail?.alert_type || 'Clinical Alert'}`;
+    case 'admission': return `Admitted — ${ev.detail?.ward_name || ''} · ${ev.detail?.bed_number || ''}`;
+    case 'alert': return `Alert: ${ev.detail?.alert_type || 'Clinical Alert'}`;
     case 'prescription': return `Prescribed: ${ev.detail?.medication_name || 'Medication'}`;
-    case 'ews_score':    return `EWS Score Updated`;
-    case 'diagnosis':    return `Diagnosis: ${ev.detail?.diagnosis_text || ev.description}`;
-    default:             return ev.description || ev.event_type;
+    case 'ews_score': return `EWS Score Updated`;
+    case 'diagnosis': return `Diagnosis: ${ev.detail?.diagnosis_text || ev.description}`;
+    default: return ev.description || ev.event_type;
   }
 }
 
@@ -70,12 +69,68 @@ function buildTimelineDesc(ev: any) {
 export default function PatientDetail({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const { patients, vitalsHistory, alerts, markAlertResolved } = useSimulation();
 
-  const patient = patients.find(p => p.id === resolvedParams.id);
-  const vitals = vitalsHistory[resolvedParams.id] || [];
-  const patientAlerts = alerts.filter(a => a.patientId === resolvedParams.id);
-  const activeAlerts = patientAlerts.filter(a => !a.resolved);
+  const [patient, setPatient] = useState<any>(null);
+  const [vitals, setVitals] = useState<any[]>([]);
+  const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
+  const [patientDbId, setPatientDbId] = useState<number | null>(null);
+
+  // ── Fetch Patient data ────────────────────────────────────────────────────
+  const fetchDynamic = useCallback(async () => {
+    if (!patientDbId) return;
+    try {
+      const [vitalsRes, alertsRes] = await Promise.all([
+        fetch(`${API}/vitals/${patientDbId}`, { headers: authHeader() }),
+        fetch(`${API}/alerts/patient/${patientDbId}`, { headers: authHeader() })
+      ]);
+      if (vitalsRes.ok) {
+        const vData = await vitalsRes.json();
+        setVitals(vData.data || []);
+      }
+      if (alertsRes.ok) {
+        const aData = await alertsRes.json();
+        setActiveAlerts((aData.data || []).filter((a: any) => !a.is_acknowledged && a.status === 'active'));
+      }
+    } catch (_) { }
+  }, [patientDbId]);
+
+  useEffect(() => {
+    fetchDynamic();
+    const id = setInterval(fetchDynamic, 5000);
+    return () => clearInterval(id);
+  }, [fetchDynamic]);
+
+  // ── Fetch Initial / Static Patient ────────────────────────────────────────
+  useEffect(() => {
+    async function fetchPatientData() {
+      try {
+        const admissionRes = await fetch(`${API}/admissions/${resolvedParams.id}`, { headers: authHeader() });
+        if (admissionRes.ok) {
+          const d = await admissionRes.json();
+          const p = d.data;
+          setPatient({
+            id: String(p.id),
+            name: p.patient_name,
+            age: new Date().getFullYear() - new Date(p.date_of_birth).getFullYear(),
+            gender: p.gender,
+            ward: p.ward_name || 'Unassigned',
+            bed: p.bed_number || 'Waitlist',
+            diagnosis: p.diagnosis,
+            riskScore: p.risk_category === 'critical' ? 'Critical' : p.risk_category === 'high' ? 'High' : (p.risk_category === 'medium' ? 'Medium' : 'Low')
+          });
+          setPatientDbId(p.patient_id);
+        }
+      } catch (_) { }
+    }
+    fetchPatientData();
+  }, [resolvedParams.id]);
+
+  const markAlertResolved = async (alertId: string) => {
+    try {
+      await fetch(`${API}/alerts/${alertId}/acknowledge`, { method: 'PATCH', headers: authHeader() });
+      setActiveAlerts(prev => prev.filter(a => String(a.id) !== alertId));
+    } catch (_) { }
+  };
 
   // ── Prescriptions ─────────────────────────────────────────────────────────
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
@@ -109,17 +164,13 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
   const [symptoms, setSymptoms] = useState<{ name: string; severity: string }[]>([{ name: '', severity: 'moderate' }]);
   const [isSavingSymptoms, setIsSavingSymptoms] = useState(false);
   const [symptomsSuccess, setSymptomsSuccess] = useState(false);
-
-  const patientDbId = patient ? (patient as any).patientIdForVitals : null;
-
-  // ── Fetch prescriptions ───────────────────────────────────────────────────
   const fetchPrescriptions = useCallback(async () => {
     if (!patientDbId) return;
     setRxLoading(true);
     try {
       const res = await fetch(`${API}/prescriptions/${patientDbId}`, { headers: authHeader() });
       if (res.ok) { const d = await res.json(); setPrescriptions(d.data || []); }
-    } catch (_) {}
+    } catch (_) { }
     setRxLoading(false);
   }, [patientDbId]);
 
@@ -131,7 +182,7 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
     fetch(`${API}/vitals/ews/${patient.id}`, { headers: authHeader() })
       .then(r => r.json())
       .then(d => { if (d.data) setEwsData(d.data); })
-      .catch(() => {});
+      .catch(() => { });
   }, [patient?.id]);
 
   // ── Fetch discharge-ready ─────────────────────────────────────────────────
@@ -140,7 +191,7 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
     fetch(`${API}/admissions/${patient.id}/discharge-ready`, { headers: authHeader() })
       .then(r => r.json())
       .then(d => setDischargeReady(d.discharge_ready === true))
-      .catch(() => {});
+      .catch(() => { });
   }, [patient?.id]);
 
   // ── Fetch real timeline from backend ─────────────────────────────────────
@@ -153,17 +204,17 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
         if (data.timeline) {
           setTimelineSummary(data.summary);
           const mapped: TimelineEvent[] = data.timeline.map((ev: any) => ({
-            id:          String(ev.id),
-            type:        mapEventType(ev.event_type),
-            title:       buildTimelineTitle(ev),
+            id: String(ev.id),
+            type: mapEventType(ev.event_type),
+            title: buildTimelineTitle(ev),
             description: buildTimelineDesc(ev),
-            timestamp:   ev.created_at,
-            severity:    mapSeverity(ev.detail, ev.event_type),
+            timestamp: ev.created_at,
+            severity: mapSeverity(ev.detail, ev.event_type),
           }));
           setTimeline(mapped);
         }
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setTimelineLoading(false));
   }, [patientDbId]);
 
@@ -173,7 +224,7 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
     fetch(`${API}/vitals/${patientDbId}/trend`, { headers: authHeader() })
       .then(r => r.json())
       .then(d => { if (d.data) setTrend(d.data); })
-      .catch(() => {});
+      .catch(() => { });
   }, [patientDbId]);
 
   // ── Fetch suggestions when modal opens ───────────────────────────────────
@@ -198,7 +249,7 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
       });
       const d = await res.json();
       setDrugInteractions(d.interactions || []);
-    } catch (_) {}
+    } catch (_) { }
     setCheckingInteractions(false);
   };
 
@@ -208,7 +259,7 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
     try {
       await fetch(`${API}/prescriptions/${id}/cancel`, { method: 'PATCH', headers: authHeader() });
       await fetchPrescriptions();
-    } catch (_) {}
+    } catch (_) { }
     setCancellingId(null);
   };
 
@@ -231,7 +282,7 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
       setShowPrescribeModal(false);
       setRxForm({ medicationId: '', dose: '', frequency: '', notes: '' });
       setDrugInteractions([]);
-    } catch (_) {}
+    } catch (_) { }
     setIsIssuingRx(false);
   };
 
@@ -244,7 +295,7 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
         body: JSON.stringify({ discharge_notes: 'Discharge via IntelliCare dashboard.' }),
       });
       if (res.ok) router.push('/patients');
-    } catch (_) {}
+    } catch (_) { }
     setIsDischarging(false);
     setShowDischargeConfirm(false);
   };
@@ -266,11 +317,11 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
           fetch(`${API}/prescriptions/suggest?diagnosis=${encodeURIComponent(valid.map(s => s.name).join(','))}`, { headers: authHeader() })
             .then(r => r.json())
             .then(d => setRxSuggestions(d.data || []))
-            .catch(() => {});
+            .catch(() => { });
         }
         setTimeout(() => { setSymptomsSuccess(false); setShowSymptomsModal(false); setSymptoms([{ name: '', severity: 'moderate' }]); }, 1500);
       }
-    } catch (_) {}
+    } catch (_) { }
     setIsSavingSymptoms(false);
   };
 
@@ -409,8 +460,8 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
                         <td className="px-4 py-3">
                           <span className={cn('px-2 py-0.5 rounded-md text-xs font-bold border',
                             rx.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                            rx.status === 'cancelled' ? 'bg-slate-100 text-slate-500 border-slate-200' :
-                            'bg-blue-50 text-blue-700 border-blue-200')}>
+                              rx.status === 'cancelled' ? 'bg-slate-100 text-slate-500 border-slate-200' :
+                                'bg-blue-50 text-blue-700 border-blue-200')}>
                             {rx.status || 'active'}
                           </span>
                         </td>
@@ -647,9 +698,9 @@ function TrendChip({ label, value }: { label: string; value?: any }) {
   return (
     <span className={cn(
       'inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold border',
-      isUp   ? 'bg-rose-50 text-rose-700 border-rose-200' :
-      isDown ? 'bg-blue-50 text-blue-700 border-blue-200' :
-               'bg-slate-50 text-slate-600 border-slate-200'
+      isUp ? 'bg-rose-50 text-rose-700 border-rose-200' :
+        isDown ? 'bg-blue-50 text-blue-700 border-blue-200' :
+          'bg-slate-50 text-slate-600 border-slate-200'
     )}>
       {isUp ? <TrendingUp className="w-3 h-3" /> : isDown ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
       {label}

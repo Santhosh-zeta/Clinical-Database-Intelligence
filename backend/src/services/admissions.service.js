@@ -110,13 +110,35 @@ async function discharge(id, orgId, dischargeNotes) {
 }
 
 async function isDischargeReady(id, orgId) {
-    // Verify it's in this org
-    const check = await db.query(
-        'SELECT id FROM admissions WHERE id=$1 AND organization_id=$2', [id, orgId]
-    );
-    if (!check.rowCount) throw createError('Admission not found', 404);
     const result = await db.query('SELECT suggest_discharge($1) AS discharge_ready', [id]);
     return result.rows[0].discharge_ready;
 }
 
-module.exports = { list, getById, create, discharge, isDischargeReady };
+async function getDischargableActive(orgId) {
+    const result = await db.query(
+        `SELECT a.id, a.patient_id, p.name AS patient_name, a.diagnosis,
+                d.name AS doctor_name, w.name AS ward_name, b.bed_number,
+                rs.score AS risk_score, rs.category AS risk_category,
+                ew.total_score AS ews, ew.category AS ews_category
+         FROM admissions a
+         JOIN patients p ON p.id = a.patient_id
+         JOIN doctors  d ON d.id = a.doctor_id
+         LEFT JOIN wards w ON w.id = a.ward_id
+         LEFT JOIN beds  b ON b.id = a.bed_id
+         LEFT JOIN LATERAL (
+             SELECT score, category FROM risk_scores
+             WHERE admission_id = a.id ORDER BY calculated_at DESC LIMIT 1
+         ) rs ON TRUE
+         LEFT JOIN LATERAL (
+             SELECT total_score, category FROM ews_scores
+             WHERE admission_id = a.id ORDER BY calculated_at DESC LIMIT 1
+         ) ew ON TRUE
+         WHERE a.organization_id = $1 AND a.status = 'active'
+           AND suggest_discharge(a.id) = TRUE
+         ORDER BY rs.score ASC`,
+        [orgId]
+    );
+    return result.rows;
+}
+
+module.exports = { list, getById, create, discharge, isDischargeReady, getDischargableActive };

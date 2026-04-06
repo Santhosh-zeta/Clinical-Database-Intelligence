@@ -1,7 +1,6 @@
 "use client";
 
-import React from 'react';
-import { useSimulation } from '../../contexts/SimulationContext';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import {
     Activity,
@@ -23,14 +22,47 @@ import {
 import { cn } from '../../lib/utils';
 import Link from 'next/link';
 
-export default function MyVitalsPage() {
-    const { patients, vitalsHistory } = useSimulation();
-    const { currentUser } = useAuth();
+const API = 'http://localhost:3001/api';
+const getToken = () => localStorage.getItem('__intellicare_token') || '';
+const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
 
+export default function MyVitalsPage() {
+    const { currentUser } = useAuth();
     const myAdmissionId = currentUser?.patientId || '1';
-    const myVitals = vitalsHistory[myAdmissionId] || [];
-    const latestVitals = myVitals[myVitals.length - 1];
-    const myPatient = patients.find(p => p.id === myAdmissionId) || patients[0];
+
+    const [myPatient, setMyPatient] = useState<any>(null);
+    const [myVitals, setMyVitals] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (!myAdmissionId) return;
+        async function fetchPatientData() {
+            try {
+                // For demo/prototype, assume patient details are accessible from patients endpoint
+                const pRes = await fetch(`${API}/patients/${myAdmissionId}`, { headers: authHeader() });
+                if (pRes.ok) {
+                    const d = await pRes.json();
+                    setMyPatient(d.data);
+                }
+                const vRes = await fetch(`${API}/vitals/${myAdmissionId}?limit=50`, { headers: authHeader() });
+                if (vRes.ok) {
+                    const d = await vRes.json();
+                    const mapped = (d.data || []).map((v: any) => ({
+                        timestamp: v.recorded_at,
+                        heartRate: Number(v.heart_rate || 0),
+                        bloodPressure: { systolic: Number(v.systolic_bp || 0), diastolic: Number(v.diastolic_bp || 0) },
+                        oxygenLevel: Number(v.spo2 || 0),
+                        temperature: Number(v.temperature || 0)
+                    }));
+                    setMyVitals(mapped.reverse());
+                }
+            } catch (_) { }
+        }
+        fetchPatientData();
+        const interval = setInterval(fetchPatientData, 30000);
+        return () => clearInterval(interval);
+    }, [myAdmissionId]);
+
+    const latestVitals = myVitals.length > 0 ? myVitals[myVitals.length - 1] : null;
 
     return (
         <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-8 w-full">
