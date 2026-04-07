@@ -522,7 +522,7 @@ function AlertCentreTab() {
   const acknowledge = async (id: number) => {
     setAcking(id);
     try {
-      await fetch(`${API}/alerts/${id}/acknowledge`, { method: 'POST', headers: ah() });
+      await fetch(`${API}/alerts/${id}/acknowledge`, { method: 'PATCH', headers: ah() });
       setAlerts(prev => prev.map(a => a.id === id ? { ...a, is_acknowledged: true } : a));
     } catch (_) { }
     setAcking(null);

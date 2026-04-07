@@ -82,19 +82,31 @@ function DoctorConsultsTab() {
 function NurseHandoverTab() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [wardId, setWardId] = useState<number | null>(null);
+  const tok = () => localStorage.getItem('__intellicare_token') || '';
+  const hdrs = () => ({ Authorization: `Bearer ${tok()}` });
 
   useEffect(() => {
-    async function fetchHandovers() {
+    async function initHandovers() {
       try {
-        const res = await fetch(`http://localhost:3001/api/handovers/ward/1`, { headers: { Authorization: `Bearer ${localStorage.getItem('__intellicare_token')}` } });
-        if (res.ok) {
-          const d = await res.json();
-          setData(d.data || []);
+        // First get available wards to find a real wardId
+        const wardsRes = await fetch(`http://localhost:3001/api/admin/ward-analytics`, { headers: hdrs() });
+        if (wardsRes.ok) {
+          const wardsData = await wardsRes.json();
+          const firstWard = (wardsData.data || [])[0];
+          if (firstWard?.ward_id) {
+            setWardId(firstWard.ward_id);
+            const res = await fetch(`http://localhost:3001/api/handovers/ward/${firstWard.ward_id}`, { headers: hdrs() });
+            if (res.ok) {
+              const d = await res.json();
+              setData(d.data || []);
+            }
+          }
         }
       } catch (_) { }
       setLoading(false);
     }
-    fetchHandovers();
+    initHandovers();
   }, []);
 
   return (

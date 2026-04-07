@@ -29,7 +29,7 @@ export default function PatientsPage() {
   useEffect(() => {
     async function fetchAdmissions() {
       try {
-        const res = await fetch(`${API}/admissions?status=active`, { headers: ah() });
+        const res = await fetch(`${API}/admissions?status=active&limit=200`, { headers: ah() });
         if (res.ok) {
           const data = await res.json();
           const mapped = (data.data?.rows || data.rows || []).map((a: any) => ({
@@ -168,7 +168,7 @@ export default function PatientsPage() {
                   </tr>
                 )}
                 {!loading && paginatedPatients.map((patient) => (
-                  <PatientRow key={patient.id} patient={patient} />
+                  <PatientRow key={patient.id} patient={patient} patientDbId={patient.patient_id} />
                 ))}
                 {!loading && paginatedPatients.length === 0 && (
                   <tr>
@@ -209,23 +209,22 @@ export default function PatientsPage() {
   );
 }
 
-function PatientRow({ patient }: { patient: any }) {
+function PatientRow({ patient, patientDbId }: { patient: any; patientDbId?: string | number }) {
   const [history, setHistory] = useState<any[]>([]);
 
   useEffect(() => {
+    if (!patientDbId) return;
     async function fetchTrend() {
       try {
-        // Use the base vitals endpoint for raw history needed by the sparkline
-        const res = await fetch(`${API}/vitals/${patient.id}?limit=12`, { headers: ah() });
+        const res = await fetch(`${API}/vitals/${patientDbId}?limit=12`, { headers: ah() });
         if (res.ok) {
           const d = await res.json();
-          // Ensure it's an array for .map()
           setHistory(Array.isArray(d.data) ? d.data : []);
         }
       } catch (_) { }
     }
     fetchTrend();
-  }, [patient.id]);
+  }, [patientDbId]);
 
   const currentHr = history.length > 0 ? history[history.length - 1].heart_rate : '--';
   const isCriticalHr = currentHr !== '--' && (currentHr > 120 || currentHr < 50);

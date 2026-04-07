@@ -353,8 +353,13 @@ export default function SettingsPage() {
                       <div className="flex flex-col gap-4">
                          <h3 className="font-bold text-slate-800 text-sm uppercase tracking-widest mb-2 border-b border-slate-100 pb-2">Active Session Tracking</h3>
                          <div className="flex flex-col gap-3">
-                            <SessionCard device="MacBook Pro 16-inch" location="Hospital Intranet (IP: 10.0.4.152)" isCurrent time="Active Now" icon={<MonitorSmartphone className="w-5 h-5 text-indigo-500" />} />
-                            <SessionCard device="iPhone 14 Pro Max" location="Cellular Proxy (Mumbai, IN)" isCurrent={false} time="Last active 2 hrs ago" icon={<Smartphone className="w-5 h-5 text-slate-500" />} />
+                            <SessionCard
+                               device={`Browser — ${currentUser?.name || 'Current User'}`}
+                               location={`Role: ${currentUser?.role?.toUpperCase() || 'N/A'} · Active Session`}
+                               isCurrent
+                               time="Active Now"
+                               icon={<MonitorSmartphone className="w-5 h-5 text-indigo-500" />}
+                            />
                          </div>
                          <button className="mt-2 w-full py-2.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-sm font-bold hover:bg-rose-100 transition-colors flex items-center justify-center gap-2">
                             <AlertTriangle className="w-4 h-4" /> Revoke All Other Sessions

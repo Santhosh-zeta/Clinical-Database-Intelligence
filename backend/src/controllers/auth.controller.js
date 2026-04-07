@@ -20,14 +20,20 @@ const login = async (req, res, next) => {
         if (!result.rowCount) {
             if (isMock) {
                 let role = 'patient';
+                let patientId = null;
                 if (email.startsWith('a')) role = 'admin';
                 else if (email.startsWith('d')) role = 'doctor';
                 else if (email.startsWith('n')) role = 'nurse';
+                else if (email.startsWith('p')) {
+                    role = 'patient';
+                    patientId = parseInt(email.replace(/\D/g, '')) || 1;
+                }
 
                 const payload = {
                     id: parseInt(email.replace(/\D/g, '')) || 999,
-                    name: "Demo User",
+                    name: (email.split('@')[0].toUpperCase() || 'DEMO') + " (Demo)",
                     role: role,
+                    patientId: patientId,
                     org_id: 1,
                     permissions: ['*']
                 };

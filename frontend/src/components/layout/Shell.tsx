@@ -56,6 +56,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
         fetch(`${API}/notifications?limit=20`, { headers: ah() }),
         fetch(`${API}/alerts`, { headers: ah() })
       ]);
+      if (res.status === 401 || alRes.status === 401) {
+        logout();
+        return;
+      }
+
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.data || []);
