@@ -23,6 +23,7 @@ function mapEventType(t: string): TimelineEvent['type'] {
   if (t === 'admission') return 'admission';
   if (t === 'alert') return 'alert';
   if (t === 'prescription') return 'prescription';
+  if (t === 'symptom') return 'symptom';
   if (t === 'ews_score' || t === 'vitals') return 'vitals_spike';
   return 'vitals_spike';
 }
@@ -45,6 +46,7 @@ function buildTimelineTitle(ev: any) {
     case 'admission': return `Admitted — ${ev.detail?.ward_name || ''} · ${ev.detail?.bed_number || ''}`;
     case 'alert': return `Alert: ${ev.detail?.alert_type || 'Clinical Alert'}`;
     case 'prescription': return `Prescribed: ${ev.detail?.medication_name || 'Medication'}`;
+    case 'symptom': return `Symptom Recorded: ${ev.detail?.[0]?.name || 'Clinical Observation'}`;
     case 'ews_score': return `EWS Score Updated`;
     case 'diagnosis': return `Diagnosis: ${ev.detail?.diagnosis_text || ev.description}`;
     default: return ev.description || ev.event_type;
@@ -59,6 +61,9 @@ function buildTimelineDesc(ev: any) {
       return `${ev.detail?.message || ev.description} (${ev.detail?.severity || ''})`;
     case 'prescription':
       return `${ev.detail?.dose || ''} ${ev.detail?.frequency || ''} — by Dr. ${ev.detail?.prescribed_by || ''}`;
+    case 'symptom':
+      const list = Array.isArray(ev.detail) ? ev.detail : [];
+      return list.map((s: any) => `${s.name} (${s.severity})`).join(', ');
     case 'ews_score':
       return `Score: ${ev.detail?.total_score ?? (ev.metadata?.total_score ?? '—')} · Category: ${ev.detail?.category ?? (ev.metadata?.category ?? '—')}`;
     default:

@@ -59,35 +59,54 @@ async function getById(id, orgId) {
 }
 
 async function create(body, orgId) {
-    const { patient_id, doctor_id, ward_id, bed_id, diagnosis, notes } = body;
+    const client = await db.getClient();
     try {
-        // CALL the atomic stored procedure
-        const result = await db.query(
-            'CALL pro_admit_patient($1, $2, $3, $4, $5, $6, $7, $8)',
-            [patient_id, doctor_id, ward_id, bed_id, diagnosis, notes, orgId, null]
+        await client.query('BEGIN');
+        const { patient_id, doctor_id, ward_id, bed_id, diagnosis, notes } = body;
+
+        // Verify patient belongs to org
+        const patCheck = await client.query(
+            'SELECT id FROM patients WHERE id=$1 AND organization_id=$2', [patient_id, orgId]
         );
-        // The procedure returns the new ID via INOUT parameter or we can fetch it
-        const latest = await db.query(
-            `SELECT id FROM admissions WHERE patient_id=$1 AND status='active' ORDER BY admitted_at DESC LIMIT 1`,
-            [patient_id]
+        if (!patCheck.rowCount) throw createError('Patient not found in this organization', 404);
+
+        // Prevent duplicate active admission
+        const dupCheck = await client.query(
+            `SELECT id FROM admissions WHERE patient_id=$1 AND status='active'`, [patient_id]
         );
-        return latest.rows[0];
+        if (dupCheck.rowCount) throw createError('Patient already has an active admission', 409);
+
+        // Bed availability check
+        if (bed_id) {
+            const bedCheck = await client.query('SELECT is_occupied FROM beds WHERE id=$1', [bed_id]);
+            if (bedCheck.rows[0]?.is_occupied) throw createError('Bed is already occupied', 409);
+        }
+
+        const result = await client.query(
+            `INSERT INTO admissions (patient_id, doctor_id, ward_id, bed_id, diagnosis, notes, organization_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+            [patient_id, doctor_id, ward_id, bed_id, diagnosis, notes, orgId]
+        );
+        await client.query('COMMIT');
+        return result.rows[0];
     } catch (err) {
-        // Postgres exceptions (RAISE EXCEPTION) are caught here
-        if (err.message.includes('already has an active admission')) throw createError(err.message, 409);
-        if (err.message.includes('already occupied')) throw createError(err.message, 409);
+        await client.query('ROLLBACK');
         throw err;
+    } finally {
+        client.release();
     }
 }
 
 async function discharge(id, orgId, dischargeNotes) {
-    try {
-        await db.query('CALL pro_discharge_patient($1, $2, $3)', [id, orgId, dischargeNotes]);
-        const result = await db.query('SELECT * FROM admissions WHERE id = $1', [id]);
-        return result.rows[0];
-    } catch (err) {
-        throw createError(err.message, 404);
-    }
+    const note = dischargeNotes ? `\nDischarge notes: ${dischargeNotes}` : '';
+    const result = await db.query(
+        `UPDATE admissions SET status='discharged', discharged_at=NOW(), updated_at=NOW(),
+         notes = COALESCE(notes,'') || $1
+         WHERE id=$2 AND organization_id=$3 AND status='active' RETURNING *`,
+        [note, id, orgId]
+    );
+    if (!result.rowCount) throw createError('Active admission not found', 404);
+    return result.rows[0];
 }
 
 async function isDischargeReady(id, orgId) {

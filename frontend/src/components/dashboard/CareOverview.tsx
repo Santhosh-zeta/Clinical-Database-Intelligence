@@ -1,16 +1,19 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Users, Activity, AlertTriangle, BedDouble, ArrowRight, Wind,
   TrendingDown, ShieldAlert, HeartPulse, LogOut, Loader2, RefreshCw,
-  ClipboardList, Stethoscope, Calendar, User, MapPin, Clock,
-  BriefcaseMedical, KeyRound, CheckCircle
+  ClipboardList, Stethoscope, PieChart as PieIcon, BarChart as BarIcon,
+  TrendingUp, Clock, Settings, Database
 } from 'lucide-react';
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, PieChart, Pie, Cell, Legend
+} from 'recharts';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import SymptomLogger from '@/components/patient/SymptomLogger';
 
 const API = 'http://localhost:3001/api';
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
@@ -61,15 +64,23 @@ export default function DashboardSummary() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [criticalPatients, setCriticalPatients] = useState<CriticalPatient[]>([]);
   const [alertsSummary, setAlertsSummary] = useState<AlertsSummary | null>(null);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [wardAnalytics, setWardAnalytics] = useState<any[]>([]);
+  const [dischargeTrends, setDischargeTrends] = useState<any[]>([]);
+  const [staffPerformance, setStaffPerformance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
 
   const fetchDashboard = async () => {
     try {
-      const [statsRes, critRes, alertRes] = await Promise.all([
+      const [statsRes, critRes, alertRes, logsRes, wardRes, trendRes, staffRes] = await Promise.all([
         fetch(`${API}/admin/dashboard`, { headers: ah() }),
         fetch(`${API}/admin/critical-patients`, { headers: ah() }),
         fetch(`${API}/admin/alerts-summary`, { headers: ah() }),
+        fetch(`${API}/admin/audit-logs?limit=10`, { headers: ah() }),
+        fetch(`${API}/admin/ward-analytics`, { headers: ah() }),
+        fetch(`${API}/admin/discharge-trends`, { headers: ah() }),
+        fetch(`${API}/admin/staff-performance`, { headers: ah() }),
       ]);
 
       if (statsRes.status === 401 || critRes.status === 401 || alertRes.status === 401) {
@@ -77,18 +88,24 @@ export default function DashboardSummary() {
         return;
       }
 
-      if (statsRes.ok) {
-        const d = await statsRes.json();
-        setStats(d.data);
-      }
-      if (critRes.ok) {
-        const d = await critRes.json();
-        setCriticalPatients(d.data || []);
-      }
-      if (alertRes.ok) {
-        const d = await alertRes.json();
-        setAlertsSummary(d.data);
-      }
+      const results = await Promise.all([
+        statsRes.ok ? statsRes.json() : null,
+        critRes.ok ? critRes.json() : null,
+        alertRes.ok ? alertRes.json() : null,
+        logsRes.ok ? logsRes.json() : null,
+        wardRes.ok ? wardRes.json() : null,
+        trendRes.ok ? trendRes.json() : null,
+        staffRes.ok ? staffRes.json() : null,
+      ]);
+
+      if (results[0]) setStats(results[0].data);
+      if (results[1]) setCriticalPatients(results[1].data || []);
+      if (results[2]) setAlertsSummary(results[2].data);
+      if (results[3]) setAuditLogs(results[3].data || []);
+      if (results[4]) setWardAnalytics(results[4].data || []);
+      if (results[5]) setDischargeTrends(results[5].data || []);
+      if (results[6]) setStaffPerformance(results[6].data || []);
+
       setLastRefreshed(new Date());
     } catch (_) { }
     setLoading(false);
@@ -102,7 +119,24 @@ export default function DashboardSummary() {
 
   // ── Patient role view ───────────────────────────────────────────────────
   if (currentUser?.role === 'patient') {
-    return <PatientDashboardView />;
+    return (
+      <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-8 w-full">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">My Health Dashboard</h1>
+            <p className="text-slate-500 text-lg">Your live recovery status and hospital facilities.</p>
+          </div>
+        </div>
+        <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
+          <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <Activity className="w-6 h-6 text-indigo-500" /> Recovery Status
+          </h2>
+          <Link href="/my-vitals" className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all">
+            View Full Vital History <ArrowRight className="w-5 h-5 text-slate-400" />
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   // ── KPI values — prefer real API, fall back to simulation count ─────────
@@ -122,7 +156,7 @@ export default function DashboardSummary() {
   const escL2 = alertsSummary?.by_escalation.find(e => e.escalation_level === 2);
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-8 w-full animate-in fade-in duration-700">
+    <div className="max-w-7xl mx-auto flex flex-col gap-8 w-full animate-in fade-in duration-700">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
@@ -323,11 +357,185 @@ export default function DashboardSummary() {
           </div>
         </div>
       </div>
+
+      {/* ── Admin Analytical Deep Dive (Real Trends) ───────────────────────── */}
+      {currentUser?.role === 'admin' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+          {/* Discharge Trends (14-day history) */}
+          <div className="bg-white border border-slate-200/60 rounded-[2rem] p-7 shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-indigo-500" /> Patient Lifecycle
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">14-day operational discharge throughput</p>
+              </div>
+            </div>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={dischargeTrends}>
+                  <defs>
+                    <linearGradient id="colorTrend" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                  />
+                  <Area type="monotone" dataKey="count" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorTrend)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Risk Distribution (Pie) */}
+          <div className="bg-white border border-slate-200/60 rounded-[2rem] p-7 shadow-sm flex flex-col">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                  <PieIcon className="w-5 h-5 text-rose-500" /> Risk Stratification
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">Current patient population by EWS score</p>
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col md:flex-row items-center gap-8">
+              <div className="h-[240px] w-[240px] shrink-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Critical', value: parseInt(stats?.critical_patients || '0'), color: '#f43f5e' },
+                        { name: 'High', value: parseInt(stats?.high_ews_patients || '0'), color: '#f59e0b' },
+                        { name: 'Urgent', value: parseInt(stats?.urgent_ews_patients || '0'), color: '#ea580c' },
+                        { name: 'Stable', value: parseInt(stats?.stable_patients || '0'), color: '#10b981' },
+                      ].filter(d => d.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {[0, 1, 2, 3].map((entry, index) => <Cell key={`cell-${index}`} fill={['#f43f5e', '#f59e0b', '#ea580c', '#10b981'][index]} />)}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex-1 grid grid-cols-1 gap-3 w-full">
+                <RiskLegend color="bg-rose-500" label="Critical" value={stats?.critical_patients || 0} />
+                <RiskLegend color="bg-orange-600" label="Urgent" value={stats?.urgent_ews_patients || 0} />
+                <RiskLegend color="bg-amber-500" label="High" value={stats?.high_ews_patients || 0} />
+                <RiskLegend color="bg-emerald-500" label="Stable" value={stats?.stable_patients || 0} />
+              </div>
+            </div>
+          </div>
+
+          {/* Staff Performance (Bar) */}
+          <div className="lg:col-span-2 bg-white border border-slate-200/60 rounded-[2rem] p-7 shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-indigo-500" /> Medical Staff Workload
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">Active patients per doctor vs. case complexity</p>
+              </div>
+            </div>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={staffPerformance.slice(0, 10)}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="doctor_name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                  <Tooltip
+                    cursor={{ fill: '#f8fafc' }}
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 20 }} />
+                  <Bar dataKey="active_patients" name="Active Case Load" fill="#6366f1" radius={[6, 6, 0, 0]} barSize={24} />
+                  <Bar dataKey="avg_ews" name="Avg Patient Risk" fill="#94a3b8" radius={[6, 6, 0, 0]} barSize={24} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Live Audit Trail Section ──────────────────────────────────── */}
+      <div className="bg-white border border-slate-200/60 rounded-[2rem] p-7 shadow-sm">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <Database className="w-5 h-5 text-indigo-500" /> Live Audit Trail
+            </h2>
+            <p className="text-sm text-slate-500 mt-1">Real-time immutable ledger of system activity</p>
+          </div>
+          <Link href="/dashboard?tab=logs" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-4 py-2 rounded-xl transition-all">
+            Full Audit History
+          </Link>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {loading && auditLogs.length === 0 ? (
+            <div className="col-span-full py-10 text-center text-slate-400 flex items-center justify-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" /> Fetching ledger...
+            </div>
+          ) : auditLogs.length === 0 ? (
+            <div className="col-span-full py-10 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200 uppercase tracking-widest text-[10px] font-bold">
+              No recent system activity detected.
+            </div>
+          ) : (
+            auditLogs.slice(0, 6).map(log => (
+              <div key={log.id} className="p-4 rounded-2xl border border-slate-100 bg-slate-50/30 flex flex-col gap-2 transition-all hover:bg-white hover:shadow-sm">
+                <div className="flex justify-between items-start">
+                  <div className={cn(
+                    "px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase border",
+                    log.action === 'INSERT' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                      log.action === 'UPDATE' ? "bg-indigo-50 text-indigo-600 border-indigo-100" :
+                        "bg-rose-50 text-rose-600 border-rose-100"
+                  )}>
+                    {log.action}
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    {new Date(log.changed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-tight">{log.table_name}</span>
+                  <span className="text-[10px] text-slate-400 font-mono">#{log.record_id}</span>
+                </div>
+                <div className="text-[11px] text-slate-500 line-clamp-1 italic">
+                  Change by {log.changed_by_name || 'System'}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
+// ── Icons (removed duplicate) ──────────────────────────────────────────────
+
 // ── Sub-components ─────────────────────────────────────────────────────────
+
+function RiskLegend({ color, label, value }: { color: string; label: string; value: string | number }) {
+  return (
+    <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+      <div className="flex items-center gap-2">
+        <div className={cn("w-3 h-3 rounded-full", color)} />
+        <span className="text-sm font-bold text-slate-600">{label}</span>
+      </div>
+      <span className="text-sm font-extrabold text-slate-900">{value}</span>
+    </div>
+  );
+}
 
 function KPICard({ title, value, sub, icon, link, gradient, iconBg, borderColor, pulse }: {
   title: string; value: string | number; sub?: string; icon: React.ReactNode;
@@ -375,276 +583,6 @@ function MiniStat({ label, value, icon, color }: { label: string; value: string 
       <div className={cn('w-8 h-8 rounded-xl border flex items-center justify-center', color)}>{icon}</div>
       <div className="text-xl font-extrabold text-slate-800">{value}</div>
       <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{label}</div>
-    </div>
-  );
-}
-
-// ── Patient Dashboard Sub-component ──────────────────────────────────────────
-
-// ── Patient Dashboard Sub-component ──────────────────────────────────────────
-function PatientDashboardView() {
-  const { currentUser } = useAuth();
-  if (!currentUser) return null;
-  const [admission, setAdmission] = useState<any>(null);
-  const [vitals, setVitals] = useState<any>(null);
-  const [alerts, setAlerts] = useState<any[]>([]);
-  const [prescriptions, setPrescriptions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [lastRefreshed, setLastRefreshed] = useState(new Date());
-
-  const fetchPatientData = useCallback(async () => {
-    if (!currentUser?.patientId) return;
-    try {
-      // 1. Get active admission
-      const admRes = await fetch(`${API}/admissions?patient_id=${currentUser.patientId}&status=active`, { headers: ah() });
-      if (admRes.ok) {
-        const admData = await admRes.json();
-        const activeAdm = (admData.rows || admData.data || [])[0];
-        setAdmission(activeAdm);
-
-        if (activeAdm) {
-          // Parallel fetch: Vitals, Alerts, Prescriptions
-          const [vRes, alRes, prRes] = await Promise.all([
-            fetch(`${API}/vitals/${currentUser.patientId}?limit=1`, { headers: ah() }),
-            fetch(`${API}/alerts/patient/${currentUser.patientId}`, { headers: ah() }),
-            fetch(`${API}/prescriptions/${currentUser.patientId}`, { headers: ah() })
-          ]);
-
-          if (vRes.ok) {
-            const vData = await vRes.json();
-            setVitals((vData.rows || vData.data || [])[0]);
-          }
-          if (alRes.ok) {
-            const alData = await alRes.json();
-            setAlerts((alData.data || []).slice(0, 5)); // Latest 5 alerts
-          }
-          if (prRes.ok) {
-            const prData = await prRes.json();
-            setPrescriptions((prData.data || []).filter((p: any) => p.status === 'active').slice(0, 4));
-          }
-        }
-      }
-      setLastRefreshed(new Date());
-    } catch (e) { console.error(e); }
-    setLoading(false);
-  }, [currentUser]);
-
-  useEffect(() => {
-    fetchPatientData();
-    const interval = setInterval(fetchPatientData, 10000); // 10s real-time polling
-    return () => clearInterval(interval);
-  }, [fetchPatientData]);
-
-  if (loading && !admission) return (
-    <div className="flex flex-col items-center justify-center p-20 gap-4">
-      <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
-      <p className="text-slate-500 font-bold tracking-tight">Synchronizing Clinical Telemetry...</p>
-    </div>
-  );
-
-  if (!admission) return (
-    <div className="p-12 text-center bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200 m-8 flex flex-col items-center gap-4">
-      <div className="p-4 bg-white rounded-full shadow-sm">
-        <HeartPulse className="w-12 h-12 text-slate-300" />
-      </div>
-      <div>
-        <h2 className="text-2xl font-black text-slate-800">Observation Not Active</h2>
-        <p className="text-slate-500 mt-2 max-w-sm mx-auto">Your patient ID is registered, but you aren't currently checked into a clinical ward. Please contact the front desk if this is an error.</p>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-8 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
-
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Live Recovery Mode</span>
-          </div>
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight leading-none mb-3">Recovery Hub</h1>
-          <div className="flex items-center gap-3 text-slate-500 font-medium text-sm">
-            <span className="bg-slate-100 px-3 py-1 rounded-full text-slate-700 font-bold">#{currentUser.patientId}</span>
-            <span className="opacity-40">|</span>
-            <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Updated: {lastRefreshed.toLocaleTimeString()}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-        {/* LEFT COLUMN: Vitals & Alerts (8 cols) */}
-        <div className="lg:col-span-8 flex flex-col gap-8">
-
-          {/* Main Vitals Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-slate-900 text-white rounded-[2.5rem] p-8 relative overflow-hidden flex flex-col justify-between min-h-[300px] shadow-2xl shadow-indigo-500/10">
-              <div className="relative z-10">
-                <p className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-3">Clinical Risk Intelligence</p>
-                <div className="flex items-baseline gap-2">
-                  <h3 className="text-5xl font-black italic tracking-tighter uppercase">{admission.risk_category || 'STABLE'}</h3>
-                </div>
-                <div className="mt-6 flex flex-col gap-3">
-                  <div className="flex items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/10 backdrop-blur-sm">
-                    <div className="w-2 h-2 bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(129,140,248,0.8)]" />
-                    <p className="text-xs text-slate-300 font-medium uppercase tracking-tight">Vitals Synchronized every 10s</p>
-                  </div>
-                  <div className="flex items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/10 backdrop-blur-sm">
-                    <Activity className="w-4 h-4 text-emerald-400" />
-                    <p className="text-xs text-slate-300 font-medium">Automatic Deterioration Monitoring Active</p>
-                  </div>
-                </div>
-              </div>
-              <Activity className="absolute -right-12 -bottom-12 w-64 h-64 text-white/5" />
-              <Link href="/my-vitals" className="relative z-10 group w-fit flex items-center gap-3 px-6 py-4 bg-white text-slate-950 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all hover:shadow-[0_8px_20px_rgba(255,255,255,0.2)]">
-                VIEW LIVE TELEMETRY <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              <MiniVitalCard icon={<HeartPulse className="w-5 h-5 text-rose-500" />} label="Heart Rate" value={vitals?.heart_rate || '--'} unit="bpm" color="rose" />
-              <MiniVitalCard icon={<Activity className="w-5 h-5 text-indigo-500" />} label="BP Level" value={vitals ? `${vitals.systolic_bp}/${vitals.diastolic_bp}` : '--'} unit="mmHg" color="indigo" />
-              <MiniVitalCard icon={<Wind className="w-5 h-5 text-blue-500" />} label="Oxygen (SpO2)" value={vitals?.spo2 || '--'} unit="%" color="blue" />
-            </div>
-          </div>
-
-          {/* Active Alerts Feed */}
-          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                <div className="p-2 bg-rose-50 rounded-xl"><AlertTriangle className="w-5 h-5 text-rose-500" /></div>
-                Recent Clinical Alerts
-              </h3>
-              <span className="text-[10px] font-black bg-slate-100 px-3 py-1 rounded-full text-slate-500 uppercase tracking-widest">Last 24 Hours</span>
-            </div>
-            {alerts.length === 0 ? (
-              <div className="py-10 text-center flex flex-col items-center gap-3 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
-                <CheckCircle className="w-8 h-8 text-emerald-400" />
-                <p className="text-slate-500 font-bold text-sm">No abnormal findings recorded.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {alerts.map((alert, idx) => (
-                  <div key={idx} className={cn(
-                    "flex items-center gap-4 p-5 rounded-3xl border transition-all",
-                    alert.severity === 'critical' ? 'bg-rose-50/50 border-rose-100' : 'bg-amber-50/50 border-amber-100'
-                  )}>
-                    <div className={cn(
-                      "p-3 rounded-2xl shadow-sm",
-                      alert.severity === 'critical' ? 'bg-rose-500 text-white' : 'bg-amber-500 text-white'
-                    )}>
-                      <Activity className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-black text-slate-800 tracking-tight capitalize">{alert.alert_type.replace(/_/g, ' ')}</p>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5">{alert.message}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-black text-slate-400">{new Date(alert.triggered_at).toLocaleTimeString()}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN: Care Team & Meds (4 cols) */}
-        <div className="lg:col-span-4 flex flex-col gap-8">
-
-          {/* Care Team & Ward */}
-          <div className="bg-white border border-slate-200 rounded-[3rem] p-8 shadow-sm">
-            <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3 uppercase tracking-tighter">
-              <Users className="w-5 h-5 text-indigo-500" /> Care Ensemble
-            </h3>
-            <div className="space-y-8">
-              <InfoItem icon={<User className="w-4 h-4" />} label="Primary Physician" value={admission.doctor_name || 'Medical Director'} desc="On-Call Specialist" />
-              <InfoItem icon={<MapPin className="w-4 h-4" />} label="Current Location" value={`${admission.ward_name}`} desc={`Bed Reference: ${admission.bed_number}`} />
-              <InfoItem icon={<Calendar className="w-4 h-4" />} label="Admission Date" value={new Date(admission.admitted_at).toLocaleDateString()} desc="Current stay duration: Active" />
-            </div>
-          </div>
-
-          {/* Upcoming Medication */}
-          <div className="bg-indigo-600 rounded-[3rem] p-8 text-white shadow-xl shadow-indigo-500/20">
-            <h3 className="text-xl font-black mb-8 flex items-center gap-3 uppercase tracking-tighter">
-              <BriefcaseMedical className="w-5 h-5 text-indigo-200" /> Medication Plan
-            </h3>
-            {prescriptions.length === 0 ? (
-              <p className="text-indigo-200 text-sm font-medium">No active medications scheduled currently.</p>
-            ) : (
-              <div className="space-y-5">
-                {prescriptions.map((pr, idx) => (
-                  <div key={idx} className="flex items-center gap-4 group">
-                    <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 group-hover:bg-white/20 transition-all">
-                      <Activity className="w-4 h-4 text-indigo-200" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-black tracking-tight">{pr.medication_name}</p>
-                      <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest">{pr.dose} · {pr.frequency}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="mt-8 pt-8 border-t border-white/10">
-              <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/10">
-                <KeyRound className="w-4 h-4 text-indigo-300" />
-                <p className="text-[10px] leading-tight text-indigo-100 font-medium italic">Please verify your dosage with your attending nurse before administration.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Symptom Report */}
-          <SymptomLogger onSuccess={fetchPatientData} />
-
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function InfoItem({ icon, label, value, desc }: { icon: any, label: string, value: string, desc?: string }) {
-  return (
-    <div className="flex items-start gap-4">
-      <div className="mt-1 p-2 bg-slate-50 rounded-2xl text-slate-400 border border-slate-100 group-hover:text-indigo-500 transition-colors">{icon}</div>
-      <div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-        <p className="text-slate-900 font-black tracking-tight leading-none text-lg mb-1">{value}</p>
-        {desc && <p className="text-xs text-slate-500 font-medium">{desc}</p>}
-      </div>
-    </div>
-  );
-}
-
-function MiniVitalCard({ icon, label, value, unit, color }: { icon: any, label: string, value: any, unit: string, color: string }) {
-  const colorMap: any = {
-    rose: 'hover:border-rose-300 shadow-rose-500/5 hover:bg-rose-50/10',
-    indigo: 'hover:border-indigo-300 shadow-indigo-500/5 hover:bg-indigo-50/10',
-    blue: 'hover:border-blue-300 shadow-blue-500/5 hover:bg-blue-50/10'
-  };
-
-  return (
-    <div className={cn(
-      "bg-white border border-slate-200 rounded-[2rem] p-6 flex flex-col justify-between shadow-sm transition-all duration-300 h-full",
-      colorMap[color]
-    )}>
-      <div className="flex items-center justify-between mb-4">
-        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">{icon}</div>
-        <div className="h-4 w-12 bg-slate-50 rounded-full overflow-hidden flex items-center justify-center">
-          <div className={cn("w-full h-1 animate-pulse",
-            color === 'rose' ? 'bg-rose-400/30' : color === 'blue' ? 'bg-blue-400/30' : 'bg-indigo-400/30'
-          )} />
-        </div>
-      </div>
-      <div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-3xl font-black text-slate-900 leading-none">{value}</span>
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{unit}</span>
-        </div>
-      </div>
     </div>
   );
 }

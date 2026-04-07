@@ -124,16 +124,16 @@ async function postVitals(admissionId, vitals) {
 
 async function getActiveAdmissions() {
     const res = await api.get('/api/admissions?status=active');
-    return res.data.rows || res.data.data || [];
+    return res.data.rows || [];
 }
 
 async function getAlerts() {
     const res = await api.get('/api/alerts?limit=5');
-    return res.data.data || [];
+    return res.data.rows || [];
 }
 
 async function getDashboardStats() {
-    const res = await api.get('/api/dashboard/stats');
+    const res = await api.get('/api/admin/dashboard');
     return res.data.data || {};
 }
 

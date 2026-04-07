@@ -15,11 +15,11 @@ async function main() {
 
         // 1. Fetch available patients
         const patientsRes = await axios.get(`${API_BASE}/api/patients`, { headers });
-        const patients = patientsRes.data.rows || patientsRes.data.data || [];
+        const patients = patientsRes.data.data || [];
 
         // 2. Fetch bed status to find free beds
         const bedsRes = await axios.get(`${API_BASE}/api/admin/bed-status`, { headers });
-        const allBeds = bedsRes.data.data || bedsRes.data.rows || [];
+        const allBeds = bedsRes.data.data || [];
         const freeBeds = allBeds.filter(b => !b.is_occupied);
 
         if (freeBeds.length === 0) {

@@ -95,6 +95,14 @@ router.get('/doctor/consults', requirePermission('VIEW_PATIENTS'), async (req, r
     try { res.json({ data: await consultSvc.listAll(req.orgId) }); } catch (e) { next(e); }
 });
 
+router.post('/doctor/consults', requirePermission('UPDATE_PATIENT'), async (req, res, next) => {
+    try { res.json({ data: await consultSvc.create(req.orgId, req.user.id, req.body) }); } catch (e) { next(e); }
+});
+
+router.post('/doctor/consults/:id/resolve', requirePermission('VIEW_PATIENTS'), async (req, res, next) => {
+    try { res.json({ data: await consultSvc.resolve(req.orgId, req.user.id, req.params.id, req.body.response) }); } catch (e) { next(e); }
+});
+
 router.post('/nurse/administer', requirePermission('PRESCRIBE_MEDICATION'), async (req, res, next) => {
     try { res.json({ data: await medSvc.administer(req.orgId, req.user.id, req.body) }); } catch (e) { next(e); }
 });

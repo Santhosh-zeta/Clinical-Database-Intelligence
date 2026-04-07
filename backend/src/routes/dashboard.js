@@ -6,9 +6,11 @@ const db = require('../config/db');
 const router = Router();
 
 // ── GET /api/dashboard/stats ───────────────────────────────────────────────
-router.get('/stats', async (_req, res, next) => {
-    try {
-        const result = await db.query(`
+router.get('/stats', async (req, res, next) => {
+  console.log('[DEBUG] Hit /api/dashboard/stats');
+  return res.json({ message: 'Dashboard stats hit' });
+  try {
+    const result = await db.query(`
       SELECT
         -- Admissions
         (SELECT COUNT(*) FROM admissions WHERE status = 'active')                        AS active_admissions,
@@ -54,8 +56,8 @@ router.get('/stats', async (_req, res, next) => {
         (SELECT COUNT(*) FROM doctors WHERE is_active = TRUE)                            AS active_doctors
     `);
 
-        res.json({ data: result.rows[0] });
-    } catch (err) { next(err); }
+    res.json({ data: result.rows[0] });
+  } catch (err) { next(err); }
 });
 
 module.exports = router;

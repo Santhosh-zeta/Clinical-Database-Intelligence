@@ -5,11 +5,11 @@ export function middleware(request: NextRequest) {
   const role = request.cookies.get('__intellicare_role')?.value;
   const url = request.nextUrl.pathname;
 
-  if (role === 'patient') {
-     const restrictedRoutes = ['/patients', '/icu', '/logs', '/users', '/vitals', '/dashboard'];
-     if (restrictedRoutes.some(route => url.startsWith(route)) || url === '/') {
-        return NextResponse.redirect(new URL('/my-vitals', request.url));
-     }
+  if (role?.toLowerCase() === 'patient') {
+    const restrictedRoutes = ['/patients', '/icu', '/logs', '/users', '/vitals', '/dashboard'];
+    if (restrictedRoutes.some(route => url.startsWith(route)) || url === '/') {
+      return NextResponse.redirect(new URL('/my-vitals', request.url));
+    }
   }
 
   return NextResponse.next();

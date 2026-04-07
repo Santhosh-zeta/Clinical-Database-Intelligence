@@ -9,7 +9,7 @@ docker network prune -f
 
 # 2. Start PostgreSQL/TimescaleDB & API at once to fix network issues
 echo "🔌 Starting all containers..."
-docker-compose up -d --force-recreate
+docker-compose up -d --force-recreate --build
 
 echo "⏳ Waiting for database to stabilize (20s)..."
 until docker exec clinical-db pg_isready -U postgres -d clinical_db; do

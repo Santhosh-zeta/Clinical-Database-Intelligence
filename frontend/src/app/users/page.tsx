@@ -53,7 +53,7 @@ export default function UsersManagementPage() {
 
     // Redirect if not admin
     useEffect(() => {
-        if (currentUser && currentUser.role !== 'admin') {
+        if (currentUser?.role?.toLowerCase() !== 'admin') {
             router.push('/');
         }
     }, [currentUser, router]);
@@ -114,7 +114,7 @@ export default function UsersManagementPage() {
     };
 
     return (
-        <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-6 w-full animate-in fade-in duration-500">
+        <div className="max-w-7xl mx-auto flex flex-col gap-6 w-full animate-in fade-in duration-500">
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>

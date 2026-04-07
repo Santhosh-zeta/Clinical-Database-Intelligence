@@ -67,4 +67,12 @@ router.get('/:id/admissions', requirePermission('VIEW_PATIENT'), async (req, res
     } catch (e) { next(e); }
 });
 
+/** POST /api/patients/:id/appointments — book appointment */
+router.post('/:id/appointments',
+    requirePermission('UPDATE_PATIENT'),
+    [body('appointment_at').isISO8601(), body('reason').notEmpty()],
+    validate,
+    ctrl.createAppointment
+);
+
 module.exports = router;

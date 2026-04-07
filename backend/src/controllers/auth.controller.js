@@ -11,7 +11,7 @@ const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
         const result = await db.query(
-            `SELECT d.id, d.name, d.email, d.password_hash, d.role, d.organization_id
+            `SELECT d.id, d.name, d.email, d.password_hash, d.role, d.organization_id, d.patient_id
              FROM doctors d WHERE d.email = $1 AND d.is_active = TRUE`,
             [email]
         );
@@ -20,21 +20,16 @@ const login = async (req, res, next) => {
         if (!result.rowCount) {
             if (isMock) {
                 let role = 'patient';
-                let patientId = null;
                 if (email.startsWith('a')) role = 'admin';
                 else if (email.startsWith('d')) role = 'doctor';
                 else if (email.startsWith('n')) role = 'nurse';
-                else if (email.startsWith('p')) {
-                    role = 'patient';
-                    patientId = parseInt(email.replace(/\D/g, '')) || 1;
-                }
 
                 const payload = {
                     id: parseInt(email.replace(/\D/g, '')) || 999,
-                    name: (email.split('@')[0].toUpperCase() || 'DEMO') + " (Demo)",
+                    name: "Demo User",
                     role: role,
-                    patientId: patientId,
                     org_id: 1,
+                    patientId: role === 'patient' ? (parseInt(email.replace(/\D/g, '')) || 1) : null,
                     permissions: ['*']
                 };
                 const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '12h' });
@@ -63,6 +58,7 @@ const login = async (req, res, next) => {
             name: doctor.name,
             role: doctor.role,
             org_id: doctor.organization_id,
+            patientId: doctor.patient_id,
             permissions: permissions
         };
 

@@ -38,7 +38,7 @@ export default function ICUAllocationPage() {
         setAllBeds(data.data || []);
         setLastRefreshed(new Date());
       }
-    } catch (_) {}
+    } catch (_) { }
     setLoading(false);
   };
 
@@ -64,7 +64,7 @@ export default function ICUAllocationPage() {
   }, {});
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-8 w-full animate-in fade-in duration-700">
+    <div className="max-w-7xl mx-auto flex flex-col gap-8 w-full animate-in fade-in duration-700">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
@@ -173,10 +173,10 @@ function BedCard({ bed, index, compact = false }: { bed: BedStatus; index: numbe
     !bed.is_occupied
       ? 'bg-slate-50 border-dashed border-slate-300 text-slate-400'
       : isCrit
-      ? 'bg-rose-50 border-rose-200 text-rose-700 shadow-sm shadow-rose-100'
-      : isHigh
-      ? 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm'
-      : 'bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm'
+        ? 'bg-rose-50 border-rose-200 text-rose-700 shadow-sm shadow-rose-100'
+        : isHigh
+          ? 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm'
+          : 'bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm'
   );
 
   const content = (

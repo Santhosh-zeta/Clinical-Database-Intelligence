@@ -19,6 +19,7 @@ const alertsRoutes = require('./routes/alerts.routes');
 const admissionsRoutes = require('./routes/admissions.routes');
 const prescriptionRoutes = require('./routes/prescription.routes');
 const adminRoutes = require('./routes/admin.routes');
+const dashboardRoutes = require('./routes/dashboard'); // Added
 const notifRoutes = require('./routes/notifications.routes');
 
 // Legacy routes (still serviced for frontend backward compat)
@@ -60,6 +61,7 @@ app.use('/api/admissions', ...guard, admissionsRoutes);
 app.use('/api/prescriptions', ...guard, prescriptionRoutes);
 app.use('/api/handovers', ...guard, require('./routes/handover.routes'));
 app.use('/api/admin', ...guard, adminRoutes);
+app.get('/api/dashboard/stats', (req, res) => res.json({ message: 'direct hit' }));
 app.use('/api/notifications', ...guard, notifRoutes);
 
 // Legacy routes — kept for frontend backward compat (still JWT-guarded)

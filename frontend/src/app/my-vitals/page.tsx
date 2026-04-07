@@ -28,69 +28,56 @@ const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
 
 export default function MyVitalsPage() {
     const { currentUser } = useAuth();
-    const myPatientId = currentUser?.patientId;
+    const myAdmissionId = currentUser?.patientId || '1';
 
     const [myPatient, setMyPatient] = useState<any>(null);
     const [myVitals, setMyVitals] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!myPatientId) {
-            setLoading(false);
-            return;
-        }
+        if (!myAdmissionId) return;
         async function fetchPatientData() {
             try {
-                const pRes = await fetch(`${API}/patients/${myPatientId}`, { headers: authHeader() });
+                // For demo/prototype, assume patient details are accessible from patients endpoint
+                const pRes = await fetch(`${API}/patients/${myAdmissionId}`, { headers: authHeader() });
                 if (pRes.ok) {
                     const d = await pRes.json();
                     setMyPatient(d.data);
                 }
-                const vRes = await fetch(`${API}/vitals/${myPatientId}?limit=50`, { headers: authHeader() });
+                const vRes = await fetch(`${API}/vitals/${myAdmissionId}?limit=50`, { headers: authHeader() });
                 if (vRes.ok) {
                     const d = await vRes.json();
-                    const mapped = (d.rows || d.data || []).map((v: any) => ({
+                    const mapped = (d.data || []).map((v: any) => ({
                         timestamp: v.recorded_at,
                         heartRate: Number(v.heart_rate || 0),
                         bloodPressure: { systolic: Number(v.systolic_bp || 0), diastolic: Number(v.diastolic_bp || 0) },
                         oxygenLevel: Number(v.spo2 || 0),
-                        temperature: Number(v.temperature || 0),
-                        respiratoryRate: Number(v.respiratory_rate || 0),
-                        glucose: Number(v.blood_glucose || 0),
-                        notes: v.notes
+                        temperature: Number(v.temperature || 0)
                     }));
                     setMyVitals(mapped.reverse());
                 }
             } catch (_) { }
-            setLoading(false);
         }
         fetchPatientData();
-        const interval = setInterval(fetchPatientData, 10000); // 10s for real-time feel
+        const interval = setInterval(fetchPatientData, 30000);
         return () => clearInterval(interval);
-    }, [myPatientId]);
+    }, [myAdmissionId]);
 
     const latestVitals = myVitals.length > 0 ? myVitals[myVitals.length - 1] : null;
 
-    if (!myPatientId) return (
-        <div className="p-20 text-center font-bold text-slate-500">
-            Please log in as a patient to view live vitals.
-        </div>
-    );
-
     return (
-        <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-8 w-full animate-in fade-in duration-500">
+        <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-8 w-full">
 
             <div className="flex items-center gap-4">
                 <Link href="/" className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all shadow-sm">
                     <ArrowLeft className="w-5 h-5" />
                 </Link>
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Live Recovery Stream</h1>
-                    <p className="text-slate-500 font-medium capitalize">Telemetry for {myPatient?.name || 'Loading...'} · ID: #{myPatientId}</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Live Vitals Monitoring</h1>
+                    <p className="text-slate-500 font-medium capitalize">Monitoring for Patient ID: {myAdmissionId} • {myPatient?.name}</p>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <VitalCard
                     label="Heart Rate"
                     value={latestVitals?.heartRate || '--'}
@@ -110,7 +97,7 @@ export default function MyVitalsPage() {
                     status={latestVitals?.bloodPressure.systolic > 140 ? 'High' : 'Normal'}
                 />
                 <VitalCard
-                    label="Oxygen (SpO2)"
+                    label="Oxygen Saturation"
                     value={latestVitals?.oxygenLevel || '--'}
                     unit="%"
                     icon={<Droplets className="w-5 h-5" />}
@@ -126,24 +113,6 @@ export default function MyVitalsPage() {
                     color="text-orange-600"
                     bg="bg-orange-50"
                     status={latestVitals?.temperature > 37.5 ? 'Fever' : 'Normal'}
-                />
-                <VitalCard
-                    label="Resp Rate"
-                    value={latestVitals?.respiratoryRate || '--'}
-                    unit="/min"
-                    icon={<Activity className="w-5 h-5" />}
-                    color="text-emerald-600"
-                    bg="bg-emerald-50"
-                    status={latestVitals?.respiratoryRate > 25 ? 'High' : 'Normal'}
-                />
-                <VitalCard
-                    label="Glucose"
-                    value={latestVitals?.glucose || '--'}
-                    unit="mg/dL"
-                    icon={<Droplets className="w-5 h-5" />}
-                    color="text-amber-600"
-                    bg="bg-amber-50"
-                    status={latestVitals?.glucose > 200 ? 'High' : 'Normal'}
                 />
             </div>
 

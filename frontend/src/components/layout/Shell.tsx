@@ -17,12 +17,15 @@ import {
   Database,
   HeartPulse,
   Stethoscope,
+  Clock,
+  ClipboardList,
+  BookOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '../../lib/utils';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 const API = 'http://localhost:3001/api';
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
@@ -41,6 +44,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const { currentUser, logout, hasPermission } = useAuth();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
 
   // ── Real Notifications ─────────────────────────────────────────────────
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -109,7 +114,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside className="w-20 lg:w-64 bg-white border-r border-slate-200/80 shadow-[4px_0_24px_rgba(0,0,0,0.02)] flex flex-col transition-all duration-300 relative z-20">
-        <Link href="/" className="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+        <Link href="/dashboard" className="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
           <div className="p-1.5 bg-indigo-50 rounded-xl mr-3 hidden lg:block border border-indigo-100/50">
             <Activity className="w-6 h-6 text-indigo-500 shrink-0" />
           </div>
@@ -121,7 +126,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           {/* Main Entry Point (Dashboard) */}
           {(hasPermission('VIEW_DASHBOARD') || currentUser?.role) && (
             <NavItem
-              href="/"
+              href="/dashboard"
               icon={<LayoutDashboard size={20} />}
               label={
                 ['admin', 'hospital_admin', 'ultra_admin'].includes(currentUser?.role || '') ? 'Command Center' :
@@ -129,43 +134,65 @@ export function Shell({ children }: { children: React.ReactNode }) {
                     currentUser?.role === 'nurse' ? 'Ward Summary' :
                       'Recovery Hub'
               }
-              active={pathname === '/'}
+              active={pathname === '/' || pathname === '/dashboard'}
             />
           )}
 
-          {/* Administrative Section */}
-          {(['admin', 'ultra_admin'].includes(currentUser?.role || '')) && (
-            <NavItem href="/users" icon={<Users size={20} />} label="Staff Registry" active={pathname === '/users'} />
-          )}
-
-          {/* Clinical Workspace */}
-          {(currentUser?.role === 'doctor' || currentUser?.role === 'nurse' || ['admin', 'hospital_admin'].includes(currentUser?.role || '')) && (
+          {/* Business & Staff (Admin Only) */}
+          {(['admin', 'ultra_admin', 'hospital_admin'].includes(currentUser?.role || '')) && (
             <>
-              <NavItem href="/patients" icon={<Stethoscope size={20} />} label="Patient Directory" active={pathname === '/patients'} />
-              <NavItem href="/vitals" icon={<Activity size={20} />} label="Continuous Monitoring" active={pathname === '/vitals'} />
-              <NavItem href="/icu" icon={<BedDouble size={20} />} label="ICU & Bed Status" active={pathname === '/icu'} />
+              <NavItem href="/dashboard?tab=staff" icon={<Users size={20} />} label="Staff Roster" active={pathname === '/dashboard' && tabParam === 'staff'} />
+              <NavItem href="/dashboard?tab=patients" icon={<Users size={20} />} label="Patient Registry" active={pathname === '/dashboard' && tabParam === 'patients'} />
+              <NavItem href="/dashboard?tab=icu" icon={<BedDouble size={20} />} label="Ward Occupancy" active={pathname === '/dashboard' && tabParam === 'icu'} />
+              <NavItem href="/dashboard?tab=alerts" icon={<AlertTriangle size={20} />} label="System Alerts" active={pathname === '/dashboard' && tabParam === 'alerts'} />
+              <NavItem href="/dashboard?tab=logs" icon={<Database size={20} />} label="Security Logs" active={pathname === '/dashboard' && tabParam === 'logs'} />
             </>
           )}
 
-          {/* Incident Management */}
-          {(currentUser?.role !== 'patient') && (
-            <NavItem href="/alerts" icon={<AlertTriangle size={20} />} label="Alert Management" active={pathname === '/alerts'} />
+          {/* Clinical Workspace (Doctors & Nurses Only) */}
+          {(currentUser?.role === 'doctor' || currentUser?.role === 'nurse') && (
+            <>
+              <div className="h-px bg-slate-100 mx-3 my-2" />
+              <p className="px-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Clinical</p>
+
+              <NavItem href="/dashboard?tab=patients" icon={<Users size={20} />} label="Patient Directory" active={pathname === '/dashboard' && tabParam === 'patients'} />
+              <NavItem href="/dashboard?tab=vitals" icon={<Activity size={20} />} label="Live Monitor" active={pathname === '/dashboard' && tabParam === 'vitals'} />
+              <NavItem href="/dashboard?tab=icu" icon={<BedDouble size={20} />} label="Ward Status" active={pathname === '/dashboard' && tabParam === 'icu'} />
+
+              {currentUser?.role === 'doctor' && (
+                <>
+                  <NavItem href="/dashboard?tab=consults" icon={<Stethoscope size={20} />} label="Consultations" active={pathname === '/dashboard' && tabParam === 'consults'} />
+                  <NavItem href="/dashboard?tab=discharge" icon={<HeartPulse size={20} />} label="Discharged Auth" active={pathname === '/dashboard' && tabParam === 'discharge'} />
+                </>
+              )}
+
+              {currentUser?.role === 'nurse' && (
+                <>
+                  <NavItem href="/dashboard?tab=meds" icon={<ClipboardList size={20} />} label="Medication Rounds" active={pathname === '/dashboard' && tabParam === 'meds'} />
+                  <NavItem href="/dashboard?tab=handover" icon={<Users size={20} />} label="Shift Handover" active={pathname === '/dashboard' && tabParam === 'handover'} />
+                </>
+              )}
+
+              <NavItem href="/dashboard?tab=alerts" icon={<AlertTriangle size={20} />} label="Risk Alerts" active={pathname === '/dashboard' && tabParam === 'alerts'} />
+            </>
           )}
 
-          {/* Audit Section */}
-          {(['admin', 'ultra_admin', 'hospital_admin'].includes(currentUser?.role || '')) && (
-            <NavItem href="/logs" icon={<Database size={20} />} label="Audit Trail" active={pathname === '/logs'} />
-          )}
-
-          {/* Patient Self-Care */}
+          {/* Patient Portal (Patient Only) */}
           {currentUser?.role === 'patient' && (
-            <NavItem href="/my-vitals" icon={<HeartPulse size={20} />} label="Live Telemetry" active={pathname === '/my-vitals'} />
+            <>
+              <div className="h-px bg-slate-100 mx-3 my-2" />
+              <p className="px-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">My Care</p>
+              <NavItem href="/dashboard?tab=vitals" icon={<Activity size={20} />} label="Live Vitals" active={pathname === '/dashboard' && tabParam === 'vitals'} />
+              <NavItem href="/dashboard?tab=meds" icon={<ClipboardList size={20} />} label="My Treatments" active={pathname === '/dashboard' && tabParam === 'meds'} />
+              <NavItem href="/dashboard?tab=docs" icon={<BookOpen size={20} />} label="Medical History" active={pathname === '/dashboard' && tabParam === 'docs'} />
+              <NavItem href="/dashboard?tab=appointments" icon={<Clock size={20} />} label="Appointments" active={pathname === '/dashboard' && tabParam === 'appointments'} />
+            </>
           )}
         </nav>
 
         <div className="p-4 border-t border-slate-100 flex flex-col gap-1">
-          {hasPermission('MANAGE_SETTINGS') || ['admin', 'ultra_admin', 'hospital_admin', 'doctor'].includes(currentUser?.role || '') ? (
-            <NavItem href="/settings" icon={<Settings size={20} />} label="Settings" active={pathname === '/settings'} />
+          {(['admin', 'ultra_admin', 'hospital_admin'].includes(currentUser?.role || '')) ? (
+            <NavItem href="/dashboard?tab=settings" icon={<Settings size={20} />} label="System Settings" active={pathname === '/dashboard' && tabParam === 'settings'} />
           ) : null}
           <button onClick={logout} className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 text-rose-500 hover:bg-rose-50 font-medium">
             <LogOut size={20} />

@@ -71,9 +71,16 @@ export default function AuditLogsPage() {
     fetchLogs(1);
   }, [filterTable, filterAction]);
 
+  // Real-time polling
   useEffect(() => {
-    fetchLogs(currentPage);
-  }, [currentPage]);
+    const id = setInterval(() => {
+      // Only auto-refresh if on first page and not searching (to avoid UX jumps)
+      if (currentPage === 1 && !searchTerm) {
+        fetchLogs(1);
+      }
+    }, 10000);
+    return () => clearInterval(id);
+  }, [currentPage, searchTerm, fetchLogs]);
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
@@ -105,7 +112,7 @@ export default function AuditLogsPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-8 w-full h-full">
+    <div className="max-w-7xl mx-auto flex flex-col gap-8 w-full h-full">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">

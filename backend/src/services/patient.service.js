@@ -121,10 +121,10 @@ async function getTimeline(patientId, orgId, { page = 1, limit = 100 } = {}) {
         timeline: events,
         total_events: eventsResult.rowCount,
         summary: {
-            total_admissions:    parseInt(admCount.rows[0]?.count  || 0),
-            total_alerts:        parseInt(alertCount.rows[0]?.count || 0),
+            total_admissions: parseInt(admCount.rows[0]?.count || 0),
+            total_alerts: parseInt(alertCount.rows[0]?.count || 0),
             total_prescriptions: parseInt(presCount.rows[0]?.count || 0),
-            latest_ews:          ewsLatest.rows[0] || null,
+            latest_ews: ewsLatest.rows[0] || null,
         },
     };
 }
@@ -145,4 +145,13 @@ async function addSymptoms(patientId, admissionId, symptoms, notedBy) {
     return inserted;
 }
 
-module.exports = { list, getById, create, update, getTimeline, addSymptoms };
+async function createAppointment(patientId, orgId, userId, { doctor_id, appointment_at, reason, location }) {
+    const result = await db.query(
+        `INSERT INTO patient_appointments (patient_id, organization_id, doctor_id, appointment_at, reason, location)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [patientId, orgId, doctor_id || userId, appointment_at, reason, location || 'General Clinic']
+    );
+    return result.rows[0];
+}
+
+module.exports = { list, getById, create, update, getTimeline, addSymptoms, createAppointment };
