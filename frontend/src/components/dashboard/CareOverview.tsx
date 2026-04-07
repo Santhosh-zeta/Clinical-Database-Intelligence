@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Users, Activity, AlertTriangle, BedDouble, ArrowRight, Wind,
   TrendingDown, ShieldAlert, HeartPulse, LogOut, Loader2, RefreshCw,
-  ClipboardList, Stethoscope, Calendar, User, MapPin, Clock
+  ClipboardList, Stethoscope, Calendar, User, MapPin, Clock,
+  BriefcaseMedical, KeyRound, CheckCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import SymptomLogger from '@/components/patient/SymptomLogger';
 
 const API = 'http://localhost:3001/api';
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
@@ -378,136 +380,270 @@ function MiniStat({ label, value, icon, color }: { label: string; value: string 
 }
 
 // ── Patient Dashboard Sub-component ──────────────────────────────────────────
+
+// ── Patient Dashboard Sub-component ──────────────────────────────────────────
 function PatientDashboardView() {
   const { currentUser } = useAuth();
+  if (!currentUser) return null;
   const [admission, setAdmission] = useState<any>(null);
   const [vitals, setVitals] = useState<any>(null);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastRefreshed, setLastRefreshed] = useState(new Date());
 
-  useEffect(() => {
-    async function fetchPatientData() {
-      if (!currentUser?.patientId) return;
-      try {
-        // 1. Get active admission for this patient
-        const admRes = await fetch(`${API}/admissions?patient_id=${currentUser.patientId}&status=active`, { headers: ah() });
-        if (admRes.ok) {
-          const admData = await admRes.json();
-          const activeAdm = (admData.rows || admData.data || [])[0];
-          setAdmission(activeAdm);
+  const fetchPatientData = useCallback(async () => {
+    if (!currentUser?.patientId) return;
+    try {
+      // 1. Get active admission
+      const admRes = await fetch(`${API}/admissions?patient_id=${currentUser.patientId}&status=active`, { headers: ah() });
+      if (admRes.ok) {
+        const admData = await admRes.json();
+        const activeAdm = (admData.rows || admData.data || [])[0];
+        setAdmission(activeAdm);
 
-          if (activeAdm) {
-            // 2. Get latest vitals for this admission
-            const vRes = await fetch(`${API}/vitals/${currentUser.patientId}?limit=1`, { headers: ah() });
-            if (vRes.ok) {
-              const vData = await vRes.json();
-              setVitals((vData.rows || vData.data || [])[0]);
-            }
+        if (activeAdm) {
+          // Parallel fetch: Vitals, Alerts, Prescriptions
+          const [vRes, alRes, prRes] = await Promise.all([
+            fetch(`${API}/vitals/${currentUser.patientId}?limit=1`, { headers: ah() }),
+            fetch(`${API}/alerts/patient/${currentUser.patientId}`, { headers: ah() }),
+            fetch(`${API}/prescriptions/${currentUser.patientId}`, { headers: ah() })
+          ]);
+
+          if (vRes.ok) {
+            const vData = await vRes.json();
+            setVitals((vData.rows || vData.data || [])[0]);
+          }
+          if (alRes.ok) {
+            const alData = await alRes.json();
+            setAlerts((alData.data || []).slice(0, 5)); // Latest 5 alerts
+          }
+          if (prRes.ok) {
+            const prData = await prRes.json();
+            setPrescriptions((prData.data || []).filter((p: any) => p.status === 'active').slice(0, 4));
           }
         }
-      } catch (e) { console.error(e); }
-      setLoading(false);
-    }
-    fetchPatientData();
+      }
+      setLastRefreshed(new Date());
+    } catch (e) { console.error(e); }
+    setLoading(false);
   }, [currentUser]);
 
-  if (loading) return (
+  useEffect(() => {
+    fetchPatientData();
+    const interval = setInterval(fetchPatientData, 10000); // 10s real-time polling
+    return () => clearInterval(interval);
+  }, [fetchPatientData]);
+
+  if (loading && !admission) return (
     <div className="flex flex-col items-center justify-center p-20 gap-4">
       <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
-      <p className="text-slate-500 font-bold">Synchronizing Clinical Data...</p>
+      <p className="text-slate-500 font-bold tracking-tight">Synchronizing Clinical Telemetry...</p>
     </div>
   );
 
   if (!admission) return (
-    <div className="p-8 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 m-8">
-      <HeartPulse className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-      <h2 className="text-2xl font-bold text-slate-800">No Active Admission</h2>
-      <p className="text-slate-500 mt-2">You are not currently checked into any ward. Contact the hospital desk for admission details.</p>
+    <div className="p-12 text-center bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200 m-8 flex flex-col items-center gap-4">
+      <div className="p-4 bg-white rounded-full shadow-sm">
+        <HeartPulse className="w-12 h-12 text-slate-300" />
+      </div>
+      <div>
+        <h2 className="text-2xl font-black text-slate-800">Observation Not Active</h2>
+        <p className="text-slate-500 mt-2 max-w-sm mx-auto">Your patient ID is registered, but you aren't currently checked into a clinical ward. Please contact the front desk if this is an error.</p>
+      </div>
     </div>
   );
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-8 w-full animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-8 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">My Recovery Dashboard</h1>
-          <p className="text-slate-500 text-lg flex items-center gap-2">
-            <span className="font-bold text-indigo-600">Patient:</span> {currentUser.name}
-            <span className="h-4 w-px bg-slate-300 mx-2" />
-            <span className="font-bold text-indigo-600">ID:</span> #{currentUser.patientId}
-          </p>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Live Recovery Mode</span>
+          </div>
+          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight leading-none mb-3">Recovery Hub</h1>
+          <div className="flex items-center gap-3 text-slate-500 font-medium text-sm">
+            <span className="bg-slate-100 px-3 py-1 rounded-full text-slate-700 font-bold">#{currentUser.patientId}</span>
+            <span className="opacity-40">|</span>
+            <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Updated: {lastRefreshed.toLocaleTimeString()}</span>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Card: Care Team & Location */}
-        <div className="lg:col-span-1 flex flex-col gap-6">
-          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
-            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-              <Stethoscope className="w-5 h-5 text-indigo-500" /> Current Care
-            </h3>
-            <div className="space-y-6">
-              <InfoItem icon={<User className="w-4 h-4" />} label="Attending Physician" value={admission.doctor_name || 'Dr. Assigned'} />
-              <InfoItem icon={<MapPin className="w-4 h-4" />} label="Location" value={`${admission.ward_name} · Bed ${admission.bed_number}`} />
-              <InfoItem icon={<Calendar className="w-4 h-4" />} label="Admitted On" value={new Date(admission.admitted_at).toLocaleDateString()} />
-              <InfoItem icon={<Clock className="w-4 h-4" />} label="Diagnosis" value={admission.diagnosis} />
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-        {/* Right Card: Pulse & Vitals */}
-        <div className="lg:col-span-2 flex flex-col gap-8">
+        {/* LEFT COLUMN: Vitals & Alerts (8 cols) */}
+        <div className="lg:col-span-8 flex flex-col gap-8">
+
+          {/* Main Vitals Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-slate-900 text-white rounded-[2.5rem] p-8 relative overflow-hidden flex flex-col justify-between h-[280px]">
+            <div className="bg-slate-900 text-white rounded-[2.5rem] p-8 relative overflow-hidden flex flex-col justify-between min-h-[300px] shadow-2xl shadow-indigo-500/10">
               <div className="relative z-10">
-                <span className="text-indigo-400 text-xs font-bold uppercase tracking-widest">Latest Score</span>
-                <h3 className="text-5xl font-extrabold mt-2 italic">{admission.risk_category?.toUpperCase() || 'STABLE'}</h3>
-                <p className="text-slate-400 text-sm mt-4 max-w-[200px]">Your clinical status is updated every 5 seconds by automated telemetry.</p>
+                <p className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-3">Clinical Risk Intelligence</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-5xl font-black italic tracking-tighter uppercase">{admission.risk_category || 'STABLE'}</h3>
+                </div>
+                <div className="mt-6 flex flex-col gap-3">
+                  <div className="flex items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/10 backdrop-blur-sm">
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(129,140,248,0.8)]" />
+                    <p className="text-xs text-slate-300 font-medium uppercase tracking-tight">Vitals Synchronized every 10s</p>
+                  </div>
+                  <div className="flex items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/10 backdrop-blur-sm">
+                    <Activity className="w-4 h-4 text-emerald-400" />
+                    <p className="text-xs text-slate-300 font-medium">Automatic Deterioration Monitoring Active</p>
+                  </div>
+                </div>
               </div>
-              <Activity className="absolute -right-8 -bottom-8 w-48 h-48 text-white/5" />
-              <Link href="/my-vitals" className="relative z-10 w-fit px-6 py-3 bg-white text-slate-900 rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-slate-100 transition-all">
-                Full Vitals <ArrowRight className="w-4 h-4" />
+              <Activity className="absolute -right-12 -bottom-12 w-64 h-64 text-white/5" />
+              <Link href="/my-vitals" className="relative z-10 group w-fit flex items-center gap-3 px-6 py-4 bg-white text-slate-950 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all hover:shadow-[0_8px_20px_rgba(255,255,255,0.2)]">
+                VIEW LIVE TELEMETRY <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
 
-            <div className="flex flex-col gap-6">
-              <MiniVitalCard icon={<HeartPulse className="w-5 h-5 text-rose-500" />} label="Heart Rate" value={vitals?.heart_rate || '--'} unit="bpm" />
-              <MiniVitalCard icon={<Activity className="w-5 h-5 text-indigo-500" />} label="Blood Pressure" value={vitals ? `${vitals.systolic_bp}/${vitals.diastolic_bp}` : '--'} unit="mmHg" />
-              <MiniVitalCard icon={<Wind className="w-5 h-5 text-blue-500" />} label="SpO2 Level" value={vitals?.spo2 || '--'} unit="%" />
+            <div className="grid grid-cols-1 gap-4">
+              <MiniVitalCard icon={<HeartPulse className="w-5 h-5 text-rose-500" />} label="Heart Rate" value={vitals?.heart_rate || '--'} unit="bpm" color="rose" />
+              <MiniVitalCard icon={<Activity className="w-5 h-5 text-indigo-500" />} label="BP Level" value={vitals ? `${vitals.systolic_bp}/${vitals.diastolic_bp}` : '--'} unit="mmHg" color="indigo" />
+              <MiniVitalCard icon={<Wind className="w-5 h-5 text-blue-500" />} label="Oxygen (SpO2)" value={vitals?.spo2 || '--'} unit="%" color="blue" />
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function InfoItem({ icon, label, value }: { icon: any, label: string, value: string }) {
-  return (
-    <div className="flex items-start gap-4">
-      <div className="mt-1 p-2 bg-slate-50 rounded-xl text-slate-400 border border-slate-100">{icon}</div>
-      <div>
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-tight">{label}</p>
-        <p className="text-slate-800 font-bold leading-tight mt-0.5">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function MiniVitalCard({ icon, label, value, unit }: { icon: any, label: string, value: any, unit: string }) {
-  return (
-    <div className="bg-white border border-slate-200 rounded-3xl p-5 flex items-center justify-between shadow-sm">
-      <div className="flex items-center gap-4">
-        <div className="p-2 bg-slate-50 rounded-xl border border-slate-100">{icon}</div>
-        <div>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">{label}</p>
-          <div className="flex items-baseline gap-1">
-            <span className="text-xl font-extrabold text-slate-800">{value}</span>
-            <span className="text-[10px] font-bold text-slate-400">{unit}</span>
+          {/* Active Alerts Feed */}
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                <div className="p-2 bg-rose-50 rounded-xl"><AlertTriangle className="w-5 h-5 text-rose-500" /></div>
+                Recent Clinical Alerts
+              </h3>
+              <span className="text-[10px] font-black bg-slate-100 px-3 py-1 rounded-full text-slate-500 uppercase tracking-widest">Last 24 Hours</span>
+            </div>
+            {alerts.length === 0 ? (
+              <div className="py-10 text-center flex flex-col items-center gap-3 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
+                <CheckCircle className="w-8 h-8 text-emerald-400" />
+                <p className="text-slate-500 font-bold text-sm">No abnormal findings recorded.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {alerts.map((alert, idx) => (
+                  <div key={idx} className={cn(
+                    "flex items-center gap-4 p-5 rounded-3xl border transition-all",
+                    alert.severity === 'critical' ? 'bg-rose-50/50 border-rose-100' : 'bg-amber-50/50 border-amber-100'
+                  )}>
+                    <div className={cn(
+                      "p-3 rounded-2xl shadow-sm",
+                      alert.severity === 'critical' ? 'bg-rose-500 text-white' : 'bg-amber-500 text-white'
+                    )}>
+                      <Activity className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-black text-slate-800 tracking-tight capitalize">{alert.alert_type.replace(/_/g, ' ')}</p>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5">{alert.message}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-black text-slate-400">{new Date(alert.triggered_at).toLocaleTimeString()}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
+
+        {/* RIGHT COLUMN: Care Team & Meds (4 cols) */}
+        <div className="lg:col-span-4 flex flex-col gap-8">
+
+          {/* Care Team & Ward */}
+          <div className="bg-white border border-slate-200 rounded-[3rem] p-8 shadow-sm">
+            <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3 uppercase tracking-tighter">
+              <Users className="w-5 h-5 text-indigo-500" /> Care Ensemble
+            </h3>
+            <div className="space-y-8">
+              <InfoItem icon={<User className="w-4 h-4" />} label="Primary Physician" value={admission.doctor_name || 'Medical Director'} desc="On-Call Specialist" />
+              <InfoItem icon={<MapPin className="w-4 h-4" />} label="Current Location" value={`${admission.ward_name}`} desc={`Bed Reference: ${admission.bed_number}`} />
+              <InfoItem icon={<Calendar className="w-4 h-4" />} label="Admission Date" value={new Date(admission.admitted_at).toLocaleDateString()} desc="Current stay duration: Active" />
+            </div>
+          </div>
+
+          {/* Upcoming Medication */}
+          <div className="bg-indigo-600 rounded-[3rem] p-8 text-white shadow-xl shadow-indigo-500/20">
+            <h3 className="text-xl font-black mb-8 flex items-center gap-3 uppercase tracking-tighter">
+              <BriefcaseMedical className="w-5 h-5 text-indigo-200" /> Medication Plan
+            </h3>
+            {prescriptions.length === 0 ? (
+              <p className="text-indigo-200 text-sm font-medium">No active medications scheduled currently.</p>
+            ) : (
+              <div className="space-y-5">
+                {prescriptions.map((pr, idx) => (
+                  <div key={idx} className="flex items-center gap-4 group">
+                    <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 group-hover:bg-white/20 transition-all">
+                      <Activity className="w-4 h-4 text-indigo-200" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black tracking-tight">{pr.medication_name}</p>
+                      <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest">{pr.dose} · {pr.frequency}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="mt-8 pt-8 border-t border-white/10">
+              <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/10">
+                <KeyRound className="w-4 h-4 text-indigo-300" />
+                <p className="text-[10px] leading-tight text-indigo-100 font-medium italic">Please verify your dosage with your attending nurse before administration.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Symptom Report */}
+          <SymptomLogger onSuccess={fetchPatientData} />
+
+        </div>
       </div>
-      <div className="h-6 w-16 bg-slate-50 rounded-lg overflow-hidden flex items-center justify-center">
-        <div className="w-full h-[2px] bg-slate-200 animate-pulse" />
+    </div>
+  );
+}
+
+function InfoItem({ icon, label, value, desc }: { icon: any, label: string, value: string, desc?: string }) {
+  return (
+    <div className="flex items-start gap-4">
+      <div className="mt-1 p-2 bg-slate-50 rounded-2xl text-slate-400 border border-slate-100 group-hover:text-indigo-500 transition-colors">{icon}</div>
+      <div>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
+        <p className="text-slate-900 font-black tracking-tight leading-none text-lg mb-1">{value}</p>
+        {desc && <p className="text-xs text-slate-500 font-medium">{desc}</p>}
+      </div>
+    </div>
+  );
+}
+
+function MiniVitalCard({ icon, label, value, unit, color }: { icon: any, label: string, value: any, unit: string, color: string }) {
+  const colorMap: any = {
+    rose: 'hover:border-rose-300 shadow-rose-500/5 hover:bg-rose-50/10',
+    indigo: 'hover:border-indigo-300 shadow-indigo-500/5 hover:bg-indigo-50/10',
+    blue: 'hover:border-blue-300 shadow-blue-500/5 hover:bg-blue-50/10'
+  };
+
+  return (
+    <div className={cn(
+      "bg-white border border-slate-200 rounded-[2rem] p-6 flex flex-col justify-between shadow-sm transition-all duration-300 h-full",
+      colorMap[color]
+    )}>
+      <div className="flex items-center justify-between mb-4">
+        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">{icon}</div>
+        <div className="h-4 w-12 bg-slate-50 rounded-full overflow-hidden flex items-center justify-center">
+          <div className={cn("w-full h-1 animate-pulse",
+            color === 'rose' ? 'bg-rose-400/30' : color === 'blue' ? 'bg-blue-400/30' : 'bg-indigo-400/30'
+          )} />
+        </div>
+      </div>
+      <div>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-3xl font-black text-slate-900 leading-none">{value}</span>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{unit}</span>
+        </div>
       </div>
     </div>
   );

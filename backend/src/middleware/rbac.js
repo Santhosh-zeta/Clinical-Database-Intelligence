@@ -24,6 +24,7 @@ const requirePermission = (permissionCode) => (req, res, next) => {
     // Contextual fallbacks
     if (role === 'doctor' && ['VIEW_PATIENT', 'VIEW_ALL_PATIENTS', 'VIEW_ALERTS'].includes(permissionCode)) return next();
     if (role === 'nurse' && ['VIEW_PATIENT', 'VIEW_ALL_PATIENTS', 'VIEW_ALERTS'].includes(permissionCode)) return next();
+    if (role === 'patient' && ['VIEW_ALERTS', 'VIEW_VITALS', 'VIEW_PRESCRIPTIONS', 'ADD_SYMPTOMS'].includes(permissionCode)) return next();
 
     return res.status(403).json({ error: `Access denied. Required permission: ${permissionCode}` });
 };
