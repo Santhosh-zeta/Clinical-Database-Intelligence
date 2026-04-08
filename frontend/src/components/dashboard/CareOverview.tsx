@@ -5,7 +5,7 @@ import {
   Users, Activity, AlertTriangle, BedDouble, ArrowRight, Wind,
   TrendingDown, ShieldAlert, HeartPulse, LogOut, Loader2, RefreshCw,
   ClipboardList, Stethoscope, PieChart as PieIcon, BarChart as BarIcon,
-  TrendingUp, Clock, Settings, Database, Calendar
+  TrendingUp, Clock, Settings, Database, Calendar, BookOpen
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -137,14 +137,19 @@ export default function DashboardSummary() {
 
     return (
       <div className="flex flex-col gap-8 w-full animate-in fade-in duration-700">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">My Health Overview</h1>
-            <p className="text-slate-500 text-lg font-medium">Live recovery status and hospital facilities.</p>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-gradient-to-br from-indigo-600 to-indigo-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10">
+            <h1 className="text-4xl font-black tracking-tight mb-2">My Health Overview</h1>
+            <p className="text-indigo-100 font-medium tracking-wide">Live recovery status and hospital facilities.</p>
           </div>
           {adm && (
-            <div className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-4 py-2 rounded-xl flex items-center gap-2 font-black text-xs uppercase">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Assigned to {adm.ward_name} · Bed {adm.bed_number}
+            <div className="relative z-10 bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-3 rounded-2xl flex items-center gap-3 font-black text-[10px] uppercase tracking-widest shadow-lg">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              Assigned to {adm.ward_name} · Bed {adm.bed_number}
             </div>
           )}
         </div>
@@ -152,7 +157,7 @@ export default function DashboardSummary() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 flex flex-col gap-8">
             {/* Active Admission Card */}
-            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden">
+            <div className="bg-white border border-slate-100 rounded-[3rem] p-10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full -mr-32 -mt-32" />
               <div className="relative z-10">
                 <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">Current Admission Details</h3>
@@ -216,7 +221,7 @@ export default function DashboardSummary() {
             )}
 
             {/* Recent Activity Ledger */}
-            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
+            <div className="bg-white border border-slate-100 rounded-[3rem] p-10 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Recent Health Activity</h3>
                 <Link href="/dashboard?tab=docs" className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest hover:underline">Full History</Link>

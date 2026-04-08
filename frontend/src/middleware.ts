@@ -6,9 +6,9 @@ export function middleware(request: NextRequest) {
   const url = request.nextUrl.pathname;
 
   if (role?.toLowerCase() === 'patient') {
-    const restrictedRoutes = ['/patients', '/icu', '/logs', '/users', '/vitals', '/dashboard'];
+    const restrictedRoutes = ['/patients', '/icu', '/logs', '/users', '/vitals', '/admin'];
     if (restrictedRoutes.some(route => url.startsWith(route)) || url === '/') {
-      return NextResponse.redirect(new URL('/my-vitals', request.url));
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
 

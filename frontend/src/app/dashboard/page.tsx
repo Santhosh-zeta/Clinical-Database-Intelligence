@@ -5,7 +5,8 @@ import {
   Users, Activity, AlertTriangle, BedDouble, ArrowRight,
   TrendingDown, ShieldAlert, HeartPulse, LogOut, Loader2, RefreshCw,
   ClipboardList, Stethoscope, LayoutDashboard, Database, Settings,
-  Calendar, Clock, UserCircle2, BookOpen, Thermometer, Wind, CheckCircle
+  Calendar, Clock, UserCircle2, BookOpen, Thermometer, Wind, CheckCircle,
+  Ambulance, MapPin, Radio, Siren
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
@@ -656,98 +657,112 @@ function PatientHistoryTab() {
   }, [currentUser?.patientId]);
 
   if (loading) return (
-    <div className="py-20 text-center bg-white rounded-[2.5rem] border border-dashed border-slate-100 shadow-sm">
-      <Loader2 className="w-10 h-10 animate-spin text-indigo-500 mx-auto mb-4" />
-      <p className="text-slate-400 font-medium">Reconstructing clinical history...</p>
+    <div className="py-20 text-center bg-white rounded-[3rem] border border-dashed border-slate-100 shadow-sm animate-pulse flex flex-col items-center justify-center">
+      <Loader2 className="w-12 h-12 animate-spin text-indigo-500 mb-6" />
+      <p className="text-slate-500 font-bold tracking-widest uppercase text-xs">Reconstructing Medical Timeline...</p>
     </div>
   );
 
   return (
     <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Clinical Timeline</h1>
-          <p className="text-slate-500 font-medium tracking-tight">Immutable longitudinal history of your medical journey.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
+        <div className="relative z-10">
+          <h1 className="text-4xl font-black tracking-tight mb-2">Comprehensive Timeline</h1>
+          <p className="text-slate-400 font-medium">Immutable longitudinal history of your medical journey.</p>
         </div>
         {summary && (
-          <div className="flex gap-3">
-            <div className="bg-white border border-slate-100 rounded-2xl px-5 py-3 shadow-sm flex flex-col items-center">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Admissions</span>
-              <span className="text-xl font-black text-indigo-600 tracking-tighter">{summary.total_admissions}</span>
+          <div className="flex gap-4 relative z-10">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-4 flex flex-col items-center hover:bg-white/20 transition-all">
+              <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Admissions</span>
+              <span className="text-3xl font-black text-white">{summary.total_admissions}</span>
             </div>
-            <div className="bg-white border border-slate-100 rounded-2xl px-5 py-3 shadow-sm flex flex-col items-center">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Prescriptions</span>
-              <span className="text-xl font-black text-emerald-600 tracking-tighter">{summary.total_prescriptions}</span>
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-4 flex flex-col items-center hover:bg-white/20 transition-all">
+              <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Treatments</span>
+              <span className="text-3xl font-black text-white">{summary.total_prescriptions}</span>
             </div>
           </div>
         )}
       </div>
 
       {timeline.length === 0 ? (
-        <div className="py-20 text-center bg-white rounded-[2.5rem] border border-slate-100 shadow-sm">
-          <BookOpen className="w-16 h-16 text-slate-100 mx-auto mb-4" />
-          <p className="text-slate-500 font-bold text-lg">No history recorded yet</p>
-          <p className="text-slate-400">Your clinical events will be indexed here in real-time.</p>
+        <div className="py-24 text-center bg-white rounded-[3rem] border border-slate-100 shadow-sm">
+          <BookOpen className="w-20 h-20 text-slate-100 mx-auto mb-6" />
+          <p className="text-slate-800 font-black text-xl mb-2">No History Recorded</p>
+          <p className="text-slate-400 font-medium">Your clinical events will be indexed here in real-time once they occur.</p>
         </div>
       ) : (
-        <div className="relative pl-8 border-l-2 border-slate-100/60 ml-4 flex flex-col gap-10">
-          {timeline.map((ev) => (
-            <div key={ev.id} className="relative group/time">
-              {/* Timeline dot */}
+        <div className="relative pl-10 border-l-2 border-indigo-100/50 ml-6 flex flex-col gap-12 pt-6 pb-12">
+          {timeline.map((ev, idx) => (
+            <div key={ev.id} className="relative group/time animate-in slide-in-from-right-4 duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
               <div className={cn(
-                "absolute -left-[41px] w-5 h-5 rounded-full border-4 border-white shadow-md ring-2 transition-transform group-hover/time:scale-125",
-                ev.event_type === 'admission' ? 'bg-indigo-500 ring-indigo-50' :
-                  ev.event_type === 'alert' ? 'bg-rose-500 ring-rose-50' :
-                    ev.event_type === 'prescription' ? 'bg-emerald-500 ring-emerald-50' :
-                      'bg-slate-400 ring-slate-50'
+                "absolute -left-[51px] w-6 h-6 rounded-full border-[6px] border-white shadow-xl transition-all duration-300 group-hover/time:scale-125 z-10",
+                ev.event_type === 'admission' ? 'bg-indigo-500' :
+                  ev.event_type === 'alert' ? 'bg-rose-500' :
+                    ev.event_type === 'prescription' ? 'bg-emerald-500' :
+                      'bg-sky-500'
               )} />
 
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                  <span className="bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">{new Date(ev.created_at).toLocaleDateString()}</span>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  <span className="bg-white px-3 py-1 rounded-xl shadow-sm border border-slate-100 text-indigo-600">
+                    {new Date(ev.created_at).toLocaleDateString([], { month: 'short', day: '2-digit', year: 'numeric' })}
+                  </span>
                   <span>{new Date(ev.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
-                <div className="bg-white border border-slate-100 rounded-[2.5rem] p-6 shadow-sm group-hover/time:shadow-lg transition-all max-w-2xl border-l-[6px] border-l-indigo-500/10">
-                  <div className="flex items-center gap-3 mb-4">
+                <div className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] group-hover/time:shadow-xl transition-all max-w-3xl overflow-hidden relative">
+                  <div className={cn(
+                    "absolute top-0 right-0 w-32 h-32 rounded-full -mr-16 -mt-16 transition-transform group-hover/time:scale-150",
+                    ev.event_type === 'admission' ? 'bg-indigo-500/5' :
+                      ev.event_type === 'alert' ? 'bg-rose-500/5' :
+                        ev.event_type === 'prescription' ? 'bg-emerald-500/5' :
+                          'bg-sky-500/5'
+                  )} />
+                  <div className="flex items-start gap-5 mb-6 relative z-10">
                     <div className={cn(
-                      "w-10 h-10 rounded-2xl flex items-center justify-center text-xs shadow-sm border",
-                      ev.event_type === 'admission' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
-                        ev.event_type === 'alert' ? 'bg-rose-50 text-rose-600 border-rose-100' :
-                          'bg-slate-50 text-slate-400 border-slate-100'
+                      "w-14 h-14 rounded-[1.25rem] flex items-center justify-center shadow-inner border border-white/50 shrink-0",
+                      ev.event_type === 'admission' ? 'bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600' :
+                        ev.event_type === 'alert' ? 'bg-gradient-to-br from-rose-50 to-rose-100 text-rose-600' :
+                          ev.event_type === 'prescription' ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600' :
+                            'bg-gradient-to-br from-sky-50 to-sky-100 text-sky-600'
                     )}>
-                      {ev.event_type === 'admission' ? <BedDouble size={20} /> :
-                        ev.event_type === 'alert' ? <AlertTriangle size={20} /> :
-                          ev.event_type === 'prescription' ? <ClipboardList size={20} /> :
-                            <Activity size={20} />}
+                      {ev.event_type === 'admission' ? <BedDouble size={24} /> :
+                        ev.event_type === 'alert' ? <AlertTriangle size={24} /> :
+                          ev.event_type === 'prescription' ? <ClipboardList size={24} /> :
+                            <Activity size={24} />}
                     </div>
                     <div>
-                      <h4 className="font-black text-slate-800 tracking-tight capitalize">{ev.event_type} Registered</h4>
-                      {ev.created_by_name && <p className="text-[10px] font-bold text-slate-400">By {ev.created_by_name}</p>}
+                      <h4 className="text-xl font-black text-slate-900 tracking-tight capitalize mb-1">{ev.event_type} Recorded</h4>
+                      {ev.created_by_name && <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Authorized By {ev.created_by_name}</p>}
                     </div>
                   </div>
-                  <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                  <p className="text-slate-600 leading-relaxed font-medium relative z-10 text-[15px]">
                     {ev.description}
                   </p>
 
                   {ev.detail && ev.event_type === 'admission' && (
-                    <div className="mt-6 pt-6 border-t border-slate-50 grid grid-cols-2 gap-6">
-                      <div className="group/item">
-                        <span className="text-[9px] font-black uppercase text-slate-400 block mb-1 tracking-widest">Attending Unit</span>
-                        <span className="text-xs font-bold text-slate-700">{ev.detail.ward_name} · Bed {ev.detail.bed_number}</span>
+                    <div className="mt-8 pt-6 border-t border-slate-50 grid grid-cols-2 gap-6 relative z-10">
+                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                        <span className="text-[10px] font-black uppercase text-indigo-400 block mb-1 tracking-widest">Attending Unit</span>
+                        <span className="text-sm font-bold text-slate-800">{ev.detail.ward_name} · Bed {ev.detail.bed_number}</span>
                       </div>
-                      <div>
-                        <span className="text-[9px] font-black uppercase text-slate-400 block mb-1 tracking-widest">Initial Diagnosis</span>
-                        <span className="text-xs font-bold text-slate-700">{ev.detail.diagnosis}</span>
+                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                        <span className="text-[10px] font-black uppercase text-indigo-400 block mb-1 tracking-widest">Initial Diagnosis</span>
+                        <span className="text-sm font-bold text-slate-800">{ev.detail.diagnosis}</span>
                       </div>
                     </div>
                   )}
 
                   {ev.detail && ev.event_type === 'prescription' && (
-                    <div className="mt-6 pt-6 border-t border-slate-50 flex items-center gap-4">
-                      <div className="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100">
-                        {ev.detail.medication_name} {ev.detail.dose}
+                    <div className="mt-8 relative z-10">
+                      <div className="flex items-center gap-4 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50">
+                        <div className="bg-white text-emerald-600 px-4 py-2 rounded-xl text-sm font-black uppercase tracking-widest shadow-sm">
+                          {ev.detail.medication_name} {ev.detail.dose}
+                        </div>
+                        <span className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                          {ev.detail.frequency} · {ev.detail.route}
+                        </span>
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400">{ev.detail.frequency} · {ev.detail.route}</span>
                     </div>
                   )}
                 </div>
@@ -1113,54 +1128,60 @@ function PatientPrescriptionsTab() {
     fetchItems();
   }, [currentUser?.patientId]);
 
-
   return (
     <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Current Treatments</h1>
-          <p className="text-slate-500 font-medium tracking-tight">Active medication regimens and dosage protocols.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10">
+          <h1 className="text-4xl font-black tracking-tight mb-2">My Treatment Plan</h1>
+          <p className="text-indigo-100 font-medium tracking-wide">Active medication regimens and prescribed dosage protocols.</p>
         </div>
-        <div className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl border border-indigo-100 font-bold text-xs uppercase tracking-widest">
-          <ClipboardList className="w-4 h-4" />
-          {data.length} Active Orders
+        <div className="relative z-10 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2 rounded-xl flex items-center gap-3">
+          <ClipboardList size={18} className="text-indigo-200" />
+          <span className="text-[10px] font-black uppercase tracking-widest">{data.length} Active Orders</span>
         </div>
       </div>
 
       {loading ? (
-        <div className="py-20 text-center bg-white rounded-[2.5rem] border border-dashed">
-          <Loader2 className="animate-spin inline-block text-indigo-500" />
+        <div className="py-20 text-center bg-white rounded-[3rem] border border-dashed shadow-sm">
+          <Loader2 className="animate-spin w-10 h-10 text-indigo-500 mx-auto mb-4" />
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Fetching Treatments...</p>
         </div>
       ) : data.length === 0 ? (
-        <div className="py-20 text-center bg-white rounded-[2.5rem] border border-slate-100 shadow-sm">
-          <CheckCircle className="w-16 h-16 text-slate-100 mx-auto mb-4" />
-          <p className="text-slate-500 font-bold text-lg">No active medications</p>
-          <p className="text-slate-400">There are no currently pending treatments on your file.</p>
+        <div className="py-24 text-center bg-white rounded-[3rem] border border-slate-100 shadow-sm flex flex-col items-center">
+          <CheckCircle className="w-16 h-16 text-slate-200 mb-6" />
+          <p className="text-slate-800 font-black text-xl mb-2">No Active Medications</p>
+          <p className="text-slate-500 font-medium">There are no pending treatments currently attached to your profile.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data.map(rx => (
-            <div key={rx.id} className="bg-white border border-slate-100 rounded-[2.5rem] p-6 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150" />
-              <div className="flex justify-between items-start mb-6">
-                <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm border border-indigo-100">
+            <div key={rx.id} className="bg-white border border-slate-100/60 rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-xl transition-all group overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -mr-16 -mt-16 transition-transform duration-500 group-hover:scale-150 pointer-events-none" />
+
+              <div className="flex justify-between items-start mb-8 relative z-10">
+                <div className="w-14 h-14 bg-indigo-50 rounded-[1.25rem] flex items-center justify-center text-indigo-600 shadow-inner border border-white">
                   <Thermometer size={24} />
                 </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 mb-1">{rx.status}</span>
-                  <span className="text-[10px] font-bold text-slate-400">{rx.route}</span>
+                <div className="flex flex-col items-end gap-2">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-100 shadow-sm">{rx.status}</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">{rx.route}</span>
                 </div>
               </div>
-              <h3 className="text-xl font-black text-slate-900 tracking-tight mb-2 group-hover:text-indigo-600 transition-colors uppercase">{rx.medication_name}</h3>
-              <div className="flex items-center gap-4 mb-6">
-                <div className="bg-slate-50 px-3 py-1 rounded-xl text-xs font-black text-slate-600 tracking-tight">{rx.dose}</div>
-                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{rx.frequency}</div>
+
+              <div className="relative z-10 mb-8">
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-3 group-hover:text-indigo-600 transition-colors capitalize leading-tight">{rx.medication_name}</h3>
+                <div className="flex items-center gap-3">
+                  <div className="bg-slate-900 text-white px-4 py-1.5 rounded-xl text-[11px] font-black tracking-widest shadow-md uppercase">{rx.dose}</div>
+                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">{rx.frequency}</div>
+                </div>
               </div>
-              <div className="pt-4 border-t border-slate-50 flex items-center gap-2">
-                <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-[8px] font-bold text-slate-500">
+
+              <div className="pt-5 border-t border-slate-100/60 flex items-center gap-3 relative z-10">
+                <div className="w-8 h-8 bg-slate-50 rounded-[10px] border border-slate-200 flex items-center justify-center text-[10px] font-black text-slate-500">
                   {rx.prescribed_by_name?.charAt(0)}
                 </div>
-                <p className="text-[9px] font-bold text-slate-400">Prescribed by <span className="text-slate-600">Dr. {rx.prescribed_by_name}</span></p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">By <span className="text-slate-700">Dr. {rx.prescribed_by_name}</span></p>
               </div>
             </div>
           ))}
@@ -1467,9 +1488,9 @@ function PatientVitalsTab() {
   }, [fetchVitals]);
 
   if (loading) return (
-    <div className="py-20 text-center bg-white rounded-[2.5rem] border border-dashed border-slate-100 shadow-sm">
-      <Loader2 className="w-10 h-10 animate-spin text-indigo-500 mx-auto mb-4" />
-      <p className="text-slate-400 font-medium">Calibrating biometric streams...</p>
+    <div className="py-20 text-center bg-white rounded-[3rem] border border-dashed border-slate-100 shadow-sm animate-pulse flex flex-col items-center justify-center">
+      <Loader2 className="w-12 h-12 animate-spin text-indigo-500 mb-6" />
+      <p className="text-slate-500 font-bold tracking-widest uppercase text-xs">Calibrating Biometric Sensors...</p>
     </div>
   );
 
@@ -1477,18 +1498,19 @@ function PatientVitalsTab() {
 
   return (
     <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 px-1">
-        <div>
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-1">Health Telemetry</h1>
-          <p className="text-slate-500 font-medium tracking-tight">Real-time physiological insights from clinical ICU sensors.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-gradient-to-br from-slate-900 to-slate-950 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10">
+          <h1 className="text-4xl font-extrabold text-white tracking-tight mb-2">Health Telemetry</h1>
+          <p className="text-slate-400 font-medium tracking-wide">Real-time physiological insights from clinical ICU sensors.</p>
         </div>
         {latest && (
-          <div className="flex items-center gap-3 bg-white border border-slate-100 px-5 py-3 rounded-2xl shadow-sm">
+          <div className="relative z-10 flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 px-5 py-3 rounded-2xl shadow-sm">
             <div className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </div>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Live Syncing · {new Date(latest.recorded_at).toLocaleTimeString()}</span>
+            <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none">Live Syncing · {new Date(latest.recorded_at).toLocaleTimeString()}</span>
           </div>
         )}
       </div>
@@ -1565,6 +1587,505 @@ function VitalCard({ label, value, unit, icon, color, bg, data }: any) {
   );
 }
 
+// ── Dedicated Patient Appts, Labs, Billing ─────────────────────────────────
+
+function PatientApptsTab() {
+  const { currentUser } = useAuth();
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isBooking, setIsBooking] = useState(false);
+  const [docs, setDocs] = useState<any[]>([]);
+  const [newAppt, setNewAppt] = useState({ doctor_id: '', appointment_at: '', reason: '', location: 'Clinic A' });
+
+  const fetchItems = useCallback(async () => {
+    const pid = currentUser?.patientId;
+    if (!pid) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/patients/${pid}/appointments`, { headers: ah() });
+      if (res.ok) {
+        const d = await res.json();
+        setData(d.data || []);
+      }
+    } catch (_) { }
+    setLoading(false);
+  }, [currentUser?.patientId]);
+
+  useEffect(() => {
+    fetchItems();
+    fetch(`${API}/doctors`, { headers: ah() }).then(r => r.json()).then(d => setDocs(d.data || []));
+  }, [fetchItems]);
+
+  const handleBook = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const pid = currentUser?.patientId;
+    if (!pid) return;
+    try {
+      const res = await fetch(`${API}/patients/${pid}/appointments`, {
+        method: 'POST',
+        headers: { ...ah(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAppt)
+      });
+      if (res.ok) {
+        setIsBooking(false);
+        setNewAppt({ doctor_id: '', appointment_at: '', reason: '', location: 'Clinic A' });
+        fetchItems();
+      }
+    } catch (_) { }
+  };
+
+  return (
+    <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-gradient-to-br from-indigo-900 to-indigo-950 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10">
+          <h1 className="text-4xl font-black tracking-tight mb-2">My Appointments</h1>
+          <p className="text-indigo-200 font-medium tracking-wide">Manage your upcoming clinic visits.</p>
+        </div>
+        <button
+          onClick={() => setIsBooking(true)}
+          className="relative z-10 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 px-6 py-4 rounded-2xl font-black shadow-lg transition-all active:scale-95 flex items-center gap-3 text-white uppercase tracking-widest text-xs"
+        >
+          <Calendar size={18} /> Schedule New
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="py-20 text-center bg-white rounded-[3rem] border border-dashed shadow-sm">
+          <Loader2 className="animate-spin w-10 h-10 text-indigo-500 mx-auto mb-4" />
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Loading Schedule...</p>
+        </div>
+      ) : data.length === 0 ? (
+        <div className="py-24 text-center bg-white rounded-[3rem] border border-slate-100 shadow-sm flex flex-col items-center">
+          <Calendar className="w-16 h-16 text-slate-200 mb-6" />
+          <p className="text-slate-800 font-black text-xl mb-2">No Appointments</p>
+          <p className="text-slate-500 font-medium">You have no upcoming or past appointments.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {data.map(a => (
+            <div key={a.id} className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all group flex flex-col gap-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150 pointer-events-none" />
+              <div className="flex justify-between items-start relative z-10">
+                <div className="w-14 h-14 bg-indigo-50 flex items-center justify-center rounded-2xl shadow-inner border border-indigo-100 text-indigo-600">
+                  <UserCircle2 size={24} />
+                </div>
+                <div className={cn(
+                  "px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border",
+                  a.status === 'scheduled' ? "bg-indigo-50 text-indigo-600 border-indigo-100" :
+                    a.status === 'completed' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                      "bg-rose-50 text-rose-600 border-rose-100"
+                )}>
+                  {a.status}
+                </div>
+              </div>
+              <div className="relative z-10">
+                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1">Consultation With</p>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Dr. {a.doctor_name}</h3>
+              </div>
+              <div className="bg-slate-50 p-5 rounded-2xl relative z-10 border border-slate-100/50 flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <Calendar size={16} className="text-slate-400" />
+                  <span className="text-sm font-bold text-slate-800">{new Date(a.appointment_at).toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock size={16} className="text-slate-400" />
+                  <span className="text-sm font-bold text-slate-800">{new Date(a.appointment_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+              </div>
+              <p className="text-slate-500 font-medium text-sm line-clamp-2 relative z-10">"{a.reason}"</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {isBooking && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsBooking(false)} />
+          <div className="bg-white rounded-[3rem] w-full max-w-lg relative shadow-2xl p-10 animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-8 border-b border-slate-50 pb-6">
+              <h3 className="text-2xl font-black text-slate-900">Request Setup</h3>
+              <button onClick={() => setIsBooking(false)} className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">✕</button>
+            </div>
+            <form onSubmit={handleBook} className="flex flex-col gap-6">
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block px-1 tracking-widest">Available Specialists</label>
+                <select
+                  required
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                  value={newAppt.doctor_id}
+                  onChange={e => setNewAppt({ ...newAppt, doctor_id: e.target.value })}
+                >
+                  <option value="">Select Doctor</option>
+                  {docs.map((d: any) => <option key={d.id} value={d.id}>Dr. {d.name} ({d.specialty})</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block px-1 tracking-widest">Date & Time</label>
+                <input
+                  type="datetime-local"
+                  required
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                  value={newAppt.appointment_at}
+                  onChange={e => setNewAppt({ ...newAppt, appointment_at: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block px-1 tracking-widest">Reason for Visit</label>
+                <textarea
+                  placeholder="Describe your symptoms or reason..."
+                  required
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-5 text-sm font-bold h-32 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all resize-none"
+                  value={newAppt.reason}
+                  onChange={e => setNewAppt({ ...newAppt, reason: e.target.value })}
+                />
+              </div>
+              <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-[0_8px_30px_rgb(99,102,241,0.3)] mt-2 uppercase tracking-widest text-xs transition-all active:scale-[0.98]">Confirm Appointment</button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PatientLabsTab() {
+  const { currentUser } = useAuth();
+  const [labData, setLabData] = useState<{ orders: any[], results: any[] }>({ orders: [], results: [] });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const pid = currentUser?.patientId;
+    if (!pid) return;
+
+    // First find patient's active or latest admission
+    fetch(`${API}/admissions?patient_id=${pid}`, { headers: ah() })
+      .then(res => res.json())
+      .then(d => {
+        const list = d.data?.rows || d.rows || [];
+        if (list.length > 0) {
+          // Sort to get latest if multiple
+          list.sort((a: any, b: any) => b.id - a.id);
+          const admId = list[0].id;
+          return fetch(`${API}/labs/admission/${admId}`, { headers: ah() });
+        }
+        throw new Error('No admissions');
+      })
+      .then(res => res.json())
+      .then(d => {
+        setLabData(d.data || { orders: [], results: [] });
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  }, [currentUser?.patientId]);
+
+  return (
+    <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-cyan-950 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10">
+          <h1 className="text-4xl font-black tracking-tight mb-2">My Lab Results</h1>
+          <p className="text-cyan-200 font-medium tracking-wide">Pathology reports and diagnostic imaging parameters.</p>
+        </div>
+        <div className="relative z-10 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2 rounded-xl flex items-center gap-3">
+          <Database size={18} className="text-cyan-400" />
+          <span className="text-[10px] font-black uppercase tracking-widest">{labData.results.length} Verifed Results</span>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="py-20 text-center bg-white rounded-[3rem] border border-dashed shadow-sm">
+          <Loader2 className="animate-spin w-10 h-10 text-cyan-500 mx-auto mb-4" />
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Fetching Diagnostics...</p>
+        </div>
+      ) : labData.results.length === 0 && labData.orders.length === 0 ? (
+        <div className="py-24 text-center bg-white rounded-[3rem] border border-slate-100 shadow-sm flex flex-col items-center">
+          <Thermometer className="w-16 h-16 text-slate-200 mb-6" />
+          <p className="text-slate-800 font-black text-xl mb-2">No Reports Available</p>
+          <p className="text-slate-500 font-medium">You currently have no pending or completed lab reports.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 px-1">Verified Clinical Parameters</h3>
+            {labData.results.length === 0 ? (
+              <div className="p-10 text-center bg-slate-50 rounded-[2rem] text-slate-400 font-medium text-sm">Results are pending analysis...</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {labData.results.map(r => (
+                  <div key={r.id} className="bg-white border border-slate-100 rounded-[2rem] p-8 shadow-sm hover:shadow-xl transition-all overflow-hidden relative group">
+                    <div className={cn("absolute top-0 right-0 w-24 h-24 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 pointer-events-none", r.is_abnormal ? "bg-rose-500/5" : "bg-emerald-500/5")} />
+                    <div className="flex justify-between items-start mb-6 relative z-10">
+                      <h4 className="font-black text-slate-800 text-sm uppercase tracking-wider">{r.parameter_name}</h4>
+                      {r.is_abnormal && <span className="text-[9px] font-black bg-rose-50 text-rose-600 px-3 py-1 rounded-xl border border-rose-100 uppercase tracking-widest animate-pulse">Abnormal</span>}
+                    </div>
+                    <div className="flex items-baseline gap-2 mb-6 relative z-10">
+                      <span className={cn("text-4xl font-black tracking-tighter", r.is_abnormal ? "text-rose-500" : "text-emerald-500")}>{r.result_value}</span>
+                    </div>
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100/50 flex flex-col gap-1 relative z-10">
+                      <span className="text-[10px] font-black uppercase text-indigo-400 tracking-widest">{r.test_name}</span>
+                      <span className="text-xs font-bold text-slate-500">By {r.technician_name}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col gap-6">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 px-1">Pending Orders</h3>
+            <div className="flex flex-col gap-4">
+              {labData.orders.filter(o => o.status !== 'completed').map(o => (
+                <div key={o.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                  <p className="text-sm font-black text-slate-800 uppercase tracking-tight mb-2">{o.test_name}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(o.ordered_at).toLocaleDateString()}</span>
+                    <span className="text-[9px] font-black bg-slate-100 text-slate-500 px-2.5 py-1 rounded-lg border border-slate-200 uppercase tracking-widest">{o.status}</span>
+                  </div>
+                </div>
+              ))}
+              {labData.orders.filter(o => o.status !== 'completed').length === 0 && (
+                <div className="p-8 text-center bg-slate-50 rounded-2xl text-slate-400 text-[10px] font-bold uppercase tracking-widest border border-dashed border-slate-200">No Pending Orders</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PatientBillingTab() {
+  const { currentUser } = useAuth();
+  const [invoice, setInvoice] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const pid = currentUser?.patientId;
+    if (!pid) return;
+
+    fetch(`${API}/admissions?patient_id=${pid}`, { headers: ah() })
+      .then(res => res.json())
+      .then(d => {
+        const list = d.data?.rows || d.rows || [];
+        if (list.length > 0) {
+          list.sort((a: any, b: any) => b.id - a.id);
+          const admId = list[0].id;
+          return fetch(`${API}/billing/admission/${admId}`, { headers: ah() });
+        }
+        throw new Error('No admissions');
+      })
+      .then(res => res.json())
+      .then(d => {
+        setInvoice(d.data || null);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  }, [currentUser?.patientId]);
+
+  if (loading) return (
+    <div className="py-20 text-center bg-white rounded-[3rem] border border-dashed shadow-sm">
+      <Loader2 className="animate-spin w-10 h-10 text-emerald-500 mx-auto mb-4" />
+      <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Locating Invoice...</p>
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-gradient-to-br from-emerald-900 to-emerald-950 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10">
+          <h1 className="text-4xl font-black tracking-tight mb-2">My Billing</h1>
+          <p className="text-emerald-200 font-medium tracking-wide">Review and settle clinical care charges.</p>
+        </div>
+        {invoice && (
+          <div className={cn(
+            "relative z-10 border px-6 py-3 rounded-2xl flex items-center gap-3 font-black text-[10px] uppercase tracking-widest backdrop-blur-md",
+            invoice.status === 'paid' ? "bg-emerald-500/20 text-emerald-100 border-emerald-400/30" : "bg-rose-500/20 text-rose-100 border-rose-400/30"
+          )}>
+            <ShieldAlert size={16} /> {invoice.status === 'paid' ? 'Settled' : 'Payment Required'}
+          </div>
+        )}
+      </div>
+
+      {!invoice ? (
+        <div className="py-24 text-center bg-white rounded-[3rem] border border-slate-100 shadow-sm flex flex-col items-center">
+          <Database className="w-16 h-16 text-slate-200 mb-6" />
+          <p className="text-slate-800 font-black text-xl mb-2">No Active Invoices</p>
+          <p className="text-slate-500 font-medium">Your account reflects zero unpaid balances for hospitalizations.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 bg-white border border-slate-100 rounded-[3rem] p-10 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+            <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-8 pb-4 border-b border-slate-100">Itemized Charges</h3>
+            {invoice.items?.length === 0 ? (
+              <p className="text-center text-slate-400 py-10 font-bold">No services recorded in this invoice.</p>
+            ) : (
+              <div className="flex flex-col gap-6">
+                {invoice.items.map((item: any) => (
+                  <div key={item.id} className="flex justify-between items-center group">
+                    <div className="flex items-center gap-6">
+                      <div className="w-12 h-12 bg-slate-50 flex items-center justify-center rounded-xl border border-slate-100 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                        {item.item_type === 'medication' ? <ClipboardList size={20} /> : <Activity size={20} />}
+                      </div>
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-widest text-indigo-400 mb-1">{item.item_type}</p>
+                        <p className="font-bold text-slate-800 text-[15px]">{item.item_name}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xl font-black text-slate-900">${item.total_price}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">Qty: {item.quantity} · ${item.unit_price}/ea</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-6">
+            <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16" />
+              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-8">Amount Due</h4>
+
+              <div className="flex flex-col gap-5 mb-8">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Services Total</span>
+                  <span className="font-bold">${invoice.total_amount}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Discount applied</span>
+                  <span className="font-bold text-emerald-400">-$0.00</span>
+                </div>
+                <div className="h-px w-full bg-white/10 my-1" />
+                <div className="flex justify-between items-end">
+                  <span className="text-[11px] font-black uppercase tracking-widest text-white/50">Total</span>
+                  <span className="text-4xl font-black">${invoice.total_amount}</span>
+                </div>
+              </div>
+
+              {invoice.status === 'paid' ? (
+                <div className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 p-4 rounded-2xl flex justify-center items-center gap-2 text-xs font-black uppercase tracking-widest">
+                  <CheckCircle size={16} /> Paid in Full
+                </div>
+              ) : (
+                <button className="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-black py-5 rounded-2xl uppercase tracking-widest text-xs shadow-[0_8px_30px_rgb(16,185,129,0.3)] transition-all active:scale-[0.98]">
+                  Process Payment
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Fleet Command / Ambulance Tracking ─────────────────────────────────
+
+function AmbulanceMonitorTab() {
+  const [ambulances, setAmbulances] = useState([
+    { id: 'AMB-101', status: 'Inbound', eta: '4 mins', dist: '1.2 km', patient: 'Critical - Trauma', speed: '65 km/h' },
+    { id: 'AMB-102', status: 'Dispatched', eta: '12 mins', dist: '5.8 km', patient: 'Cardiac Arrest', speed: '80 km/h' },
+    { id: 'AMB-104', status: 'Available', eta: '--', dist: '--', patient: '--', speed: '0 km/h' },
+    { id: 'AMB-107', status: 'Returning', eta: '18 mins', dist: '7.4 km', patient: '--', speed: '55 km/h' },
+  ]);
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (loading) return (
+    <div className="py-20 text-center bg-white rounded-[3rem] border border-dashed shadow-sm">
+      <Loader2 className="animate-spin w-10 h-10 text-rose-500 mx-auto mb-4" />
+      <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Initializing Fleet Telemetry...</p>
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-gradient-to-br from-rose-900 to-rose-950 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10">
+          <h1 className="text-4xl font-black tracking-tight mb-2">Fleet Command</h1>
+          <p className="text-rose-200 font-medium tracking-wide">Live ambulance telemetry, ETA, and emergency routing.</p>
+        </div>
+        <div className="relative z-10 flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 px-5 py-3 rounded-2xl shadow-sm hover:bg-white/20 transition-all cursor-pointer">
+          <Radio className="text-rose-400 animate-pulse w-5 h-5" />
+          <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none">GPS Active</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-1 flex flex-col gap-6">
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-[-10px] px-1">Active Fleet Units</h3>
+          {ambulances.map(a => (
+            <div key={a.id} className={cn("bg-white border rounded-[2rem] p-6 shadow-sm relative overflow-hidden group cursor-default transition-all", a.status === 'Inbound' ? "border-rose-200 shadow-rose-100" : "border-slate-100 hover:border-slate-200")}>
+              {a.status === 'Inbound' && <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 rounded-full -mr-12 -mt-12 pointer-events-none" />}
+              <div className="flex justify-between items-center mb-4 relative z-10">
+                <span className="text-sm font-black text-slate-800 tracking-wider flex items-center gap-1"><Ambulance className="w-4 h-4 text-slate-400" />{a.id}</span>
+                <span className={cn("text-[9px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest border",
+                  a.status === 'Inbound' || a.status === 'Dispatched' ? "bg-rose-50 text-rose-600 border-rose-100" :
+                    a.status === 'Available' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-indigo-50 text-indigo-600 border-indigo-100"
+                )}>{a.status}</span>
+              </div>
+              <div className="flex flex-col gap-2 relative z-10">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-400 font-bold">ETA</span>
+                  <span className={cn("font-black tracking-tight text-lg", a.status === 'Inbound' ? "text-rose-600 animate-pulse" : "text-slate-900")}>{a.eta}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-400 font-bold">Patient</span>
+                  <span className="font-bold text-slate-700 truncate max-w-[100px] text-right">{a.patient}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="lg:col-span-3 bg-white border border-slate-100 rounded-[3rem] p-1 shadow-sm relative overflow-hidden flex flex-col h-[600px]">
+          <div className="absolute inset-0 bg-slate-50/50" style={{ backgroundImage: 'radial-gradient(#e2e8f0 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
+
+          <div className="absolute top-8 left-8 bg-white/90 backdrop-blur-md px-5 py-3 border border-slate-200 shadow-sm rounded-2xl z-20 flex items-center gap-4">
+            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 border border-indigo-100"><MapPin className="w-5 h-5" /></div>
+            <div>
+              <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Live Map View</p>
+              <p className="text-xs font-bold text-slate-400">Tracking 4 telemetry units</p>
+            </div>
+          </div>
+
+          <div className="relative w-full h-full flex flex-col items-center justify-center pointer-events-none">
+            <div className="absolute left-[35%] top-[45%] bg-rose-500 text-white px-4 py-2 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2 animate-bounce">
+              <Ambulance className="w-4 h-4" /> AMB-101
+            </div>
+            <div className="absolute left-[65%] top-[25%] bg-orange-500 text-white px-4 py-2 rounded-2xl text-xs font-bold shadow-xl flex items-center gap-2">
+              <Ambulance className="w-4 h-4" /> AMB-102
+            </div>
+            <div className="absolute left-[50%] top-[60%] bg-indigo-600 text-white w-14 h-14 rounded-full border-[4px] border-white shadow-2xl flex items-center justify-center z-10 hover:scale-110 transition-transform">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+
+            <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 35% 45% Q 40% 50% 50% 60%" fill="none" stroke="#f43f5e" strokeWidth="4" strokeDasharray="8 8" className="animate-pulse" />
+              <path d="M 65% 25% Q 60% 40% 50% 60%" fill="none" stroke="#f97316" strokeWidth="4" strokeDasharray="8 8" opacity="0.5" />
+            </svg>
+
+            {/* Animated radar rings */}
+            <div className="absolute left-[50%] top-[60%] w-48 h-48 -translate-x-1/2 -translate-y-1/2 bg-indigo-500/5 rounded-full animate-ping pointer-events-none" style={{ animationDuration: '3s' }} />
+            <div className="absolute left-[50%] top-[60%] w-32 h-32 -translate-x-1/2 -translate-y-1/2 bg-indigo-500/10 rounded-full animate-ping pointer-events-none" style={{ animationDuration: '3s', animationDelay: '1s' }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main Dashboard Hub ─────────────────────────────────────────────────────
 
 export default function UnifiedTabbedDashboard() {
@@ -1587,6 +2108,7 @@ function DashboardContent() {
     { id: 'overview', label: 'Command Center', icon: LayoutDashboard, Component: CareOverview },
     { id: 'patients', label: 'Patient Directory', icon: Users, Component: PatientsPage },
     { id: 'appointments', label: 'Appointments', icon: Calendar, Component: UnifiedAppointmentsTab },
+    { id: 'ambulances', label: 'Fleet Command', icon: Ambulance, Component: AmbulanceMonitorTab },
     { id: 'staff', label: 'Staff Roster', icon: Stethoscope, Component: UsersPage },
 
     { id: 'icu', label: 'ICU Allocation', icon: BedDouble, Component: IcuPage },
@@ -1623,11 +2145,11 @@ function DashboardContent() {
   const patientTabs = [
     { id: 'overview', label: 'Recovery Summary', icon: HeartPulse, Component: CareOverview },
     { id: 'vitals', label: 'My Vitals', icon: Activity, Component: PatientVitalsTab },
-    { id: 'appointments', label: 'Appointments', icon: Calendar, Component: UnifiedAppointmentsTab },
+    { id: 'appointments', label: 'Appointments', icon: Calendar, Component: PatientApptsTab },
     { id: 'meds', label: 'Treatments', icon: ClipboardList, Component: PatientPrescriptionsTab },
 
-    { id: 'labs', label: 'Lab Reports', icon: BookOpen, Component: LabReportTab },
-    { id: 'billing', label: 'My Invoices', icon: Database, Component: BillingHubTab },
+    { id: 'labs', label: 'Lab Reports', icon: BookOpen, Component: PatientLabsTab },
+    { id: 'billing', label: 'My Invoices', icon: Database, Component: PatientBillingTab },
     { id: 'docs', label: 'Medical History', icon: BookOpen, Component: PatientHistoryTab },
   ];
 

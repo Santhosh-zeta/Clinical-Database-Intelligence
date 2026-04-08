@@ -22,7 +22,8 @@ import {
   ClipboardList,
   BookOpen,
   Menu,
-  X
+  X,
+  Ambulance
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
@@ -147,6 +148,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <NavItem href="/dashboard?tab=staff" icon={<Users size={20} />} label="Staff Roster" active={pathname === '/dashboard' && tabParam === 'staff'} />
               <NavItem href="/dashboard?tab=patients" icon={<Users size={20} />} label="Patient Registry" active={pathname === '/dashboard' && tabParam === 'patients'} />
               <NavItem href="/dashboard?tab=appointments" icon={<Calendar size={20} />} label="Appointments" active={pathname === '/dashboard' && tabParam === 'appointments'} />
+              <NavItem href="/dashboard?tab=ambulances" icon={<Ambulance size={20} />} label="Fleet Command" active={pathname === '/dashboard' && tabParam === 'ambulances'} />
               <NavItem href="/dashboard?tab=labs" icon={<Database size={20} />} label="Lab Reports" active={pathname === '/dashboard' && tabParam === 'labs'} />
               <NavItem href="/dashboard?tab=billing" icon={<BookOpen size={20} />} label="Billing Hub" active={pathname === '/dashboard' && tabParam === 'billing'} />
               <NavItem href="/dashboard?tab=icu" icon={<BedDouble size={20} />} label="Ward Occupancy" active={pathname === '/dashboard' && tabParam === 'icu'} />
