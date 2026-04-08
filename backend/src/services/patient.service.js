@@ -154,4 +154,50 @@ async function createAppointment(patientId, orgId, userId, { doctor_id, appointm
     return result.rows[0];
 }
 
-module.exports = { list, getById, create, update, getTimeline, addSymptoms, createAppointment };
+async function getPatientSummary(patientId, orgId) {
+    const [patient, activeAdm, latestVitals, appts, unpaidInvoices] = await Promise.all([
+        db.query('SELECT name, date_of_birth, gender, blood_group, chronic_conditions, allergies FROM patients WHERE id = $1 AND organization_id = $2', [patientId, orgId]),
+        db.query(`
+            SELECT a.*, w.name as ward_name, b.bed_number, d.name as doctor_name
+            FROM admissions a
+            LEFT JOIN wards w ON w.id = a.ward_id
+            LEFT JOIN beds b ON b.id = a.bed_id
+            LEFT JOIN doctors d ON d.id = a.doctor_id
+            WHERE a.patient_id = $1 AND a.status = 'active'
+            ORDER BY a.admitted_at DESC LIMIT 1
+        `, [patientId]),
+        db.query('SELECT * FROM vitals WHERE patient_id = $1 ORDER BY recorded_at DESC LIMIT 1', [patientId]),
+        db.query('SELECT COUNT(*) FROM patient_appointments WHERE patient_id = $1 AND appointment_at > NOW() AND status = \'scheduled\'', [patientId]),
+        db.query('SELECT COUNT(*) FROM billing_invoices bi JOIN admissions a ON a.id = bi.admission_id WHERE a.patient_id = $1 AND bi.status != \'paid\'', [patientId])
+    ]);
+
+    // 5. Recent Activity Preview
+    const activity = await db.query(
+        `(SELECT 'lab' as type, test_name as name, result_value as value, recorded_at as date 
+          FROM lab_results WHERE patient_id = $1 
+          UNION ALL
+          SELECT 'billing' as type, item_name as name, total_price::text as value, recorded_at as date
+          FROM billing_items bi JOIN billing_invoices bv ON bi.invoice_id = bv.id WHERE bv.admission_id IN (SELECT id FROM admissions WHERE patient_id = $1))
+         ORDER BY date DESC LIMIT 5`,
+        [patientId]
+    );
+
+    // 6. Active Prescriptions Preview
+    const meds = await db.query(
+        `SELECT medication_name, dose, frequency FROM prescriptions 
+         WHERE patient_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 3`,
+        [patientId]
+    );
+
+    return {
+        patient: patient.rows[0],
+        active_admission: activeAdm.rows[0],
+        latest_vitals: latestVitals.rows[0],
+        upcoming_appointments: parseInt(appts.rows[0]?.count || 0),
+        unpaid_invoices: parseInt(unpaidInvoices.rows[0]?.count || 0),
+        recent_activity: activity.rows,
+        active_prescriptions: meds.rows
+    };
+}
+
+module.exports = { list, getById, create, update, getTimeline, addSymptoms, createAppointment, getPatientSummary };

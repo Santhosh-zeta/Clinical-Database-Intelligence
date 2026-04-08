@@ -5,7 +5,7 @@ import {
   Users, Activity, AlertTriangle, BedDouble, ArrowRight, Wind,
   TrendingDown, ShieldAlert, HeartPulse, LogOut, Loader2, RefreshCw,
   ClipboardList, Stethoscope, PieChart as PieIcon, BarChart as BarIcon,
-  TrendingUp, Clock, Settings, Database
+  TrendingUp, Clock, Settings, Database, Calendar
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -118,22 +118,200 @@ export default function DashboardSummary() {
   }, []);
 
   // ── Patient role view ───────────────────────────────────────────────────
-  if (currentUser?.role === 'patient') {
+  if (currentUser?.role?.toLowerCase() === 'patient') {
+    const [summary, setSummary] = useState<any>(null);
+    const [pLoading, setPLoading] = useState(true);
+
+    useEffect(() => {
+      if (!currentUser?.patientId) return;
+      fetch(`${API}/patients/${currentUser.patientId}/summary`, { headers: ah() })
+        .then(r => r.json())
+        .then(d => { setSummary(d.data); setPLoading(false); })
+        .catch(() => setPLoading(false));
+    }, [currentUser?.patientId]);
+
+    if (pLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin inline-block mr-2" /> Loading your health portal...</div>;
+
+    const adm = summary?.active_admission;
+    const vitals = summary?.latest_vitals;
+
     return (
-      <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-8 w-full">
+      <div className="flex flex-col gap-8 w-full animate-in fade-in duration-700">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">My Health Dashboard</h1>
-            <p className="text-slate-500 text-lg">Your live recovery status and hospital facilities.</p>
+            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">My Health Overview</h1>
+            <p className="text-slate-500 text-lg font-medium">Live recovery status and hospital facilities.</p>
           </div>
+          {adm && (
+            <div className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-4 py-2 rounded-xl flex items-center gap-2 font-black text-xs uppercase">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Assigned to {adm.ward_name} · Bed {adm.bed_number}
+            </div>
+          )}
         </div>
-        <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
-          <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <Activity className="w-6 h-6 text-indigo-500" /> Recovery Status
-          </h2>
-          <Link href="/my-vitals" className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all">
-            View Full Vital History <ArrowRight className="w-5 h-5 text-slate-400" />
-          </Link>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 flex flex-col gap-8">
+            {/* Active Admission Card */}
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full -mr-32 -mt-32" />
+              <div className="relative z-10">
+                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">Current Admission Details</h3>
+                {adm ? (
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div>
+                      <p className="text-[10px] font-black uppercase text-indigo-500 tracking-tighter mb-1">Primary Diagnosis</p>
+                      <p className="text-2xl font-black text-slate-800 tracking-tight">{adm.diagnosis}</p>
+                      <div className="mt-6 flex items-center gap-3">
+                        <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">
+                          <Stethoscope size={20} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">Consulting Physician</p>
+                          <p className="text-sm font-bold text-slate-700">Dr. {adm.doctor_name}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <span className="text-xs font-bold text-slate-500">Admitted At</span>
+                        <span className="text-xs font-black text-slate-700">{new Date(adm.admitted_at).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <span className="text-xs font-bold text-slate-500">Risk Assessment</span>
+                        <span className={cn(
+                          "text-xs font-black px-3 py-1 rounded-lg uppercase",
+                          adm.risk_category === 'low' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                        )}>{adm.risk_category}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-10 text-center bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
+                    <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">No active clinical admission on file.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Latest Vitals Strip */}
+            {vitals && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-white border border-slate-100 p-5 rounded-[2rem] shadow-sm">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Heart Rate</p>
+                  <p className="text-2xl font-black text-rose-500 tracking-tighter">{vitals.heart_rate}<span className="text-xs font-bold text-slate-300 ml-1">BPM</span></p>
+                </div>
+                <div className="bg-white border border-slate-100 p-5 rounded-[2rem] shadow-sm">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Oxygen</p>
+                  <p className="text-2xl font-black text-sky-500 tracking-tighter">{vitals.spo2}<span className="text-xs font-bold text-slate-300 ml-1">%</span></p>
+                </div>
+                <div className="bg-white border border-slate-100 p-5 rounded-[2rem] shadow-sm">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Temp</p>
+                  <p className="text-2xl font-black text-orange-500 tracking-tighter">{vitals.temperature}<span className="text-xs font-bold text-slate-300 ml-1">°C</span></p>
+                </div>
+                <div className="bg-white border border-slate-100 p-5 rounded-[2rem] shadow-sm">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">BP</p>
+                  <p className="text-2xl font-black text-indigo-500 tracking-tighter">{vitals.systolic_bp}/{vitals.diastolic_bp}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Recent Activity Ledger */}
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Recent Health Activity</h3>
+                <Link href="/dashboard?tab=docs" className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest hover:underline">Full History</Link>
+              </div>
+              <div className="space-y-4">
+                {summary?.recent_activity?.length > 0 ? summary.recent_activity.map((act: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-white transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center text-sm",
+                        act.type === 'lab' ? "bg-purple-50 text-purple-600" : "bg-emerald-50 text-emerald-600"
+                      )}>
+                        {act.type === 'lab' ? <Database size={18} /> : <BookOpen size={18} />}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-slate-400 leading-none mb-1">{act.type === 'lab' ? 'Laboratory Test' : 'Billing Record'}</p>
+                        <p className="text-sm font-extrabold text-slate-800">{act.name}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-black text-slate-700">{act.value}</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase">{new Date(act.date).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="py-6 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">No recent activity recorded.</div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            {/* Treatment Plan Preview */}
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 font-mono">Current Treatment Plan</h4>
+              <div className="space-y-3">
+                {summary?.active_prescriptions?.length > 0 ? summary.active_prescriptions.map((px: any, idx: number) => (
+                  <div key={idx} className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50 group hover:bg-indigo-50 transition-all">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 bg-white rounded-lg text-indigo-600 shadow-sm border border-indigo-100">
+                        <ClipboardList size={14} />
+                      </div>
+                      <span className="text-sm font-black text-slate-800">{px.medication_name}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-[9px] font-black px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-500 uppercase">{px.dose}</span>
+                      <span className="text-[9px] font-black px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-500 uppercase">{px.frequency}</span>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="py-10 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest border border-dashed border-slate-200 rounded-[2rem]">Stable · No medication required</div>
+                )}
+                <Link href="/dashboard?tab=meds" className="mt-4 w-full py-3 rounded-2xl border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 block text-center transition-all">
+                  Complete Schedule
+                </Link>
+              </div>
+            </div>
+
+            {/* Financial Summary */}
+            <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16" />
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">Settlement Summary</h4>
+              <div className="flex justify-between items-end mb-8">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Unpaid Balance</p>
+                  <p className="text-4xl font-black tracking-tighter">${summary?.unpaid_invoices > 0 ? (summary.unpaid_invoices * 1250).toLocaleString() : '0'}</p>
+                </div>
+                <div className="bg-white/10 px-3 py-1 rounded-lg border border-white/20 text-[10px] font-bold">
+                  {summary?.unpaid_invoices} Invoices
+                </div>
+              </div>
+              <Link href="/dashboard?tab=billing" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl block text-center text-[10px] uppercase tracking-widest transition-all">
+                View Billing Hub
+              </Link>
+            </div>
+
+            {/* Upcoming Appts */}
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">Scheduled Visits</h4>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm">
+                    <Calendar size={24} />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-black text-slate-800 tracking-tighter">{summary?.upcoming_appointments}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Upcoming</p>
+                  </div>
+                </div>
+                <Link href="/dashboard?tab=appointments" className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all">
+                  <ArrowRight size={20} />
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );

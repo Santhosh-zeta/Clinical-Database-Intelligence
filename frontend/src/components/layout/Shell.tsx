@@ -132,9 +132,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
               href="/dashboard"
               icon={<LayoutDashboard size={20} />}
               label={
-                ['admin', 'hospital_admin', 'ultra_admin'].includes(currentUser?.role || '') ? 'Command Center' :
-                  currentUser?.role === 'doctor' ? 'Care Overview' :
-                    currentUser?.role === 'nurse' ? 'Ward Summary' :
+                ['admin', 'hospital_admin', 'ultra_admin'].includes(currentUser?.role?.toLowerCase() || '') ? 'Command Center' :
+                  currentUser?.role?.toLowerCase() === 'doctor' ? 'Care Overview' :
+                    currentUser?.role?.toLowerCase() === 'nurse' ? 'Ward Summary' :
                       'Recovery Hub'
               }
               active={pathname === '/' || pathname === '/dashboard'}
@@ -142,7 +142,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           )}
 
           {/* Core Management (Admin Only) */}
-          {(['admin', 'ultra_admin', 'hospital_admin'].includes(currentUser?.role || '')) && (
+          {(['admin', 'ultra_admin', 'hospital_admin'].includes(currentUser?.role?.toLowerCase() || '')) && (
             <>
               <NavItem href="/dashboard?tab=staff" icon={<Users size={20} />} label="Staff Roster" active={pathname === '/dashboard' && tabParam === 'staff'} />
               <NavItem href="/dashboard?tab=patients" icon={<Users size={20} />} label="Patient Registry" active={pathname === '/dashboard' && tabParam === 'patients'} />
@@ -156,7 +156,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           )}
 
           {/* Clinical Workspace (Doctors & Nurses Only) */}
-          {(currentUser?.role === 'doctor' || currentUser?.role === 'nurse') && (
+          {(currentUser?.role?.toLowerCase() === 'doctor' || currentUser?.role?.toLowerCase() === 'nurse') && (
             <>
               <div className="h-px bg-slate-100 mx-3 my-2" />
               <p className="px-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Clinical</p>
@@ -167,14 +167,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <NavItem href="/dashboard?tab=labs" icon={<Database size={20} />} label="Lab Reports" active={pathname === '/dashboard' && tabParam === 'labs'} />
               <NavItem href="/dashboard?tab=icu" icon={<BedDouble size={20} />} label="Ward Status" active={pathname === '/dashboard' && tabParam === 'icu'} />
 
-              {currentUser?.role === 'doctor' && (
+              {currentUser?.role?.toLowerCase() === 'doctor' && (
                 <>
                   <NavItem href="/dashboard?tab=consults" icon={<Stethoscope size={20} />} label="Consultations" active={pathname === '/dashboard' && tabParam === 'consults'} />
                   <NavItem href="/dashboard?tab=discharge" icon={<HeartPulse size={20} />} label="Discharged Auth" active={pathname === '/dashboard' && tabParam === 'discharge'} />
                 </>
               )}
 
-              {currentUser?.role === 'nurse' && (
+              {currentUser?.role?.toLowerCase() === 'nurse' && (
                 <>
                   <NavItem href="/dashboard?tab=meds" icon={<ClipboardList size={20} />} label="Medication Rounds" active={pathname === '/dashboard' && tabParam === 'meds'} />
                   <NavItem href="/dashboard?tab=handover" icon={<Users size={20} />} label="Shift Handover" active={pathname === '/dashboard' && tabParam === 'handover'} />
@@ -188,7 +188,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
 
           {/* Patient Portal (Patient Only) */}
-          {currentUser?.role === 'patient' && (
+          {currentUser?.role?.toLowerCase() === 'patient' && (
             <>
               <div className="h-px bg-slate-100 mx-3 my-2" />
               <p className="px-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">My Care</p>

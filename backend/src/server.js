@@ -22,6 +22,7 @@ const adminRoutes = require('./routes/admin.routes');
 const dashboardRoutes = require('./routes/dashboard'); // Added
 const notifRoutes = require('./routes/notifications.routes');
 const consultRoutes = require('./routes/consult.routes');
+const doctorsRoutes = require('./routes/doctors');
 
 // Legacy routes (still serviced for frontend backward compat)
 const settingsRoutes = require('./routes/settings');
@@ -68,6 +69,7 @@ app.use('/api/labs', ...guard, require('./routes/lab.routes'));
 app.use('/api/billing', ...guard, require('./routes/billing.routes'));
 app.use('/api/appointments', ...guard, require('./routes/appointment.routes'));
 app.use('/api/consults', ...guard, require('./routes/consult.routes'));
+app.use('/api/doctors', ...guard, doctorsRoutes);
 
 
 

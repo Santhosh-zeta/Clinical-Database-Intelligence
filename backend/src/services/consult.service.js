@@ -33,7 +33,7 @@ async function create(orgId, userId, { patient_id, specialty, priority, reason }
 async function resolve(orgId, userId, id, { findings, recommendations }) {
     const result = await db.query(
         `UPDATE clinical_consults 
-         SET status = 'completed', consulting_dr_id = $1, findings = $2, recommendations = $3, completed_at = NOW()
+         SET status = 'completed', responding_dr_id = $1, findings = $2, recommendations = $3, completed_at = NOW()
          WHERE id = $4 AND organization_id = $5 RETURNING *`,
         [userId, findings, recommendations, id, orgId]
     );

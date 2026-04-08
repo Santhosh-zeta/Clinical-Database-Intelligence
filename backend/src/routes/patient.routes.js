@@ -32,6 +32,9 @@ router.put('/:id', requirePermission('UPDATE_PATIENT'), ctrl.update);
 /** GET  /api/patients/:id/timeline — event timeline */
 router.get('/:id/timeline', requirePermission('VIEW_TIMELINE'), ctrl.getTimeline);
 
+/** GET  /api/patients/:id/summary — dashboard summary */
+router.get('/:id/summary', requirePermission('VIEW_PATIENT'), ctrl.getSummary);
+
 /** POST /api/patients/:id/symptoms — record symptoms */
 router.post('/:id/symptoms',
     requirePermission('UPDATE_PATIENT'),

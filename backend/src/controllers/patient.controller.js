@@ -23,4 +23,8 @@ const createAppointment = async (req, res, next) => {
     try { res.status(201).json({ data: await svc.createAppointment(req.params.id, req.orgId, req.user.id, req.body) }); } catch (e) { next(e); }
 };
 
-module.exports = { list, getById, create, update, getTimeline, addSymptoms, createAppointment };
+const getSummary = async (req, res, next) => {
+    try { res.json({ data: await svc.getPatientSummary(req.params.id, req.orgId) }); } catch (e) { next(e); }
+};
+
+module.exports = { list, getById, create, update, getTimeline, addSymptoms, createAppointment, getSummary };

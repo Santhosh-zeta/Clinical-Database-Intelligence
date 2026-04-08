@@ -17,4 +17,8 @@ router.post('/items', requirePermission('MANAGE_BILLING'), async (req, res, next
     } catch (e) { next(e); }
 });
 
+router.post('/admission/:id/pay', requirePermission('VIEW_BILLING'), async (req, res, next) => {
+    try { res.json({ data: await svc.payInvoice(req.params.id, req.orgId) }); } catch (e) { next(e); }
+});
+
 module.exports = router;

@@ -44,4 +44,14 @@ async function addItem(invoiceId, orgId, { item_type, item_name, unit_price, qua
     return result.rows[0];
 }
 
-module.exports = { getInvoice, addItem };
+async function payInvoice(admissionId, orgId) {
+    const result = await db.query(
+        `UPDATE billing_invoices 
+         SET status = 'paid', issued_at = NOW()
+         WHERE admission_id = $1 AND organization_id = $2 RETURNING *`,
+        [admissionId, orgId]
+    );
+    return result.rows[0];
+}
+
+module.exports = { getInvoice, addItem, payInvoice };

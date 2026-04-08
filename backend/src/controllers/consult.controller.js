@@ -29,8 +29,8 @@ async function create(req, res, next) {
 async function resolve(req, res, next) {
     try {
         const { id } = req.params;
-        const { response } = req.body;
-        const consult = await service.resolve(req.orgId, req.user.id, id, response);
+        const { findings, recommendations } = req.body;
+        const consult = await service.resolve(req.orgId, req.user.id, id, { findings, recommendations });
         if (!consult) return res.status(404).json({ error: 'Consultation not found' });
         res.json({ data: consult });
     } catch (e) {

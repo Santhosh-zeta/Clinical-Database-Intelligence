@@ -1399,9 +1399,28 @@ function BillingHubTab() {
                 <span className="text-3xl font-black tracking-tighter">${invoice?.total_amount}</span>
               </div>
             </div>
-            <button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl mt-10 transition-all shadow-lg shadow-indigo-500/20 text-xs uppercase tracking-widest">
-              Settle Payment
-            </button>
+            {invoice?.status === 'paid' ? (
+              <div className="w-full bg-emerald-500 text-white font-black py-4 rounded-2xl mt-10 text-center text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                <CheckCircle size={14} /> Settlement Complete
+              </div>
+            ) : (
+              <button
+                onClick={async () => {
+                  // Simulating payment settlement
+                  if (!invoice) return;
+                  try {
+                    const res = await fetch(`${API}/billing/admission/${invoice.admission_id}/pay`, { method: 'POST', headers: ah() });
+                    if (res.ok) {
+                      setSelectedAdm(null); // trigger refresh
+                      setTimeout(() => setSelectedAdm(invoice.admission_id), 10);
+                    }
+                  } catch (_) { }
+                }}
+                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl mt-10 transition-all shadow-lg shadow-indigo-500/20 text-xs uppercase tracking-widest"
+              >
+                Settle Payment
+              </button>
+            )}
           </div>
 
           <div className="bg-white border border-slate-100 rounded-[2rem] p-6 text-sm">
@@ -1458,24 +1477,27 @@ function PatientVitalsTab() {
 
   return (
     <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 px-1">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Health Telemetry</h1>
+          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-1">Health Telemetry</h1>
           <p className="text-slate-500 font-medium tracking-tight">Real-time physiological insights from clinical ICU sensors.</p>
         </div>
         {latest && (
           <div className="flex items-center gap-3 bg-white border border-slate-100 px-5 py-3 rounded-2xl shadow-sm">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live Syncing · {new Date(latest.recorded_at).toLocaleTimeString()}</span>
+            <div className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </div>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Live Syncing · {new Date(latest.recorded_at).toLocaleTimeString()}</span>
           </div>
         )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <VitalCard label="Heart Rate" value={latest?.heart_rate || '--'} unit="bpm" icon={<HeartPulse />} color="text-rose-500" bg="bg-rose-50" />
-        <VitalCard label="Oxygen Sat" value={latest?.spo2 || '--'} unit="%" icon={<Wind />} color="text-sky-500" bg="bg-sky-50" />
-        <VitalCard label="Blood Pressure" value={latest ? `${latest.systolic_bp}/${latest.diastolic_bp}` : '--'} unit="mmHg" icon={<Activity />} color="text-indigo-500" bg="bg-indigo-50" />
-        <VitalCard label="Temperature" value={latest?.temperature || '--'} unit="°C" icon={<Thermometer />} color="text-orange-500" bg="bg-orange-50" />
+        <VitalCard label="Heart Rate" value={latest?.heart_rate || '--'} unit="bpm" icon={<HeartPulse size={24} />} color="text-rose-500" bg="bg-rose-50" data={history.map(v => ({ val: v.heart_rate }))} />
+        <VitalCard label="Oxygen Sat" value={latest?.spo2 || '--'} unit="%" icon={<Wind size={24} />} color="text-sky-500" bg="bg-sky-50" data={history.map(v => ({ val: v.spo2 }))} />
+        <VitalCard label="Blood Pressure" value={latest ? `${latest.systolic_bp}/${latest.diastolic_bp}` : '--'} unit="mmHg" icon={<Activity size={24} />} color="text-indigo-500" bg="bg-indigo-50" data={history.map(v => ({ val: v.systolic_bp }))} />
+        <VitalCard label="Temperature" value={latest?.temperature || '--'} unit="°C" icon={<Thermometer size={24} />} color="text-orange-500" bg="bg-orange-50" data={history.map(v => ({ val: v.temperature }))} />
       </div>
 
       <div className="bg-white border border-slate-200/60 rounded-[3rem] p-8 shadow-[0_4px_30px_rgba(0,0,0,0.02)] overflow-hidden relative">
@@ -1514,20 +1536,31 @@ function PatientVitalsTab() {
 }
 
 
-function VitalCard({ label, value, unit, icon, color, bg }: any) {
+function VitalCard({ label, value, unit, icon, color, bg, data }: any) {
   return (
-    <div className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex justify-between items-start mb-4">
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</span>
-        <div className={cn("p-2 rounded-xl border border-transparent flex items-center justify-center", bg, color)}>
-          {icon && React.isValidElement(icon) ? icon : null}
+    <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all duration-500 group relative overflow-hidden">
+      <div className="flex justify-between items-start mb-6 relative z-10 transition-transform group-hover:-translate-y-1">
+        <div className={cn("w-14 h-14 rounded-2xl border border-transparent flex items-center justify-center transition-all group-hover:scale-110", bg, color)}>
+          {icon}
         </div>
-
+        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</span>
       </div>
 
-      <div className="text-3xl font-black text-slate-800 tracking-tighter">
-        {value} <span className="text-sm font-bold text-slate-400 tracking-normal ml-0.5">{unit}</span>
+      <div className="text-5xl font-black text-slate-900 tracking-tighter relative z-10">
+        {value} <span className="text-xs font-black text-slate-400 tracking-widest uppercase ml-0.5">{unit}</span>
       </div>
+
+      {/* Sparkline overlay */}
+      {data && (
+        <div className="absolute inset-x-0 bottom-0 h-24 opacity-[0.03] pointer-events-none group-hover:opacity-[0.08] transition-opacity">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data}>
+              <YAxis hide domain={['auto', 'auto']} />
+              <Area type="monotone" dataKey="val" stroke="currentColor" fill="currentColor" strokeWidth={0} isAnimationActive={false} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 }

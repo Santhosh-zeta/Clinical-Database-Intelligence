@@ -34,12 +34,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const login = (user: User, token?: string) => {
-        setCurrentUser(user);
+        const normalizedUser = {
+            ...user,
+            role: user.role?.toLowerCase() as UserRole
+        };
+        setCurrentUser(normalizedUser);
         if (token) {
             localStorage.setItem('__intellicare_token', token);
         }
-        localStorage.setItem('__intellicare_auth', JSON.stringify(user));
-        document.cookie = `__intellicare_role=${user.role}; path=/`;
+        localStorage.setItem('__intellicare_auth', JSON.stringify(normalizedUser));
+        document.cookie = `__intellicare_role=${normalizedUser.role}; path=/`;
     };
 
     const logout = () => {

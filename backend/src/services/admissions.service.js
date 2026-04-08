@@ -3,7 +3,7 @@
 const db = require('../config/db');
 const { createError } = require('../middleware/errorHandler');
 
-async function list(orgId, { status = 'active', ward_id, page = 1, limit = 20 }) {
+async function list(orgId, { status = 'active', ward_id, patient_id, page = 1, limit = 20 }) {
     const offset = (page - 1) * limit;
     let query = `SELECT a.id, a.patient_id, a.admitted_at, a.status, a.diagnosis,
                  p.name AS patient_name, p.gender, p.date_of_birth,
@@ -27,8 +27,12 @@ async function list(orgId, { status = 'active', ward_id, page = 1, limit = 20 })
 
     const params = [orgId, status];
     if (ward_id) {
-        query += ` AND a.ward_id = $3`;
+        query += ` AND a.ward_id = $${params.length + 1}`;
         params.push(ward_id);
+    }
+    if (patient_id) {
+        query += ` AND a.patient_id = $${params.length + 1}`;
+        params.push(patient_id);
     }
 
     query += ` ORDER BY a.admitted_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;

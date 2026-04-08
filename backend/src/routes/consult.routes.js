@@ -28,11 +28,12 @@ router.post('/',
     ctrl.create
 );
 
-/** PUT /api/consults/:id/resolve - resolve/respond to consult */
-router.put('/:id/resolve',
+/** POST /api/consults/:id/resolve - resolve/respond to consult */
+router.post('/:id/resolve',
     requirePermission('RESOLVE_CONSULT'),
     [
-        body('response').notEmpty().trim()
+        body('findings').notEmpty().trim(),
+        body('recommendations').notEmpty().trim()
     ],
     validate,
     ctrl.resolve
