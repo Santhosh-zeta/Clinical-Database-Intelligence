@@ -69,6 +69,7 @@ app.use('/api/labs', ...guard, require('./routes/lab.routes'));
 app.use('/api/billing', ...guard, require('./routes/billing.routes'));
 app.use('/api/appointments', ...guard, require('./routes/appointment.routes'));
 app.use('/api/consults', ...guard, require('./routes/consult.routes'));
+app.use('/api/symptoms', ...guard, require('./routes/symptoms.routes'));
 app.use('/api/doctors', ...guard, doctorsRoutes);
 
 

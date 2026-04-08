@@ -6,11 +6,20 @@ const svc = require('../services/medication.service');
 const { requirePermission } = require('../middleware/rbac');
 
 const router = Router();
+const db = require('../config/db');
 const validate = (req, res, next) => {
     const errs = validationResult(req);
     if (!errs.isEmpty()) return res.status(400).json({ errors: errs.array() });
     next();
 };
+
+/** GET /api/medications - list medication catalog */
+router.get('/', requirePermission('VIEW_PRESCRIPTIONS'), async (req, res, next) => {
+    try {
+        const result = await db.query(`SELECT id, name, generic_name, category, unit FROM medications ORDER BY name ASC`);
+        res.json({ data: result.rows });
+    } catch (e) { next(e); }
+});
 
 /** GET /api/medications/pending - list pending medications for shift */
 router.get('/pending', requirePermission('VIEW_PRESCRIPTIONS'), async (req, res, next) => {

@@ -970,40 +970,72 @@ function UnifiedAppointmentsTab() {
 function DoctorConsultsTab() {
   const { currentUser } = useAuth();
   const [consults, setConsults] = useState<any[]>([]);
+  const [allSymptoms, setAllSymptoms] = useState<any[]>([]);
+  const [allMedications, setAllMedications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedConsult, setSelectedConsult] = useState<any>(null);
   const [resolution, setResolution] = useState({ findings: '', recommendations: '' });
+  const [selectedSymptomIds, setSelectedSymptomIds] = useState<number[]>([]);
+  const [prescriptions, setPrescriptions] = useState<{ medication_id: number; dose: string; frequency: string; route: string }[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const fetchConsults = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API}/consults`, { headers: ah() });
-      if (res.ok) {
-        const d = await res.json();
-        setConsults(d.data || []);
-      }
+      const [cRes, sRes, mRes] = await Promise.all([
+        fetch(`${API}/consults`, { headers: ah() }),
+        fetch(`${API}/symptoms`, { headers: ah() }),
+        fetch(`${API}/medications`, { headers: ah() }),
+      ]);
+      if (cRes.ok) { const d = await cRes.json(); setConsults(d.data || []); }
+      if (sRes.ok) { const d = await sRes.json(); setAllSymptoms(d.data || []); }
+      if (mRes.ok) { const d = await mRes.json(); setAllMedications(d.data || []); }
     } catch (_) { }
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    fetchConsults();
-  }, [fetchConsults]);
+  useEffect(() => { fetchConsults(); }, [fetchConsults]);
+
+  const toggleSymptom = (id: number) => {
+    setSelectedSymptomIds(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+  };
+
+  const addPrescriptionLine = () => {
+    if (allMedications.length === 0) return;
+    setPrescriptions(prev => [...prev, { medication_id: allMedications[0].id, dose: '', frequency: 'OD', route: 'oral' }]);
+  };
+
+  const updateRx = (idx: number, key: string, val: string | number) => {
+    setPrescriptions(prev => prev.map((rx, i) => i === idx ? { ...rx, [key]: val } : rx));
+  };
+
+  const removeRx = (idx: number) => {
+    setPrescriptions(prev => prev.filter((_, i) => i !== idx));
+  };
 
   const handleResolve = async () => {
-    if (!selectedConsult) return;
+    if (!selectedConsult || !resolution.findings || !resolution.recommendations) return;
+    setSubmitting(true);
     try {
       const res = await fetch(`${API}/consults/${selectedConsult.id}/resolve`, {
         method: 'POST',
         headers: { ...ah(), 'Content-Type': 'application/json' },
-        body: JSON.stringify(resolution)
+        body: JSON.stringify({
+          findings: resolution.findings,
+          recommendations: resolution.recommendations,
+          symptomIds: selectedSymptomIds,
+          prescriptions: prescriptions.filter(rx => rx.dose.trim() !== '')
+        })
       });
       if (res.ok) {
         setSelectedConsult(null);
         setResolution({ findings: '', recommendations: '' });
+        setSelectedSymptomIds([]);
+        setPrescriptions([]);
         fetchConsults();
       }
     } catch (_) { }
+    setSubmitting(false);
   };
 
   return (
@@ -1036,9 +1068,9 @@ function DoctorConsultsTab() {
                   <div className="flex items-center gap-6">
                     <div className={cn(
                       "w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-xs uppercase",
-                      c.priority === 'urgent' ? 'bg-rose-500' : 'bg-amber-500'
+                      c.priority === 'urgent' ? 'bg-rose-500' : c.priority === 'stat' ? 'bg-red-700' : 'bg-amber-500'
                     )}>
-                      {c.priority === 'urgent' ? 'Stat' : 'High'}
+                      {c.priority === 'stat' ? 'STAT' : c.priority === 'urgent' ? 'Urg' : 'Rtn'}
                     </div>
                     <div>
                       <h4 className="font-black text-slate-900 leading-none mb-1 uppercase text-sm">{c.specialty} Request</h4>
@@ -1046,50 +1078,144 @@ function DoctorConsultsTab() {
                       <p className="text-[11px] text-slate-600 mt-2 italic font-medium">"{c.reason}"</p>
                     </div>
                   </div>
-                  {c.status === 'pending' && (
-                    <button
-                      onClick={() => setSelectedConsult(c)}
-                      className="bg-slate-900 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800"
-                    >
-                      Resolve Consult
-                    </button>
-                  )}
+                  <div className="flex flex-col items-end gap-2">
+                    <span className={cn("text-[9px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest border",
+                      c.status === 'pending' ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-emerald-50 text-emerald-600 border-emerald-100"
+                    )}>{c.status}</span>
+                    {c.status === 'pending' && (
+                      <button
+                        onClick={() => { setSelectedConsult(c); setSelectedSymptomIds([]); setPrescriptions([]); setResolution({ findings: '', recommendations: '' }); }}
+                        className="bg-slate-900 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800"
+                      >
+                        Resolve Consult
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Resolution Sidebar */}
+        {/* Resolution Panel */}
         <div className="flex flex-col gap-6">
           {selectedConsult ? (
-            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-xl animate-in slide-in-from-right-8 duration-500 flex flex-col gap-6">
-              <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-xl animate-in slide-in-from-right-8 duration-500 flex flex-col gap-6 max-h-[90vh] overflow-y-auto custom-scrollbar">
+              <h3 className="text-xl font-black text-slate-900 flex items-center gap-2 sticky top-0 bg-white pb-2 border-b border-slate-100">
                 <Stethoscope className="w-5 h-5 text-indigo-500" /> Resolution Plan
               </h3>
+
+              {/* Findings */}
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-400 block mb-2 px-1">Clinical Findings</label>
                 <textarea
                   value={resolution.findings}
                   onChange={e => setResolution(prev => ({ ...prev, findings: e.target.value }))}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold outline-none h-24"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold outline-none h-24 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition-all"
                   placeholder="Enter key diagnostic observations..."
                 />
               </div>
+
+              {/* Recommendations */}
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-400 block mb-2 px-1">Recommendations</label>
                 <textarea
                   value={resolution.recommendations}
                   onChange={e => setResolution(prev => ({ ...prev, recommendations: e.target.value }))}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold outline-none h-24"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold outline-none h-24 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition-all"
                   placeholder="Advised treatment / next steps..."
                 />
               </div>
+
+              {/* Symptoms Picker */}
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 block mb-3 px-1">Presenting Symptoms</label>
+                <div className="flex flex-wrap gap-2">
+                  {allSymptoms.map(sym => (
+                    <button
+                      key={sym.id}
+                      onClick={() => toggleSymptom(sym.id)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wide border transition-all",
+                        selectedSymptomIds.includes(sym.id)
+                          ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100"
+                          : "bg-slate-50 text-slate-500 border-slate-200 hover:border-indigo-300"
+                      )}
+                    >
+                      {sym.name}
+                    </button>
+                  ))}
+                </div>
+                {selectedSymptomIds.length > 0 && (
+                  <p className="text-[10px] font-bold text-indigo-500 mt-2 px-1">{selectedSymptomIds.length} symptom(s) selected</p>
+                )}
+              </div>
+
+              {/* Prescriptions Builder */}
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <label className="text-[10px] font-black uppercase text-slate-400 px-1">Prescriptions</label>
+                  <button
+                    onClick={addPrescriptionLine}
+                    className="text-[9px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100 px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition-all"
+                  >
+                    + Add Drug
+                  </button>
+                </div>
+                {prescriptions.length === 0 ? (
+                  <p className="text-[10px] text-slate-300 font-bold px-1">No prescriptions added yet.</p>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {prescriptions.map((rx, idx) => (
+                      <div key={idx} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col gap-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[9px] font-black uppercase text-slate-400">Drug #{idx + 1}</span>
+                          <button onClick={() => removeRx(idx)} className="text-rose-400 text-[9px] font-black hover:text-rose-600">Remove</button>
+                        </div>
+                        <select
+                          value={rx.medication_id}
+                          onChange={e => updateRx(idx, 'medication_id', Number(e.target.value))}
+                          className="bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold outline-none w-full"
+                        >
+                          {allMedications.map(m => (
+                            <option key={m.id} value={m.id}>{m.name} ({m.category})</option>
+                          ))}
+                        </select>
+                        <div className="grid grid-cols-3 gap-2">
+                          <input
+                            type="text"
+                            placeholder="Dose"
+                            value={rx.dose}
+                            onChange={e => updateRx(idx, 'dose', e.target.value)}
+                            className="bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold outline-none"
+                          />
+                          <select
+                            value={rx.frequency}
+                            onChange={e => updateRx(idx, 'frequency', e.target.value)}
+                            className="bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold outline-none"
+                          >
+                            {['OD', 'BID', 'TID', 'QID', 'PRN', 'STAT', 'AC', 'HS'].map(f => <option key={f}>{f}</option>)}
+                          </select>
+                          <select
+                            value={rx.route}
+                            onChange={e => updateRx(idx, 'route', e.target.value)}
+                            className="bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold outline-none"
+                          >
+                            {['oral', 'IV', 'IM', 'SQ', 'topical', 'inhaled', 'sublingual'].map(r => <option key={r}>{r}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <button
                 onClick={handleResolve}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-100"
+                disabled={submitting || !resolution.findings || !resolution.recommendations}
+                className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
               >
-                Submit Consultation
+                {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : 'Submit Resolution'}
               </button>
               <button onClick={() => setSelectedConsult(null)} className="text-slate-400 text-[10px] font-bold uppercase transition-colors hover:text-slate-600">Cancel</button>
             </div>
@@ -1104,7 +1230,6 @@ function DoctorConsultsTab() {
     </div>
   );
 }
-
 
 function PatientPrescriptionsTab() {
   const { currentUser } = useAuth();
