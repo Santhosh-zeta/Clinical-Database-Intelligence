@@ -4,10 +4,16 @@ const db = require('../config/db');
 
 async function listAll(orgId) {
     const result = await db.query(
-        `SELECT c.*, p.name as patient_name, d.name as doctor_name
+        `SELECT 
+            c.*, 
+            p.name as patient_name, 
+            p.medical_record_number,
+            d.name as doctor_name,
+            rd.name as responding_dr_name
          FROM clinical_consults c
          JOIN patients p ON p.id = c.patient_id
          JOIN doctors d ON d.id = c.requesting_dr_id
+         LEFT JOIN doctors rd ON rd.id = c.responding_dr_id
          WHERE c.organization_id = $1
          ORDER BY c.created_at DESC`,
         [orgId]
@@ -24,14 +30,15 @@ async function create(orgId, userId, { patient_id, specialty, priority, reason }
     return result.rows[0];
 }
 
-async function resolve(orgId, userId, id, response) {
+async function resolve(orgId, userId, id, { findings, recommendations }) {
     const result = await db.query(
         `UPDATE clinical_consults 
-         SET status = 'completed', responding_dr_id = $1, response = $2, resolved_at = NOW()
-         WHERE id = $3 AND organization_id = $4 RETURNING *`,
-        [userId, response, id, orgId]
+         SET status = 'completed', consulting_dr_id = $1, findings = $2, recommendations = $3, completed_at = NOW()
+         WHERE id = $4 AND organization_id = $5 RETURNING *`,
+        [userId, findings, recommendations, id, orgId]
     );
     return result.rows[0];
 }
+
 
 module.exports = { listAll, create, resolve };

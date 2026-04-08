@@ -70,7 +70,11 @@ router.get('/:id/admissions', requirePermission('VIEW_PATIENT'), async (req, res
 /** POST /api/patients/:id/appointments — book appointment */
 router.post('/:id/appointments',
     requirePermission('UPDATE_PATIENT'),
-    [body('appointment_at').isISO8601(), body('reason').notEmpty()],
+    [
+        body('doctor_id').isInt(),
+        body('appointment_at').isISO8601(),
+        body('reason').notEmpty()
+    ],
     validate,
     ctrl.createAppointment
 );

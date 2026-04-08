@@ -3,32 +3,38 @@
 const db = require('../config/db');
 const { createError } = require('../middleware/errorHandler');
 
-async function list(orgId, { status = 'active', page = 1, limit = 20 }) {
+async function list(orgId, { status = 'active', ward_id, page = 1, limit = 20 }) {
     const offset = (page - 1) * limit;
-    const result = await db.query(
-        `SELECT a.id, a.patient_id, a.admitted_at, a.status, a.diagnosis,
-                p.name AS patient_name, p.gender, p.date_of_birth,
-                d.name AS doctor_name, w.name AS ward_name, b.bed_number,
-                rs.score AS risk_score, rs.category AS risk_category,
-                ew.total_score AS ews, ew.category AS ews_category
-         FROM admissions a
-         JOIN patients p ON p.id = a.patient_id
-         JOIN doctors  d ON d.id = a.doctor_id
-         LEFT JOIN wards w ON w.id = a.ward_id
-         LEFT JOIN beds  b ON b.id = a.bed_id
-         LEFT JOIN LATERAL (
-             SELECT score, category FROM risk_scores
-             WHERE admission_id = a.id ORDER BY calculated_at DESC LIMIT 1
-         ) rs ON TRUE
-         LEFT JOIN LATERAL (
-             SELECT total_score, category FROM ews_scores
-             WHERE admission_id = a.id ORDER BY calculated_at DESC LIMIT 1
-         ) ew ON TRUE
-         WHERE a.organization_id = $1 AND a.status = $2
-         ORDER BY a.admitted_at DESC
-         LIMIT $3 OFFSET $4`,
-        [orgId, status, limit, offset]
-    );
+    let query = `SELECT a.id, a.patient_id, a.admitted_at, a.status, a.diagnosis,
+                 p.name AS patient_name, p.gender, p.date_of_birth,
+                 d.name AS doctor_name, w.name AS ward_name, b.bed_number,
+                 rs.score AS risk_score, rs.category AS risk_category,
+                 ew.total_score AS ews, ew.category AS ews_category
+          FROM admissions a
+          JOIN patients p ON p.id = a.patient_id
+          JOIN doctors  d ON d.id = a.doctor_id
+          LEFT JOIN wards w ON w.id = a.ward_id
+          LEFT JOIN beds  b ON b.id = a.bed_id
+          LEFT JOIN LATERAL (
+              SELECT score, category FROM risk_scores
+              WHERE admission_id = a.id ORDER BY calculated_at DESC LIMIT 1
+          ) rs ON TRUE
+          LEFT JOIN LATERAL (
+              SELECT total_score, category FROM ews_scores
+              WHERE admission_id = a.id ORDER BY calculated_at DESC LIMIT 1
+          ) ew ON TRUE
+          WHERE a.organization_id = $1 AND a.status = $2`;
+
+    const params = [orgId, status];
+    if (ward_id) {
+        query += ` AND a.ward_id = $3`;
+        params.push(ward_id);
+    }
+
+    query += ` ORDER BY a.admitted_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
+
+    const result = await db.query(query, params);
     return { rows: result.rows, count: result.rowCount };
 }
 

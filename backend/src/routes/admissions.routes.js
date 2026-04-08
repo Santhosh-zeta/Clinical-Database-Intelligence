@@ -15,6 +15,10 @@ const validate = (req, res, next) => {
 /** GET  /api/admissions              — list (status filter) */
 router.get('/', requirePermission('VIEW_ADMISSIONS'), ctrl.list);
 
+/** GET  /api/admissions/suggestions — list ready for discharge */
+router.get('/suggestions', requirePermission('DISCHARGE_PATIENT'), ctrl.listSuggestions);
+
+
 /** POST /api/admissions              — admit patient */
 router.post('/',
     requirePermission('CREATE_ADMISSION'),

@@ -18,8 +18,11 @@ import {
   HeartPulse,
   Stethoscope,
   Clock,
+  Calendar,
   ClipboardList,
-  BookOpen
+  BookOpen,
+  Menu,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
@@ -138,11 +141,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
             />
           )}
 
-          {/* Business & Staff (Admin Only) */}
+          {/* Core Management (Admin Only) */}
           {(['admin', 'ultra_admin', 'hospital_admin'].includes(currentUser?.role || '')) && (
             <>
               <NavItem href="/dashboard?tab=staff" icon={<Users size={20} />} label="Staff Roster" active={pathname === '/dashboard' && tabParam === 'staff'} />
               <NavItem href="/dashboard?tab=patients" icon={<Users size={20} />} label="Patient Registry" active={pathname === '/dashboard' && tabParam === 'patients'} />
+              <NavItem href="/dashboard?tab=appointments" icon={<Calendar size={20} />} label="Appointments" active={pathname === '/dashboard' && tabParam === 'appointments'} />
+              <NavItem href="/dashboard?tab=labs" icon={<Database size={20} />} label="Lab Reports" active={pathname === '/dashboard' && tabParam === 'labs'} />
+              <NavItem href="/dashboard?tab=billing" icon={<BookOpen size={20} />} label="Billing Hub" active={pathname === '/dashboard' && tabParam === 'billing'} />
               <NavItem href="/dashboard?tab=icu" icon={<BedDouble size={20} />} label="Ward Occupancy" active={pathname === '/dashboard' && tabParam === 'icu'} />
               <NavItem href="/dashboard?tab=alerts" icon={<AlertTriangle size={20} />} label="System Alerts" active={pathname === '/dashboard' && tabParam === 'alerts'} />
               <NavItem href="/dashboard?tab=logs" icon={<Database size={20} />} label="Security Logs" active={pathname === '/dashboard' && tabParam === 'logs'} />
@@ -156,7 +162,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <p className="px-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Clinical</p>
 
               <NavItem href="/dashboard?tab=patients" icon={<Users size={20} />} label="Patient Directory" active={pathname === '/dashboard' && tabParam === 'patients'} />
+              <NavItem href="/dashboard?tab=appointments" icon={<Calendar size={20} />} label="Clinical Schedule" active={pathname === '/dashboard' && tabParam === 'appointments'} />
               <NavItem href="/dashboard?tab=vitals" icon={<Activity size={20} />} label="Live Monitor" active={pathname === '/dashboard' && tabParam === 'vitals'} />
+              <NavItem href="/dashboard?tab=labs" icon={<Database size={20} />} label="Lab Reports" active={pathname === '/dashboard' && tabParam === 'labs'} />
               <NavItem href="/dashboard?tab=icu" icon={<BedDouble size={20} />} label="Ward Status" active={pathname === '/dashboard' && tabParam === 'icu'} />
 
               {currentUser?.role === 'doctor' && (
@@ -173,9 +181,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 </>
               )}
 
+              <NavItem href="/dashboard?tab=billing" icon={<BookOpen size={20} />} label="Clinical Invoicing" active={pathname === '/dashboard' && tabParam === 'billing'} />
               <NavItem href="/dashboard?tab=alerts" icon={<AlertTriangle size={20} />} label="Risk Alerts" active={pathname === '/dashboard' && tabParam === 'alerts'} />
             </>
           )}
+
 
           {/* Patient Portal (Patient Only) */}
           {currentUser?.role === 'patient' && (
@@ -183,11 +193,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <div className="h-px bg-slate-100 mx-3 my-2" />
               <p className="px-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">My Care</p>
               <NavItem href="/dashboard?tab=vitals" icon={<Activity size={20} />} label="Live Vitals" active={pathname === '/dashboard' && tabParam === 'vitals'} />
+              <NavItem href="/dashboard?tab=labs" icon={<Database size={20} />} label="Lab Reports" active={pathname === '/dashboard' && tabParam === 'labs'} />
               <NavItem href="/dashboard?tab=meds" icon={<ClipboardList size={20} />} label="My Treatments" active={pathname === '/dashboard' && tabParam === 'meds'} />
               <NavItem href="/dashboard?tab=docs" icon={<BookOpen size={20} />} label="Medical History" active={pathname === '/dashboard' && tabParam === 'docs'} />
-              <NavItem href="/dashboard?tab=appointments" icon={<Clock size={20} />} label="Appointments" active={pathname === '/dashboard' && tabParam === 'appointments'} />
+              <NavItem href="/dashboard?tab=appointments" icon={<Calendar size={20} />} label="Appointments" active={pathname === '/dashboard' && tabParam === 'appointments'} />
+              <NavItem href="/dashboard?tab=billing" icon={<Database size={20} />} label="My Invoices" active={pathname === '/dashboard' && tabParam === 'billing'} />
             </>
           )}
+
         </nav>
 
         <div className="p-4 border-t border-slate-100 flex flex-col gap-1">

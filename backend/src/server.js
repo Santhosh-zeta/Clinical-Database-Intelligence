@@ -21,6 +21,7 @@ const prescriptionRoutes = require('./routes/prescription.routes');
 const adminRoutes = require('./routes/admin.routes');
 const dashboardRoutes = require('./routes/dashboard'); // Added
 const notifRoutes = require('./routes/notifications.routes');
+const consultRoutes = require('./routes/consult.routes');
 
 // Legacy routes (still serviced for frontend backward compat)
 const settingsRoutes = require('./routes/settings');
@@ -61,6 +62,15 @@ app.use('/api/admissions', ...guard, admissionsRoutes);
 app.use('/api/prescriptions', ...guard, prescriptionRoutes);
 app.use('/api/handovers', ...guard, require('./routes/handover.routes'));
 app.use('/api/admin', ...guard, adminRoutes);
+app.use('/api/wards', ...guard, require('./routes/wards.routes'));
+app.use('/api/medications', ...guard, require('./routes/medication.routes'));
+app.use('/api/labs', ...guard, require('./routes/lab.routes'));
+app.use('/api/billing', ...guard, require('./routes/billing.routes'));
+app.use('/api/appointments', ...guard, require('./routes/appointment.routes'));
+app.use('/api/consults', ...guard, require('./routes/consult.routes'));
+
+
+
 app.get('/api/dashboard/stats', (req, res) => res.json({ message: 'direct hit' }));
 app.use('/api/notifications', ...guard, notifRoutes);
 

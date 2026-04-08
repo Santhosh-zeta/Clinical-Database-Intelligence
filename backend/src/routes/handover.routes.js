@@ -6,7 +6,8 @@ const { requirePermission } = require('../middleware/rbac');
 
 const router = Router();
 
-router.get('/ward/:wardId', requirePermission('VIEW_PATIENTS'), ctrl.listByWard);
-router.post('/', requirePermission('VIEW_PATIENTS'), ctrl.create); // Simple permission check for demonstration
+router.get('/ward/:wardId', requirePermission('VIEW_PATIENT'), ctrl.listByWard);
+router.post('/', requirePermission('VIEW_PATIENT'), ctrl.create); // Simple permission check for demonstration
+
 
 module.exports = router;

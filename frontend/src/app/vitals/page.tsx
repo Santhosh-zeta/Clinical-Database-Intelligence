@@ -184,8 +184,9 @@ export default function VitalsMonitor() {
                   <span className="flex items-center gap-2 text-slate-600"><span className="w-2.5 h-2.5 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.5)]"></span> O2 Saturation</span>
                 </div>
               </div>
-              <div className="flex-1 min-h-0 relative z-10">
+              <div className="flex-1 min-h-[400px] relative z-10 overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
+
                   <AreaChart data={vitalsHistory[selectedPatient.id]}>
                     <defs>
                       <linearGradient id="colorHr" x1="0" y1="0" x2="0" y2="1">
@@ -275,9 +276,10 @@ function VitalStatCard({ title, value, unit, icon, data, color }: { title: strin
       </div>
 
       {/* Mini Sparkline Background */}
-      <div className="absolute inset-x-0 bottom-0 h-16 opacity-[0.08] transition-opacity group-hover:opacity-[0.15] pointer-events-none">
+      <div className="absolute inset-x-0 bottom-0 h-16 opacity-[0.08] transition-opacity group-hover:opacity-[0.15] pointer-events-none overflow-hidden">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>
+
             <YAxis domain={['auto', 'auto']} hide />
             <Area type="monotone" dataKey="val" stroke={color} fill={color} strokeWidth={2} isAnimationActive={false} />
           </AreaChart>
