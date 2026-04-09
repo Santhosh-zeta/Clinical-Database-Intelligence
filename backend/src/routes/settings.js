@@ -12,7 +12,7 @@ const validate = (req, res, next) => {
     next();
 };
 
-// GET /api/settings/:key
+
 router.get('/:key', async (req, res, next) => {
     try {
         const { key } = req.params;
@@ -30,7 +30,7 @@ router.get('/:key', async (req, res, next) => {
     }
 });
 
-// PUT /api/settings/:key
+
 router.put(
     '/:key',
     [

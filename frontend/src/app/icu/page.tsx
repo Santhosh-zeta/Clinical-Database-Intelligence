@@ -1,9 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { BedDouble, Loader2, RefreshCw, HeartPulse, AlertTriangle, User, Activity } from 'lucide-react';
-import { cn } from '../../lib/utils';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 const API = 'http://localhost:3001/api';
@@ -48,14 +45,11 @@ export default function ICUAllocationPage() {
     return () => clearInterval(id);
   }, []);
 
-  // ── Show ALL beds — group ICU separately at top, then general ────────────
   const icuBeds = allBeds.filter(b => b.is_icu);
   const generalBeds = allBeds.filter(b => !b.is_icu);
-
   const occupiedIcu = icuBeds.filter(b => b.is_occupied).length;
   const critIcu = icuBeds.filter(b => b.risk_category === 'critical').length;
 
-  // Group general beds by ward
   const generalByWard = generalBeds.reduce<Record<string, BedStatus[]>>((acc, bed) => {
     const key = bed.ward_name || 'General';
     if (!acc[key]) acc[key] = [];
@@ -64,98 +58,69 @@ export default function ICUAllocationPage() {
   }, {});
 
   return (
-    <div className="max-w-7xl mx-auto flex flex-col gap-8 w-full animate-in fade-in duration-700">
-
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+    <div className="max-w-[1200px] mx-auto p-4 font-sans text-gray-900">
+      <div className="border-b-2 border-blue-800 pb-2 mb-4 flex justify-between items-end">
         <div>
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">ICU Allocation Map</h1>
-          <p className="text-slate-500 text-lg">
-            Live monitoring floor plan — data from database
-            {lastRefreshed && <span className="ml-2 text-slate-400 text-sm">· updated {lastRefreshed.toLocaleTimeString()}</span>}
-          </p>
+          <h1 className="text-2xl font-bold text-blue-900 m-0">ICU Allocation Map</h1>
         </div>
-        <div className="flex items-center gap-3">
-          {!loading && icuBeds.length > 0 && (
-            <div className="flex gap-3">
-              <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" /> {critIcu} Critical
-              </div>
-              <div className="bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2">
-                <BedDouble className="w-4 h-4" /> {occupiedIcu}/{icuBeds.length} Occupied
-              </div>
-            </div>
-          )}
+        <div className="flex gap-4 items-center">
+          <div className="text-sm font-bold bg-white border border-black px-2 py-1 flex items-center gap-4">
+             <span className="text-red-700">CRITICAL: {critIcu}</span>
+             <span className="text-blue-700">ICU OCCUPANCY: {occupiedIcu}/{icuBeds.length}</span>
+          </div>
           <button
             onClick={fetchBeds}
             disabled={loading}
-            className="flex items-center gap-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 px-3 py-2 rounded-xl shadow-sm hover:bg-slate-50 transition-colors disabled:opacity-50"
+            className="bg-gray-200 border border-black px-3 py-1 font-bold text-sm shadow-sm hover:bg-gray-300 active:bg-gray-400"
           >
-            <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
+            {loading ? 'SYNCING...' : 'REFRESH LIVE DATA'}
           </button>
         </div>
       </div>
-
+      
+      <p className="mb-6 text-sm font-bold text-gray-700">Live monitoring floor plan — data from database. {lastRefreshed && `LAST SYNC: ${lastRefreshed.toLocaleTimeString()}`}</p>
+      
       {loading && allBeds.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-3">
-          <Loader2 className="w-10 h-10 animate-spin" />
-          <p className="text-sm font-medium">Fetching live bed status from database...</p>
-        </div>
+        <div className="p-4 border border-black bg-white font-bold text-center">CONNECTING TO WARD REGISTRY...</div>
       ) : allBeds.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-3 bg-white rounded-3xl border border-dashed border-slate-200">
-          <BedDouble className="w-12 h-12 opacity-30" />
-          <p className="text-sm font-medium">No bed data available. Make sure the backend is running.</p>
-        </div>
+        <div className="p-4 border border-black bg-white font-bold text-center text-red-700">NO BED DATA RECEIVED FROM HOST.</div>
       ) : (
-        <div className="flex flex-col gap-10">
-
-          {/* ── ICU Beds ───────────────────────────────────────────────── */}
-          {icuBeds.length > 0 && (
-            <section>
-              <div className="flex items-center gap-3 mb-5">
-                <div className="bg-rose-100 text-rose-600 border border-rose-200 p-1.5 rounded-lg">
-                  <Activity className="w-4 h-4" />
-                </div>
-                <h2 className="text-lg font-extrabold text-slate-800 uppercase tracking-wider">Intensive Care Units (ICU)</h2>
-                <div className="flex-1 h-px bg-slate-100" />
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4">
-                {icuBeds.map((bed, i) => (
-                  <BedCard key={bed.bed_id} bed={bed} index={i} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* ── General Wards ──────────────────────────────────────────── */}
-          {Object.entries(generalByWard).map(([wardName, wardBeds]) => (
-            <section key={wardName}>
-              <div className="flex items-center gap-3 mb-5">
-                <div className="bg-slate-100 text-slate-600 border border-slate-200 p-1.5 rounded-lg">
-                  <BedDouble className="w-4 h-4" />
-                </div>
-                <h2 className="text-lg font-extrabold text-slate-800 uppercase tracking-wider">{wardName}</h2>
-                <div className="flex-1 h-px bg-slate-100" />
-                <span className="text-xs text-slate-400 font-medium">
-                  {wardBeds.filter(b => b.is_occupied).length}/{wardBeds.length} occupied
-                </span>
-              </div>
-              <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-10 gap-3">
-                {wardBeds.map((bed, i) => (
-                  <BedCard key={bed.bed_id} bed={bed} index={i} compact />
-                ))}
-              </div>
-            </section>
-          ))}
+        <div className="flex flex-col gap-6">
 
           {/* Legend */}
-          <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-slate-100">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Legend:</span>
-            <LegendDot cls="border-dashed bg-slate-50 border-slate-300" label="Available" />
-            <LegendDot cls="bg-indigo-50 border-indigo-300" label="Occupied — Stable" />
-            <LegendDot cls="bg-amber-50 border-amber-300" label="High Risk" />
-            <LegendDot cls="bg-rose-50 border-rose-300" label="Critical" />
+          <div className="bg-gray-200 border border-gray-400 p-2 text-xs font-bold flex gap-6 items-center shadow-sm">
+             <span>MAP LEGEND:</span>
+             <span className="flex items-center gap-1"><div className="w-3 h-3 bg-white border border-black"></div> AVAILABLE</span>
+             <span className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-200 border border-black"></div> OCCUPIED</span>
+             <span className="flex items-center gap-1"><div className="w-3 h-3 bg-yellow-300 border border-black"></div> HIGH RISK</span>
+             <span className="flex items-center gap-1"><div className="w-3 h-3 bg-red-600 border border-black"></div> CRITICAL</span>
           </div>
+
+          {/* ICU BEDS */}
+          {icuBeds.length > 0 && (
+             <div className="bg-white border border-gray-400 shadow-sm">
+                <div className="bg-red-800 text-white font-bold px-2 py-1 text-sm tracking-widest border-b border-gray-400">
+                   INTENSIVE CARE UNITS (ICU)
+                </div>
+                <div className="p-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1 bg-gray-100 border border-gray-400 shadow-inner mx-2 mb-2 mt-2">
+                   {icuBeds.map((bed, i) => <BedCard key={bed.bed_id} bed={bed} index={i} />)}
+                </div>
+             </div>
+          )}
+
+          {/* GENERAL WARDS */}
+          {Object.entries(generalByWard).map(([wardName, wardBeds]) => (
+             <div key={wardName} className="bg-white border border-gray-400 shadow-sm">
+                <div className="bg-gray-300 border-b border-gray-400 text-gray-900 font-bold px-2 py-1 text-sm flex justify-between">
+                   <span>{wardName.toUpperCase()}</span>
+                   <span>OCCUPANCY: {wardBeds.filter(b => b.is_occupied).length}/{wardBeds.length}</span>
+                </div>
+                <div className="p-2 grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10 gap-1 bg-white">
+                   {wardBeds.map((bed, i) => <BedCard key={bed.bed_id} bed={bed} index={i} compact />)}
+                </div>
+             </div>
+          ))}
+
         </div>
       )}
     </div>
@@ -165,62 +130,42 @@ export default function ICUAllocationPage() {
 function BedCard({ bed, index, compact = false }: { bed: BedStatus; index: number; compact?: boolean }) {
   const isCrit = bed.risk_category === 'critical';
   const isHigh = bed.risk_category === 'high';
-  const isUrgentEws = bed.ews_category === 'urgent';
 
-  const cardClass = cn(
-    'rounded-2xl flex flex-col items-center justify-center border font-bold text-xs cursor-default transition-all hover:scale-105 hover:shadow-md',
-    compact ? 'h-16' : 'h-28',
-    !bed.is_occupied
-      ? 'bg-slate-50 border-dashed border-slate-300 text-slate-400'
-      : isCrit
-        ? 'bg-rose-50 border-rose-200 text-rose-700 shadow-sm shadow-rose-100'
-        : isHigh
-          ? 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm'
-          : 'bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm'
-  );
+  let bgClass = "bg-white text-gray-500 border-gray-400";
+  let contentClass = "text-gray-400";
+  
+  if (bed.is_occupied) {
+     if (isCrit) {
+        bgClass = "bg-red-600 text-white border-black font-bold blink_me_critical";
+        contentClass = "text-white";
+     } else if (isHigh) {
+        bgClass = "bg-yellow-300 text-black border-black font-bold";
+        contentClass = "text-red-800";
+     } else {
+        bgClass = "bg-blue-200 text-black border-black font-bold";
+        contentClass = "text-blue-900";
+     }
+  }
 
   const content = (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: index * 0.015 }}
-      title={bed.is_occupied ? `${bed.patient_name} — ${bed.risk_category || 'stable'}` : 'Available'}
-      className={cardClass}
-    >
-      {!compact && bed.is_occupied && (
-        <div className={cn('p-1 rounded-lg mb-1', isCrit ? 'text-rose-500' : isHigh ? 'text-amber-500' : 'text-indigo-500')}>
-          {(isCrit || isUrgentEws) ? <HeartPulse className="w-4 h-4 animate-pulse" /> : <User className="w-4 h-4" />}
-        </div>
-      )}
-      <span className="truncate max-w-full px-1.5 text-center text-[11px]">{bed.bed_number || `B${index + 1}`}</span>
-      {bed.is_occupied && !compact && (
-        <>
-          <span className="text-[9px] font-medium opacity-70 mt-0.5 truncate max-w-full px-1 text-center">
-            {bed.patient_name?.split(' ')[0] || 'Occupied'}
+    <div className={`border ${bgClass} p-1 text-center h-[50px] flex flex-col justify-center items-center shadow-sm relative`} title={bed.is_occupied ? `${bed.patient_name} — ${bed.risk_category || 'stable'}` : 'Available'}>
+       <span className="text-[10px] absolute top-0.5 left-1 font-mono">{bed.bed_number || `B${index + 1}`}</span>
+       {bed.is_occupied ? (
+          <span className={`text-[9px] mt-3 leading-tight truncate w-full px-1 ${contentClass}`}>
+             {bed.patient_name?.split(' ')[0].toUpperCase()}
           </span>
-          <span className={cn('text-[9px] font-bold mt-0.5 uppercase', isCrit ? 'text-rose-500' : isHigh ? 'text-amber-500' : 'text-indigo-500')}>
-            {bed.risk_category || 'stable'}
-          </span>
-        </>
-      )}
-      {!bed.is_occupied && !compact && (
-        <span className="text-[10px] font-medium opacity-50 mt-1">Free</span>
-      )}
-    </motion.div>
-  );
-
-  // Make occupied beds clickable if we have an admission ID
-  if (bed.is_occupied && bed.admission_id) {
-    return <Link href={`/patients/${bed.admission_id}`}>{content}</Link>;
-  }
-  return content;
-}
-
-function LegendDot({ cls, label }: { cls: string; label: string }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <div className={cn('w-5 h-5 rounded-lg border', cls)} />
-      <span className="text-xs text-slate-500 font-medium">{label}</span>
+       ) : (
+          <span className="text-[9px] mt-2 opacity-50">FREE</span>
+       )}
+       {isCrit && <style>{`
+          .blink_me_critical { animation: blinker_crit 1.5s linear infinite; }
+          @keyframes blinker_crit { 50% { opacity: 0.8; background-color: #990000; } }
+       `}</style>}
     </div>
   );
+
+  if (bed.is_occupied && bed.admission_id) {
+    return <Link href={`/patients/${bed.admission_id}`} className="block hover:border-black">{content}</Link>;
+  }
+  return content;
 }

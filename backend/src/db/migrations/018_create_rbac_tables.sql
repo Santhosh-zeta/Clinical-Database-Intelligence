@@ -40,7 +40,8 @@ INSERT INTO roles (name, description) VALUES
     ('admin',      'Hospital administrator — full access'),
     ('doctor',     'Attending physician — clinical access'),
     ('nurse',      'Nursing staff — monitoring and recording'),
-    ('head_nurse', 'Senior nurse — extended management permissions')
+    ('head_nurse', 'Senior nurse — extended management permissions'),
+    ('patient',    'Patient portal access')
 ON CONFLICT (name) DO NOTHING;
 
 -- ── Seed All Permission Codes ─────────────────────────────────────────────────

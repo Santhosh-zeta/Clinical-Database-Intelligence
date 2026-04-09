@@ -29,7 +29,7 @@ async function create(orgId, userId, { patient_id, specialty, priority, reason }
     );
     const consult = result.rows[0];
 
-    // Log consultation event
+
     await db.query(
         `INSERT INTO patient_events (patient_id, organization_id, event_type, reference_id, reference_table, description, created_by)
          VALUES ($1, $2, 'consult', $3, 'clinical_consults', $4, $5)`,
@@ -40,7 +40,7 @@ async function create(orgId, userId, { patient_id, specialty, priority, reason }
 }
 
 async function resolve(orgId, userId, id, { findings, recommendations, symptomIds = [], prescriptions = [] }) {
-    // Update the consult record
+
     const result = await db.query(
         `UPDATE clinical_consults 
          SET status = 'completed', responding_dr_id = $1, findings = $2, recommendations = $3, completed_at = NOW()
@@ -52,7 +52,7 @@ async function resolve(orgId, userId, id, { findings, recommendations, symptomId
 
     const { patient_id } = consult;
 
-    // Resolve the active admission for this patient
+
     const admissionRes = await db.query(
         `SELECT id FROM admissions WHERE patient_id = $1 AND organization_id = $2 AND status = 'active' ORDER BY admitted_at DESC LIMIT 1`,
         [patient_id, orgId]

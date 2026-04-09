@@ -13,7 +13,7 @@ const validate = (req, res, next) => {
     next();
 };
 
-// ── POST /api/patients ─────────────────────────────────────────────────────
+
 router.post(
     '/',
     [
@@ -37,7 +37,7 @@ router.post(
     }
 );
 
-// ── GET /api/patients ──────────────────────────────────────────────────────
+
 router.get('/', async (req, res, next) => {
     try {
         const { search, page = 1, limit = 20 } = req.query;
@@ -55,7 +55,7 @@ router.get('/', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-// ── GET /api/patients/:id ──────────────────────────────────────────────────
+
 router.get('/:id', param('id').isInt(), validate, async (req, res, next) => {
     try {
         const result = await db.query('SELECT * FROM patients WHERE id = $1', [req.params.id]);
@@ -64,7 +64,7 @@ router.get('/:id', param('id').isInt(), validate, async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-// ── PUT /api/patients/:id ──────────────────────────────────────────────────
+
 router.put('/:id', param('id').isInt(), validate, async (req, res, next) => {
     try {
         const { name, date_of_birth, gender, blood_group, contact, emergency_contact, address, allergies, chronic_conditions } = req.body;

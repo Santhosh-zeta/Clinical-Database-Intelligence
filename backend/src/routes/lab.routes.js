@@ -21,4 +21,11 @@ router.post('/order', requirePermission('ORDER_LAB_TEST'), async (req, res, next
     } catch (e) { next(e); }
 });
 
+router.post('/orders/:id/verify', requirePermission('MANAGE_BILLING'), async (req, res, next) => {
+    try {
+        const { results } = req.body;
+        res.json({ data: await svc.recordResults(req.params.id, req.orgId, req.user.id, results) });
+    } catch (e) { next(e); }
+});
+
 module.exports = router;

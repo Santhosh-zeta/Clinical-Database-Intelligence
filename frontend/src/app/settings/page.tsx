@@ -1,29 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import {
-   User,
-   Bell,
-   Shield,
-   Activity,
-   Save,
-   CheckCircle2,
-   Smartphone,
-   Mail,
-   Database,
-   AlertTriangle,
-   KeyRound,
-   MonitorSmartphone,
-   Download,
-   HeartPulse,
-   Thermometer,
-   Stethoscope,
-   RefreshCw,
-   Fingerprint,
-   Moon
-} from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { cn } from '../../lib/utils';
 
 type TabType = 'profile' | 'thresholds' | 'notifications' | 'security';
 
@@ -33,7 +11,6 @@ export default function SettingsPage() {
    const [isSaving, setIsSaving] = useState(false);
    const [showSaved, setShowSaved] = useState(false);
 
-   // Settings State Example
    const [settings, setSettings] = useState({
       ews_high_threshold: 5,
       ews_urgent_threshold: 7,
@@ -82,306 +59,228 @@ export default function SettingsPage() {
    };
 
    return (
-      <div className="max-w-[1400px] mx-auto flex flex-col gap-8 w-full h-full relative">
-
-         {/* Dynamic Saving Toast Overlay */}
-         <div className={cn(
-            "fixed top-8 right-8 bg-slate-900 border border-slate-700 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 transition-all duration-500 z-50 backdrop-blur-xl",
-            showSaved ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-12 scale-95 pointer-events-none"
-         )}>
-            <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center">
-               <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-            </div>
-            <div>
-               <h4 className="font-bold text-sm">Configuration Applied</h4>
-               <p className="text-xs text-slate-400 font-medium mt-0.5">Your settings have been securely synchronized.</p>
-            </div>
-         </div>
+      <div className="max-w-[1200px] mx-auto p-4 font-sans text-gray-900 relative">
 
          {/* Header */}
-         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-slate-200/80 pb-6">
+         <div className="border-b-2 border-black pb-2 mb-4 flex justify-between items-end">
             <div>
-               <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">System Configurations</h1>
-               <p className="text-slate-500 text-lg">Manage global clinical thresholds, personal preferences, and data governance.</p>
+               <h1 className="text-2xl font-bold text-black m-0 uppercase tracking-widest">System Configurations</h1>
             </div>
-            <div className="flex gap-3">
-               <button className="px-6 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 font-bold rounded-xl transition-all shadow-sm">
-                  Discard Changes
+            <div className="flex gap-2">
+               {showSaved && <span className="bg-green-700 text-white font-bold px-2 py-1 text-sm mr-4 animate-pulse">SETTINGS SAVED</span>}
+               <button className="bg-gray-200 border border-black px-3 py-1 font-bold text-sm shadow-sm hover:bg-gray-300">
+                  [ DISCARD ]
                </button>
                <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 border border-indigo-700 text-white font-bold rounded-xl transition-all shadow-[0_4px_14px_rgba(79,70,229,0.3)] flex items-center gap-2 disabled:opacity-70 disabled:cursor-wait"
+                  className="bg-blue-800 text-white border border-black px-3 py-1 font-bold text-sm shadow-sm hover:bg-blue-900 disabled:opacity-50"
                >
-                  {isSaving ? (
-                     <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                     <Save className="w-4 h-4" />
-                  )}
-                  {isSaving ? "Synchronizing..." : "Save Configuration"}
+                  {isSaving ? "[ SYNCING... ]" : "[ SAVE CONFIGURATION ]"}
                </button>
             </div>
          </div>
 
-         <div className="flex flex-col lg:flex-row gap-8 items-start h-full">
+         <p className="mb-6 text-sm font-bold text-gray-700 uppercase">Manage global clinical thresholds, personal preferences, and data governance.</p>
 
-            {/* Navigation Sidebar */}
-            <div className="w-full lg:w-72 flex flex-col gap-2 shrink-0 sticky top-24">
-               <TabButton active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} icon={<User className="w-5 h-5" />} label="Profile Settings" desc="Identity & Localization" />
-               <TabButton active={activeTab === 'thresholds'} onClick={() => setActiveTab('thresholds')} icon={<Activity className="w-5 h-5" />} label="Clinical Thresholds" desc="Global Engine Triggers" />
-               <TabButton active={activeTab === 'notifications'} onClick={() => setActiveTab('notifications')} icon={<Bell className="w-5 h-5" />} label="Notification Rules" desc="Dispatch Preferences" />
-               <TabButton active={activeTab === 'security'} onClick={() => setActiveTab('security')} icon={<Shield className="w-5 h-5" />} label="Data & Security" desc="2FA & Active Sessions" />
+         <div className="flex flex-col md:flex-row gap-6">
+
+            {/* Navigation Menu */}
+            <div className="w-full md:w-64 flex flex-col border border-black bg-white shadow-sm">
+               <div className="bg-gray-300 font-bold p-2 text-sm border-b border-black uppercase text-center tracking-widest">
+                  Menu Options
+               </div>
+               <MenuButton active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} label="1. Profile Settings" />
+               <MenuButton active={activeTab === 'thresholds'} onClick={() => setActiveTab('thresholds')} label="2. Clinical Thresholds" />
+               <MenuButton active={activeTab === 'notifications'} onClick={() => setActiveTab('notifications')} label="3. Notification Rules" />
+               <MenuButton active={activeTab === 'security'} onClick={() => setActiveTab('security')} label="4. Data & Security" />
             </div>
 
-            {/* Dynamic Content Area */}
-            <div className="flex-1 w-full min-h-[600px] pb-24">
+            {/* Content Area */}
+            <div className="flex-1 min-h-[500px]">
 
-               {/* ----- Profile Section ----- */}
+               {/* Profile Tab */}
                {activeTab === 'profile' && (
-                  <div className="flex flex-col gap-10 animate-in fade-in slide-in-from-bottom-8 duration-500">
-                     <div className="bg-white border border-slate-200/80 rounded-[2rem] shadow-[0_4px_30px_rgba(0,0,0,0.02)] p-8 md:p-10 relative overflow-hidden">
-                        {/* Decorative background flare */}
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-bl-full opacity-50 z-0 pointer-events-none" />
-
-                        <div className="relative z-10 flex flex-col md:flex-row gap-10 items-start">
-                           <div className="flex flex-col items-center gap-4">
-                              <div className="w-32 h-32 rounded-[2rem] bg-gradient-to-br from-indigo-100 to-white border-4 border-white shadow-xl flex items-center justify-center text-indigo-600 font-black text-5xl relative group">
-                                 {currentUser?.name.charAt(0)}
-                                 <div className="absolute inset-0 bg-slate-900/60 rounded-[1.75rem] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                                    <RefreshCw className="w-8 h-8 text-white" />
-                                 </div>
-                              </div>
-                              <div className="text-center">
-                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] font-extrabold uppercase tracking-widest shadow-sm">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Active Duty
-                                 </span>
-                              </div>
+                  <div className="border border-black bg-white h-full shadow-sm">
+                     <div className="bg-gray-300 font-bold p-2 text-sm border-b border-black uppercase tracking-widest">
+                        Identity & Localization
+                     </div>
+                     <div className="p-6">
+                        <div className="mb-6 flex items-center gap-4 border border-black p-4 bg-gray-100 max-w-sm">
+                           <div className="w-16 h-16 bg-white border border-black flex items-center justify-center font-bold text-3xl font-mono">
+                              {currentUser?.name?.charAt(0).toUpperCase() || '?'}
                            </div>
-
-                           <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-6">
-                              <InputField icon={<User />} label="Full Name" defaultValue={currentUser?.name || ''} />
-                              <InputField icon={<Stethoscope />} label="Staff Designation" defaultValue={currentUser?.role.toUpperCase() || ''} disabled />
-                              <InputField icon={<Mail />} label="Secure Email" defaultValue={`${currentUser?.name.toLowerCase().replace(' ', '.')}@intellicare.hospital`} />
-                              <div className="flex flex-col gap-1.5">
-                                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1 border-l-2 border-indigo-400">Localization Setting</label>
-                                 <select className="w-full bg-slate-50 border border-slate-200/80 px-4 py-3 rounded-xl outline-none focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-700 font-semibold cursor-pointer shadow-inner">
-                                    <option>English (United States)</option>
-                                    <option>English (United Kingdom)</option>
-                                    <option>Hindi (India)</option>
-                                 </select>
-                              </div>
+                           <div>
+                              <div className="font-bold uppercase text-lg">{currentUser?.name}</div>
+                              <div className="text-xs bg-green-200 border border-green-800 text-green-900 px-2 py-0.5 inline-block font-bold mt-1">ACTIVE DUTY</div>
                            </div>
                         </div>
+
+                        <table className="w-full max-w-xl text-sm border-collapse">
+                           <tbody>
+                              <tr>
+                                 <td className="p-2 font-bold uppercase w-1/3 bg-gray-200 border border-gray-400">Full Name</td>
+                                 <td className="p-2 border border-gray-400">
+                                    <input type="text" className="w-full border border-black px-2 py-1 bg-white font-mono" defaultValue={currentUser?.name || ''} />
+                                 </td>
+                              </tr>
+                              <tr>
+                                 <td className="p-2 font-bold uppercase w-1/3 bg-gray-200 border border-gray-400">Staff Designation</td>
+                                 <td className="p-2 border border-gray-400">
+                                    <input type="text" className="w-full border border-black px-2 py-1 bg-gray-200 font-mono text-gray-600" defaultValue={currentUser?.role.toUpperCase() || ''} disabled />
+                                 </td>
+                              </tr>
+                              <tr>
+                                 <td className="p-2 font-bold uppercase w-1/3 bg-gray-200 border border-gray-400">Secure Email</td>
+                                 <td className="p-2 border border-gray-400">
+                                    <input type="text" className="w-full border border-black px-2 py-1 bg-white font-mono" defaultValue={`${(currentUser?.name || 'user').toLowerCase().replace(' ', '.')}@intellicare.hospital`} />
+                                 </td>
+                              </tr>
+                              <tr>
+                                 <td className="p-2 font-bold uppercase w-1/3 bg-gray-200 border border-gray-400">Localization</td>
+                                 <td className="p-2 border border-gray-400">
+                                    <select className="w-full border border-black px-2 py-1 bg-white font-mono">
+                                       <option>EN-US (System Default)</option>
+                                       <option>EN-UK</option>
+                                    </select>
+                                 </td>
+                              </tr>
+                           </tbody>
+                        </table>
                      </div>
                   </div>
                )}
 
-               {/* ----- Thresholds Section ----- */}
+               {/* Thresholds Tab */}
                {activeTab === 'thresholds' && (
-                  <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
-                     <div className="bg-white border border-slate-200/80 rounded-[2rem] shadow-[0_4px_30px_rgba(0,0,0,0.02)] p-8 md:p-10">
-                        <div className="mb-10">
-                           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-                              <Activity className="w-7 h-7 text-rose-500" /> Physiological Baseline & EWS Engine
-                           </h2>
-                           <p className="text-slate-500 mt-2 font-medium">Fine-tune the mathematical bounds for Intellicare's Early Warning Score (EWS) system and alert escalation behavior. These govern global risk calculations.</p>
+                  <div className="border border-black bg-white h-full shadow-sm">
+                     <div className="bg-gray-300 font-bold p-2 text-sm border-b border-black uppercase tracking-widest">
+                        Global Engine Triggers & EWS
+                     </div>
+                     <div className="p-6 flex flex-col gap-6">
+                        <p className="text-sm font-bold mb-2">Adjust the bounds for Early Warning Score calculations.</p>
+
+                        <div className="border border-black max-w-xl">
+                           <div className="bg-orange-200 font-bold p-2 border-b border-black text-sm uppercase">EWS 'HIGH' ALERT (MIN: 3, MAX: 6)</div>
+                           <div className="p-4 bg-gray-50 flex items-center gap-4">
+                              <input type="number" min="3" max="6" value={settings.ews_high_threshold} onChange={(e) => setSettings({ ...settings, ews_high_threshold: parseInt(e.target.value) })} className="border border-black p-2 font-mono text-lg w-20 text-center" />
+                              <span className="text-xs font-bold text-gray-600 uppercase">Points required to trigger High Alert workflow</span>
+                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-8">
-                           {/* EWS High Threshold */}
-                           <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 hover:border-slate-300 transition-colors">
-                              <div className="flex justify-between items-start mb-6">
-                                 <div>
-                                    <h3 className="font-extrabold text-slate-800 flex items-center gap-2">EWS 'High' Alert Threshold <AlertTriangle className="w-4 h-4 text-orange-500" /></h3>
-                                    <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-widest">Minimum Score for High Alert</p>
-                                 </div>
-                                 <div className="bg-white border border-slate-200 shadow-sm px-4 py-2 rounded-xl text-orange-600 font-black text-lg">
-                                    {settings.ews_high_threshold} <span className="text-[10px] text-slate-400 uppercase">Points</span>
-                                 </div>
-                              </div>
-                              <input
-                                 type="range" min="3" max="6" step="1"
-                                 value={settings.ews_high_threshold}
-                                 onChange={(e) => setSettings({ ...settings, ews_high_threshold: parseInt(e.target.value) })}
-                                 className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-orange-500 hover:accent-orange-600 transition-all shadow-inner"
-                              />
+                        <div className="border border-black max-w-xl">
+                           <div className="bg-red-200 font-bold p-2 border-b border-black text-sm uppercase">EWS 'URGENT' ALERT (MIN: 6, MAX: 10)</div>
+                           <div className="p-4 bg-gray-50 flex items-center gap-4">
+                              <input type="number" min="6" max="10" value={settings.ews_urgent_threshold} onChange={(e) => setSettings({ ...settings, ews_urgent_threshold: parseInt(e.target.value) })} className="border border-black p-2 font-mono text-lg w-20 text-center" />
+                              <span className="text-xs font-bold text-gray-600 uppercase">Points required to trigger ICU Response Code</span>
                            </div>
+                        </div>
 
-                           {/* EWS Urgent Threshold */}
-                           <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 hover:border-slate-300 transition-colors">
-                              <div className="flex justify-between items-start mb-6">
-                                 <div>
-                                    <h3 className="font-extrabold text-slate-800 flex items-center gap-2">EWS 'Urgent' Alert Threshold <Activity className="w-4 h-4 text-rose-500" /></h3>
-                                    <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-widest">Score triggering critical ICU response</p>
-                                 </div>
-                                 <div className="bg-white border border-slate-200 shadow-sm px-4 py-2 rounded-xl text-rose-600 font-black text-lg">
-                                    {settings.ews_urgent_threshold} <span className="text-[10px] text-slate-400 uppercase">Points</span>
-                                 </div>
-                              </div>
-                              <input
-                                 type="range" min="6" max="10" step="1"
-                                 value={settings.ews_urgent_threshold}
-                                 onChange={(e) => setSettings({ ...settings, ews_urgent_threshold: parseInt(e.target.value) })}
-                                 className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-500 hover:accent-rose-600 transition-all shadow-inner"
-                              />
+                        <div className="border border-black max-w-xl">
+                           <div className="bg-blue-200 font-bold p-2 border-b border-black text-sm uppercase">ESCALATION DELAY (MIN: 1, MAX: 30)</div>
+                           <div className="p-4 bg-gray-50 flex items-center gap-4">
+                              <input type="number" min="1" max="30" value={settings.escalation_wait_minutes} onChange={(e) => setSettings({ ...settings, escalation_wait_minutes: parseInt(e.target.value) })} className="border border-black p-2 font-mono text-lg w-20 text-center" />
+                              <span className="text-xs font-bold text-gray-600 uppercase">Minutes before escalating from Nurse to Doctor</span>
                            </div>
-
-                           {/* Escalation Wait Minutes */}
-                           <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 hover:border-slate-300 transition-colors">
-                              <div className="flex justify-between items-start mb-6">
-                                 <div>
-                                    <h3 className="font-extrabold text-slate-800 flex items-center gap-2">Alert Escalation Delay <Bell className="w-4 h-4 text-indigo-500" /></h3>
-                                    <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-widest">Time before escalating from Nurse to Doctor / ICU</p>
-                                 </div>
-                                 <div className="bg-white border border-slate-200 shadow-sm px-4 py-2 rounded-xl text-indigo-600 font-black text-lg">
-                                    {settings.escalation_wait_minutes} <span className="text-[10px] text-slate-400 uppercase">Minutes</span>
-                                 </div>
-                              </div>
-                              <input
-                                 type="range" min="1" max="30" step="1"
-                                 value={settings.escalation_wait_minutes}
-                                 onChange={(e) => setSettings({ ...settings, escalation_wait_minutes: parseInt(e.target.value) })}
-                                 className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-600 transition-all shadow-inner"
-                              />
-                           </div>
-
                         </div>
                      </div>
                   </div>
                )}
 
-               {/* ----- Notifications Section ----- */}
+               {/* Notifications Tab */}
                {activeTab === 'notifications' && (
-                  <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
-                     <div className="bg-white border border-slate-200/80 rounded-[2rem] shadow-[0_4px_30px_rgba(0,0,0,0.02)] p-8 md:p-10">
-                        <div className="mb-10">
-                           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-                              <Bell className="w-7 h-7 text-amber-500" /> Notification Engine Rules
-                           </h2>
-                           <p className="text-slate-500 mt-2 font-medium">Control omni-channel dispatch preferences. Intelligent routing will fallback to secondary methods if primary deliveries fail.</p>
-                        </div>
-
-                        <div className="flex flex-col gap-3">
-                           <ToggleRow
-                              icon={<Mail className="w-5 h-5 text-indigo-500" />}
-                              title="Enterprise Email Notifications"
-                              subtitle="Send rich-HTML alerts directly to your verified hospital email server."
-                              checked={notifications.emailAlerts}
-                              onChange={(c) => setNotifications({ ...notifications, emailAlerts: c })}
-                           />
-                           <ToggleRow
-                              icon={<Smartphone className="w-5 h-5 text-emerald-500" />}
-                              title="SMS Mobile Overrides"
-                              subtitle="Push code-blue alerts immediately via terrestrial SMS text messages to your phone."
-                              checked={notifications.smsAlerts}
-                              onChange={(c) => setNotifications({ ...notifications, smsAlerts: c })}
-                           />
-
-                           <div className="mx-4 my-2 border-t border-dashed border-slate-200" />
-
-                           <ToggleRow
-                              icon={<AlertTriangle className="w-5 h-5 text-rose-500" />}
-                              title="Escalation: Critical Tier Only"
-                              subtitle="Apply a suppression filter to silence medium/low warnings and only ring for life-threatening anomalies."
-                              checked={notifications.criticalOnly}
-                              onChange={(c) => setNotifications({ ...notifications, criticalOnly: c })}
-                           />
-                           <ToggleRow
-                              icon={<Moon className="w-5 h-5 text-purple-500" />}
-                              title="Off-Duty Silence Protocol"
-                              subtitle="Automatically mute all non-critical pager pings during scheduled off-shift hours."
-                              checked={notifications.offDutyMute}
-                              onChange={(c) => setNotifications({ ...notifications, offDutyMute: c })}
-                           />
-
-                           <div className="mx-4 my-2 border-t border-dashed border-slate-200" />
-
-                           <ToggleRow
-                              icon={<Database className="w-5 h-5 text-slate-500" />}
-                              title="Weekly Compliance Report"
-                              subtitle="Receive a consolidated Sunday PDF digest of all resolved incidents for administrative auditing."
-                              checked={notifications.weeklyReport}
-                              onChange={(c) => setNotifications({ ...notifications, weeklyReport: c })}
-                           />
-                        </div>
+                  <div className="border border-black bg-white h-full shadow-sm">
+                     <div className="bg-gray-300 font-bold p-2 text-sm border-b border-black uppercase tracking-widest">
+                        Dispatch Preferences & Routing
+                     </div>
+                     <div className="p-6">
+                        <table className="w-full text-sm border-collapse border border-black mb-6">
+                           <thead>
+                              <tr className="bg-gray-200 border-b border-black text-left">
+                                 <th className="p-2 font-bold w-12 text-center border-r border-black">STATE</th>
+                                 <th className="p-2 font-bold uppercase border-r border-black">Rule Protocol</th>
+                                 <th className="p-2 font-bold uppercase">Description</th>
+                              </tr>
+                           </thead>
+                           <tbody className="divide-y divide-gray-300">
+                              <ToggleTableRow
+                                 checked={notifications.emailAlerts}
+                                 onChange={(v) => setNotifications({ ...notifications, emailAlerts: v })}
+                                 title="Enterprise Email" desc="Send alerts directly to hospital email server"
+                              />
+                              <ToggleTableRow
+                                 checked={notifications.smsAlerts}
+                                 onChange={(v) => setNotifications({ ...notifications, smsAlerts: v })}
+                                 title="SMS Override" desc="Push critical codes immediately via SMS"
+                              />
+                              <ToggleTableRow
+                                 checked={notifications.criticalOnly}
+                                 onChange={(v) => setNotifications({ ...notifications, criticalOnly: v })}
+                                 title="Critical Tier Only" desc="Suppress medium/low warnings off-hours"
+                              />
+                              <ToggleTableRow
+                                 checked={notifications.weeklyReport}
+                                 onChange={(v) => setNotifications({ ...notifications, weeklyReport: v })}
+                                 title="Weekly Compliance" desc="Receive Sunday PDF digest of resolved incidents"
+                              />
+                           </tbody>
+                        </table>
                      </div>
                   </div>
                )}
 
-               {/* ----- Data & Security Section ----- */}
+               {/* Security Tab */}
                {activeTab === 'security' && (
-                  <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
+                  <div className="border border-black bg-white h-full shadow-sm">
+                     <div className="bg-gray-300 font-bold p-2 text-sm border-b border-black uppercase tracking-widest">
+                        Data & Security Auditing
+                     </div>
+                     <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                     <div className="bg-white border border-slate-200/80 rounded-[2rem] shadow-[0_4px_30px_rgba(0,0,0,0.02)] p-8 md:p-10">
-                        <div className="mb-10">
-                           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-                              <Shield className="w-7 h-7 text-emerald-500" /> Security & Access Management
-                           </h2>
-                           <p className="text-slate-500 mt-2 font-medium">Protect patient data integrity by enforcing strict authentication constraints and auditing active logins.</p>
-                        </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                           {/* Auth Options */}
-                           <div className="flex flex-col gap-4">
-                              <h3 className="font-bold text-slate-800 text-sm uppercase tracking-widest mb-2 border-b border-slate-100 pb-2">Authentication Enforcement</h3>
-                              <ToggleRow
-                                 icon={<KeyRound className="w-5 h-5 text-indigo-500" />}
-                                 title="Two-Factor Auth (2FA)"
-                                 subtitle="Require TOTP app verification on all new device logins."
-                                 checked={security.twoFactor}
-                                 onChange={(c) => setSecurity({ ...security, twoFactor: c })}
-                                 compact
-                              />
-                              <ToggleRow
-                                 icon={<Fingerprint className="w-5 h-5 text-slate-500" />}
-                                 title="Biometric Verification"
-                                 subtitle="Use FaceID/TouchID when available to unlock sensitive charts."
-                                 checked={security.biometric}
-                                 onChange={(c) => setSecurity({ ...security, biometric: c })}
-                                 compact
-                              />
-                              <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                                 <h4 className="font-bold text-slate-800 text-sm mb-1">Password Management</h4>
-                                 <p className="text-xs text-slate-500 mb-4 font-medium">Last rotated 45 days ago. HIPAA compliance enforces 90-day cycles.</p>
-                                 <button className="w-full py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-100 shadow-sm transition-colors">
-                                    Initiate Password Reset
-                                 </button>
-                              </div>
+                        <div>
+                           <div className="font-bold border-b-2 border-black pb-1 mb-4 uppercase text-sm">Auth Enforcement</div>
+                           <div className="flex items-center gap-4 mb-4">
+                              <input type="checkbox" checked={security.twoFactor} onChange={(e) => setSecurity({ ...security, twoFactor: e.target.checked })} className="w-5 h-5 border border-black" />
+                              <div className="text-sm font-bold uppercase">Require 2FA (TOTP)</div>
+                           </div>
+                           <div className="flex items-center gap-4 mb-6">
+                              <input type="checkbox" checked={security.biometric} onChange={(e) => setSecurity({ ...security, biometric: e.target.checked })} className="w-5 h-5 border border-black" />
+                              <div className="text-sm font-bold uppercase">Enable Biometric Auth</div>
                            </div>
 
-                           {/* Active Sessions */}
-                           <div className="flex flex-col gap-4">
-                              <h3 className="font-bold text-slate-800 text-sm uppercase tracking-widest mb-2 border-b border-slate-100 pb-2">Active Session Tracking</h3>
-                              <div className="flex flex-col gap-3">
-                                 <SessionCard
-                                    device={`Browser — ${currentUser?.name || 'Current User'}`}
-                                    location={`Role: ${currentUser?.role?.toUpperCase() || 'N/A'} · Active Session`}
-                                    isCurrent
-                                    time="Active Now"
-                                    icon={<MonitorSmartphone className="w-5 h-5 text-indigo-500" />}
-                                 />
-                              </div>
-                              <button className="mt-2 w-full py-2.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-sm font-bold hover:bg-rose-100 transition-colors flex items-center justify-center gap-2">
-                                 <AlertTriangle className="w-4 h-4" /> Revoke All Other Sessions
+                           <div className="border border-black bg-gray-100 p-4">
+                              <div className="font-bold text-sm mb-2">PASSWORD HEALTH</div>
+                              <div className="text-xs font-mono mb-4 text-gray-700">Last rotated: 45 days ago. Max: 90 days.</div>
+                              <button className="bg-white border border-black px-3 py-1 font-bold text-xs uppercase shadow-sm">
+                                 [ RESET PASSWORD ]
                               </button>
                            </div>
                         </div>
 
-                        {/* Audit Logs Download */}
-                        <div className="mt-10 pt-8 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
-                           <div className="flex items-center gap-4">
-                              <div className="p-3 bg-indigo-50 rounded-full border border-indigo-100">
-                                 <Database className="w-6 h-6 text-indigo-500" />
+                        <div>
+                           <div className="font-bold border-b-2 border-black pb-1 mb-4 uppercase text-sm">Active Sessions</div>
+                           <div className="border border-black bg-white p-3 mb-4">
+                              <div className="flex justify-between items-start mb-2">
+                                 <div className="font-bold text-sm">Browser Session (Primary)</div>
+                                 <span className="bg-green-700 text-white px-2 py-0.5 text-[10px] font-bold">CURRENT</span>
                               </div>
-                              <div>
-                                 <h4 className="font-bold text-slate-800">Compliance Audit Export</h4>
-                                 <p className="text-xs text-slate-500 font-medium">Download a cryptographic sign record of all your system actions.</p>
-                              </div>
+                              <div className="font-mono text-xs text-gray-600">IP: 192.168.1.104</div>
+                              <div className="font-mono text-xs text-gray-600">Started: 2 hours ago</div>
                            </div>
-                           <button className="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-bold flex items-center gap-2 shadow-md transition-all shrink-0 border border-slate-700 hover:border-slate-600">
-                              <Download className="w-4 h-4" /> Request Log Package
+
+                           <button className="w-full bg-red-100 text-red-900 border border-red-900 px-3 py-2 font-bold text-xs uppercase shadow-sm hover:bg-red-200">
+                              [ REVOKE OTHER SESSIONS ]
                            </button>
+
+                           <div className="mt-8 border border-black bg-blue-50 p-4">
+                              <div className="font-bold text-sm mb-2 uppercase">Compliance Export</div>
+                              <div className="text-xs mb-4 text-gray-700">Download a cryptographically signed log package.</div>
+                              <button className="w-full bg-black text-white border border-black px-3 py-2 font-bold text-xs uppercase shadow-sm">
+                                 [ REQUEST AUDIT ZIP ]
+                              </button>
+                           </div>
                         </div>
+
                      </div>
                   </div>
                )}
@@ -392,92 +291,30 @@ export default function SettingsPage() {
    );
 }
 
-// ----- Helper Components -----
-
-function TabButton({ active, onClick, icon, label, desc }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string, desc: string }) {
+function MenuButton({ active, onClick, label }: { active: boolean, onClick: () => void, label: string }) {
    return (
       <button
          onClick={onClick}
-         className={cn(
-            "flex flex-col items-start w-full px-5 py-4 rounded-[1.25rem] transition-all border group text-left",
-            active
-               ? "bg-white border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.04)] ring-1 ring-indigo-500/10"
-               : "bg-transparent border-transparent hover:bg-slate-50/80 hover:border-slate-200/50"
-         )}
+         className={`text-left p-3 border-b border-black text-sm font-bold uppercase tracking-wide transition-colors ${active ? "bg-black text-white" : "bg-white text-black hover:bg-gray-200"}`}
       >
-         <div className="flex items-center gap-4 w-full">
-            <div className={cn("p-2.5 rounded-xl transition-all border", active ? "bg-indigo-50 border-indigo-100 shadow-inner text-indigo-600" : "bg-white border-slate-200 shadow-sm text-slate-400 group-hover:text-slate-600")}>
-               {icon}
-            </div>
-            <div>
-               <div className={cn("font-extrabold text-[15px] tracking-tight transition-colors", active ? "text-indigo-900" : "text-slate-600 group-hover:text-slate-900")}>{label}</div>
-               <div className="text-[11px] text-slate-400 font-bold tracking-wide mt-0.5">{desc}</div>
-            </div>
-         </div>
+         {label}
       </button>
    );
 }
 
-function InputField({ label, defaultValue, disabled = false, icon }: { label: string, defaultValue: string, disabled?: boolean, icon: React.ReactNode }) {
+function ToggleTableRow({ checked, onChange, title, desc }: { checked: boolean, onChange: (v: boolean) => void, title: string, desc: string }) {
    return (
-      <div className="flex flex-col gap-1.5 w-full relative">
-         <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1 border-l-2 border-indigo-400">{label}</label>
-         <div className="relative group">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 [&_svg]:w-5 [&_svg]:h-5 group-focus-within:text-indigo-500 transition-colors">
-               {icon}
-            </div>
-            <input
-               type="text"
-               defaultValue={defaultValue}
-               disabled={disabled}
-               className="w-full bg-slate-50 border border-slate-200/80 pl-11 pr-4 py-3 rounded-xl outline-none focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-800 font-bold tracking-wide disabled:opacity-60 disabled:cursor-not-allowed shadow-inner"
-            />
-         </div>
-      </div>
-   );
-}
-
-function ToggleRow({ icon, title, subtitle, checked, onChange, compact = false }: { icon: React.ReactNode, title: string, subtitle: string, checked: boolean, onChange: (c: boolean) => void, compact?: boolean }) {
-   return (
-      <div className={cn("flex items-center justify-between rounded-2xl hover:bg-slate-50/80 transition-colors border border-transparent cursor-pointer group", compact ? "p-3" : "p-4 border-slate-100/50 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-md")} onClick={() => onChange(!checked)}>
-         <div className="flex items-center gap-4">
-            <div className={cn("bg-white border border-slate-200 shadow-sm rounded-xl flex items-center justify-center shrink-0", compact ? "p-2" : "p-3")}>
-               {icon}
-            </div>
-            <div className="pr-4">
-               <h4 className={cn("font-bold text-slate-800 tracking-tight", compact ? "text-sm" : "text-[15px]")}>{title}</h4>
-               <p className={cn("font-medium text-slate-500 mt-0.5 leading-snug", compact ? "text-[10px]" : "text-xs")}>{subtitle}</p>
-            </div>
-         </div>
-         <div className={cn(
-            "rounded-full relative transition-colors duration-300 shrink-0 shadow-inner border border-slate-200/50",
-            checked ? "bg-indigo-500 border-indigo-600/50" : "bg-slate-200",
-            compact ? "w-10 h-5" : "w-14 h-7"
-         )}>
-            <div className={cn(
-               "absolute rounded-full bg-white transition-all duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] shadow-[0_2px_4px_rgba(0,0,0,0.2)]",
-               compact ? "w-3 h-3 top-0.5" : "w-5 h-5 top-0.5",
-               checked ? (compact ? "left-6" : "left-8") : "left-0.5"
-            )} />
-         </div>
-      </div>
-   );
-}
-
-function SessionCard({ device, location, time, isCurrent, icon }: { device: string, location: string, time: string, isCurrent: boolean, icon: React.ReactNode }) {
-   return (
-      <div className={cn("flex items-start gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm transition-colors")}>
-         <div className="p-2 bg-slate-50 rounded-lg border border-slate-100 shadow-inner">
-            {icon}
-         </div>
-         <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2">
-               <h5 className="font-bold text-slate-800 text-sm truncate">{device}</h5>
-               {isCurrent && <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-md text-[10px] font-bold uppercase tracking-widest shrink-0 shadow-sm">Current</span>}
-            </div>
-            <p className="text-[11px] text-slate-500 font-bold tracking-wide truncate mt-0.5">{location}</p>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">{time}</p>
-         </div>
-      </div>
-   );
+      <tr className="hover:bg-yellow-50">
+         <td className="p-2 border-r border-black text-center">
+            <button
+               onClick={() => onChange(!checked)}
+               className={`font-mono text-[10px] px-2 py-1 border border-black font-bold border-collapse shadow-sm ${checked ? 'bg-green-700 text-white' : 'bg-gray-200 text-gray-500'}`}
+            >
+               {checked ? 'ON' : 'OFF'}
+            </button>
+         </td>
+         <td className="p-2 font-bold text-sm border-r border-black uppercase">{title}</td>
+         <td className="p-2 text-xs font-mono text-gray-700 break-words">{desc}</td>
+      </tr>
+   )
 }

@@ -25,7 +25,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-    // Hydrate auth from localStorage
+
     useEffect(() => {
         const saved = localStorage.getItem('__intellicare_auth');
         if (saved) {
@@ -56,12 +56,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const hasPermission = (code: string) => {
         if (!currentUser) return false;
 
-        // 1. Check injected permissions directly
+
         if (currentUser.permissions && Array.isArray(currentUser.permissions) && currentUser.permissions.length > 0) {
             return currentUser.permissions.includes(code);
         }
 
-        // 2. Fallback heuristic
+
         const role = currentUser.role?.toLowerCase() || '';
         if (role === 'admin' || role === 'ultra_admin' || role === 'hospital_admin') return true;
         if (role === 'doctor' && ['VIEW_PATIENT', 'VIEW_ALL_PATIENTS', 'PRESCRIBE_MEDICATION', 'VIEW_ALERTS', 'DISCHARGE_PATIENT', 'VIEW_TIMELINE', 'VIEW_ADMISSIONS', 'VIEW_VITALS'].includes(code)) return true;

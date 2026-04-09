@@ -78,7 +78,7 @@ router.get('/staff-performance', requirePermission('MANAGE_STAFF'), async (req, 
     try { res.json({ data: await adminSvc.getStaffPerformance(req.orgId) }); } catch (e) { next(e); }
 });
 
-// ── Role Specific Extensions ───────────────
+
 const admissionSvc = require('../services/admissions.service');
 const medSvc = require('../services/medication.service');
 

@@ -12,8 +12,7 @@ const validate = (req, res, next) => {
     next();
 };
 
-// ── POST /api/admissions ───────────────────────────────────────────────────
-// Admits a patient. Bed trigger fires to mark bed as occupied.
+
 router.post(
     '/',
     [
@@ -29,7 +28,7 @@ router.post(
         try {
             await client.query('BEGIN');
 
-            // Verify bed is free
+
             if (req.body.bed_id) {
                 const bedCheck = await client.query('SELECT is_occupied FROM beds WHERE id=$1', [req.body.bed_id]);
                 if (bedCheck.rows[0]?.is_occupied) {
@@ -55,7 +54,7 @@ router.post(
     }
 );
 
-// ── GET /api/admissions/:id ────────────────────────────────────────────────
+
 router.get('/:id', param('id').isInt(), validate, async (req, res, next) => {
     try {
         const result = await db.query(
@@ -82,7 +81,7 @@ router.get('/:id', param('id').isInt(), validate, async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-// ── GET /api/admissions (active only by default) ───────────────────────────
+
 router.get('/', async (req, res, next) => {
     try {
         const { status = 'active', page = 1, limit = 20 } = req.query;
@@ -111,8 +110,7 @@ router.get('/', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-// ── PUT /api/admissions/:id/discharge ──────────────────────────────────────
-// Discharges patient. Bed trigger fires to free the bed.
+
 router.put('/:id/discharge', param('id').isInt(), validate, async (req, res, next) => {
     try {
         const result = await db.query(
@@ -128,8 +126,7 @@ router.put('/:id/discharge', param('id').isInt(), validate, async (req, res, nex
     } catch (err) { next(err); }
 });
 
-// ── GET /api/admissions/:id/discharge-ready ────────────────────────────────
-// Calls suggest_discharge() DB function
+
 router.get('/:id/discharge-ready', param('id').isInt(), validate, async (req, res, next) => {
     try {
         const result = await db.query('SELECT suggest_discharge($1) AS discharge_ready', [req.params.id]);

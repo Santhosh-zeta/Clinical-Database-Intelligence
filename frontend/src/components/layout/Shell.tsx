@@ -51,7 +51,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
 
-  // ── Real Notifications ─────────────────────────────────────────────────
+
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
 
@@ -83,14 +83,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
     setNotifLoading(false);
   }, [currentUser]);
 
-  // Fetch on open + poll every 30s
+
   useEffect(() => {
     fetchNotifications();
     const id = setInterval(fetchNotifications, 5000);
     return () => clearInterval(id);
   }, [fetchNotifications]);
 
-  // Fetch fresh when dropdown opens
+
   useEffect(() => {
     if (isNotifOpen) fetchNotifications();
   }, [isNotifOpen, fetchNotifications]);
@@ -116,118 +116,110 @@ export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen bg-slate-50 text-slate-800 overflow-hidden font-sans selection:bg-indigo-500/20">
 
-      {/* Sidebar */}
-      <aside className="w-20 lg:w-64 bg-white border-r border-slate-200/80 shadow-[4px_0_24px_rgba(0,0,0,0.02)] flex flex-col transition-all duration-300 relative z-20">
-        <Link href="/dashboard" className="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-          <div className="p-1.5 bg-indigo-50 rounded-xl mr-3 hidden lg:block border border-indigo-100/50">
-            <Activity className="w-6 h-6 text-indigo-500 shrink-0" />
-          </div>
-          <Activity className="w-8 h-8 text-indigo-500 shrink-0 lg:hidden" />
-          <span className="hidden lg:block font-bold text-xl tracking-tight text-slate-900">IntelliCare</span>
+
+      <aside className="w-20 lg:w-64 bg-gray-200 border-r-2 border-black flex flex-col relative z-20">
+        <Link href="/dashboard" className="h-16 flex items-center justify-center lg:justify-start lg:px-4 border-b-2 border-black bg-gray-300 hover:bg-gray-400">
+          <span className="hidden lg:block font-mono font-bold text-lg uppercase tracking-widest text-black">INTELLICARE</span>
+          <span className="lg:hidden font-mono font-bold text-xl text-black">IC</span>
         </Link>
 
-        <nav className="flex-1 py-6 flex flex-col gap-1.5 px-3">
-          {/* Main Entry Point (Dashboard) */}
+        <nav className="flex-1 py-4 flex flex-col gap-0 px-2 overflow-y-auto">
+
           {(hasPermission('VIEW_DASHBOARD') || currentUser?.role) && (
             <NavItem
               href="/dashboard"
               icon={<LayoutDashboard size={20} />}
-              label={
-                ['admin', 'hospital_admin', 'ultra_admin'].includes(currentUser?.role?.toLowerCase() || '') ? 'Command Center' :
-                  currentUser?.role?.toLowerCase() === 'doctor' ? 'Care Overview' :
-                    currentUser?.role?.toLowerCase() === 'nurse' ? 'Ward Summary' :
-                      'Recovery Hub'
-              }
+              label="Home"
               active={pathname === '/' || pathname === '/dashboard'}
             />
           )}
 
-          {/* Core Management (Admin Only) */}
+
           {(['admin', 'ultra_admin', 'hospital_admin'].includes(currentUser?.role?.toLowerCase() || '')) && (
             <>
-              <NavItem href="/dashboard?tab=staff" icon={<Users size={20} />} label="Staff Roster" active={pathname === '/dashboard' && tabParam === 'staff'} />
-              <NavItem href="/dashboard?tab=patients" icon={<Users size={20} />} label="Patient Registry" active={pathname === '/dashboard' && tabParam === 'patients'} />
+              <NavItem href="/dashboard?tab=staff" icon={<Users size={20} />} label="Staff Members" active={pathname === '/dashboard' && tabParam === 'staff'} />
+              <NavItem href="/dashboard?tab=patients" icon={<Users size={20} />} label="Patients" active={pathname === '/dashboard' && tabParam === 'patients'} />
               <NavItem href="/dashboard?tab=appointments" icon={<Calendar size={20} />} label="Appointments" active={pathname === '/dashboard' && tabParam === 'appointments'} />
-              <NavItem href="/dashboard?tab=ambulances" icon={<Ambulance size={20} />} label="Fleet Command" active={pathname === '/dashboard' && tabParam === 'ambulances'} />
-              <NavItem href="/dashboard?tab=labs" icon={<Database size={20} />} label="Lab Reports" active={pathname === '/dashboard' && tabParam === 'labs'} />
-              <NavItem href="/dashboard?tab=billing" icon={<BookOpen size={20} />} label="Billing Hub" active={pathname === '/dashboard' && tabParam === 'billing'} />
-              <NavItem href="/dashboard?tab=icu" icon={<BedDouble size={20} />} label="Ward Occupancy" active={pathname === '/dashboard' && tabParam === 'icu'} />
-              <NavItem href="/dashboard?tab=alerts" icon={<AlertTriangle size={20} />} label="System Alerts" active={pathname === '/dashboard' && tabParam === 'alerts'} />
-              <NavItem href="/dashboard?tab=logs" icon={<Database size={20} />} label="Security Logs" active={pathname === '/dashboard' && tabParam === 'logs'} />
+              <NavItem href="/dashboard?tab=ambulances" icon={<Ambulance size={20} />} label="Ambulances" active={pathname === '/dashboard' && tabParam === 'ambulances'} />
+              <NavItem href="/dashboard?tab=labs" icon={<Database size={20} />} label="Lab Tests" active={pathname === '/dashboard' && tabParam === 'labs'} />
+              <NavItem href="/dashboard?tab=billing" icon={<BookOpen size={20} />} label="Billing & Money" active={pathname === '/dashboard' && tabParam === 'billing'} />
+              <NavItem href="/dashboard?tab=icu" icon={<BedDouble size={20} />} label="Beds & Rooms" active={pathname === '/dashboard' && tabParam === 'icu'} />
+              <NavItem href="/dashboard?tab=alerts" icon={<AlertTriangle size={20} />} label="Alerts" active={pathname === '/dashboard' && tabParam === 'alerts'} />
+              <NavItem href="/dashboard?tab=logs" icon={<Database size={20} />} label="History Logs" active={pathname === '/dashboard' && tabParam === 'logs'} />
             </>
           )}
 
-          {/* Clinical Workspace (Doctors & Nurses Only) */}
+
           {(currentUser?.role?.toLowerCase() === 'doctor' || currentUser?.role?.toLowerCase() === 'nurse') && (
             <>
-              <div className="h-px bg-slate-100 mx-3 my-2" />
-              <p className="px-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Clinical</p>
+              <div className="h-px bg-black mx-1 my-2" />
+              <p className="px-3 text-[10px] font-mono font-bold text-gray-600 uppercase mb-1">For Staff</p>
 
-              <NavItem href="/dashboard?tab=patients" icon={<Users size={20} />} label="Patient Directory" active={pathname === '/dashboard' && tabParam === 'patients'} />
-              <NavItem href="/dashboard?tab=appointments" icon={<Calendar size={20} />} label="Clinical Schedule" active={pathname === '/dashboard' && tabParam === 'appointments'} />
-              <NavItem href="/dashboard?tab=vitals" icon={<Activity size={20} />} label="Live Monitor" active={pathname === '/dashboard' && tabParam === 'vitals'} />
-              <NavItem href="/dashboard?tab=labs" icon={<Database size={20} />} label="Lab Reports" active={pathname === '/dashboard' && tabParam === 'labs'} />
-              <NavItem href="/dashboard?tab=icu" icon={<BedDouble size={20} />} label="Ward Status" active={pathname === '/dashboard' && tabParam === 'icu'} />
+              <NavItem href="/dashboard?tab=patients" icon={<Users size={20} />} label="Patients" active={pathname === '/dashboard' && tabParam === 'patients'} />
+              <NavItem href="/dashboard?tab=appointments" icon={<Calendar size={20} />} label="Appointments" active={pathname === '/dashboard' && tabParam === 'appointments'} />
+              <NavItem href="/dashboard?tab=vitals" icon={<Activity size={20} />} label="Patient Vitals" active={pathname === '/dashboard' && tabParam === 'vitals'} />
+              <NavItem href="/dashboard?tab=labs" icon={<Database size={20} />} label="Lab Tests" active={pathname === '/dashboard' && tabParam === 'labs'} />
+              <NavItem href="/dashboard?tab=icu" icon={<BedDouble size={20} />} label="Beds & Rooms" active={pathname === '/dashboard' && tabParam === 'icu'} />
 
               {currentUser?.role?.toLowerCase() === 'doctor' && (
                 <>
-                  <NavItem href="/dashboard?tab=consults" icon={<Stethoscope size={20} />} label="Consultations" active={pathname === '/dashboard' && tabParam === 'consults'} />
-                  <NavItem href="/dashboard?tab=discharge" icon={<HeartPulse size={20} />} label="Discharged Auth" active={pathname === '/dashboard' && tabParam === 'discharge'} />
+                  <NavItem href="/dashboard?tab=consults" icon={<Stethoscope size={20} />} label="Doctor Visits" active={pathname === '/dashboard' && tabParam === 'consults'} />
+                  <NavItem href="/dashboard?tab=discharge" icon={<HeartPulse size={20} />} label="Discharges" active={pathname === '/dashboard' && tabParam === 'discharge'} />
                 </>
               )}
 
               {currentUser?.role?.toLowerCase() === 'nurse' && (
                 <>
-                  <NavItem href="/dashboard?tab=meds" icon={<ClipboardList size={20} />} label="Medication Rounds" active={pathname === '/dashboard' && tabParam === 'meds'} />
-                  <NavItem href="/dashboard?tab=handover" icon={<Users size={20} />} label="Shift Handover" active={pathname === '/dashboard' && tabParam === 'handover'} />
+                  <NavItem href="/dashboard?tab=meds" icon={<ClipboardList size={20} />} label="Medicines" active={pathname === '/dashboard' && tabParam === 'meds'} />
+                  <NavItem href="/dashboard?tab=handover" icon={<Users size={20} />} label="Shift Change" active={pathname === '/dashboard' && tabParam === 'handover'} />
                 </>
               )}
 
-              <NavItem href="/dashboard?tab=billing" icon={<BookOpen size={20} />} label="Clinical Invoicing" active={pathname === '/dashboard' && tabParam === 'billing'} />
-              <NavItem href="/dashboard?tab=alerts" icon={<AlertTriangle size={20} />} label="Risk Alerts" active={pathname === '/dashboard' && tabParam === 'alerts'} />
+              <NavItem href="/dashboard?tab=billing" icon={<BookOpen size={20} />} label="Billing" active={pathname === '/dashboard' && tabParam === 'billing'} />
+              <NavItem href="/dashboard?tab=alerts" icon={<AlertTriangle size={20} />} label="Alerts" active={pathname === '/dashboard' && tabParam === 'alerts'} />
             </>
           )}
 
 
-          {/* Patient Portal (Patient Only) */}
+
           {currentUser?.role?.toLowerCase() === 'patient' && (
             <>
-              <div className="h-px bg-slate-100 mx-3 my-2" />
-              <p className="px-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">My Care</p>
-              <NavItem href="/dashboard?tab=vitals" icon={<Activity size={20} />} label="Live Vitals" active={pathname === '/dashboard' && tabParam === 'vitals'} />
-              <NavItem href="/dashboard?tab=labs" icon={<Database size={20} />} label="Lab Reports" active={pathname === '/dashboard' && tabParam === 'labs'} />
-              <NavItem href="/dashboard?tab=meds" icon={<ClipboardList size={20} />} label="My Treatments" active={pathname === '/dashboard' && tabParam === 'meds'} />
-              <NavItem href="/dashboard?tab=docs" icon={<BookOpen size={20} />} label="Medical History" active={pathname === '/dashboard' && tabParam === 'docs'} />
-              <NavItem href="/dashboard?tab=appointments" icon={<Calendar size={20} />} label="Appointments" active={pathname === '/dashboard' && tabParam === 'appointments'} />
-              <NavItem href="/dashboard?tab=billing" icon={<Database size={20} />} label="My Invoices" active={pathname === '/dashboard' && tabParam === 'billing'} />
+              <div className="h-px bg-black mx-1 my-2" />
+              <p className="px-3 text-[10px] font-mono font-bold text-gray-600 uppercase mb-1">My Care Info</p>
+              <NavItem href="/dashboard?tab=vitals" icon={<Activity size={20} />} label="My Body Vitals" active={pathname === '/dashboard' && tabParam === 'vitals'} />
+              <NavItem href="/dashboard?tab=labs" icon={<Database size={20} />} label="My Lab Tests" active={pathname === '/dashboard' && tabParam === 'labs'} />
+              <NavItem href="/dashboard?tab=meds" icon={<ClipboardList size={20} />} label="My Medicines" active={pathname === '/dashboard' && tabParam === 'meds'} />
+              <NavItem href="/dashboard?tab=docs" icon={<BookOpen size={20} />} label="My Past Visits" active={pathname === '/dashboard' && tabParam === 'docs'} />
+              <NavItem href="/dashboard?tab=appointments" icon={<Calendar size={20} />} label="My Appointments" active={pathname === '/dashboard' && tabParam === 'appointments'} />
+              <NavItem href="/dashboard?tab=billing" icon={<Database size={20} />} label="My Bills" active={pathname === '/dashboard' && tabParam === 'billing'} />
             </>
           )}
 
         </nav>
 
-        <div className="p-4 border-t border-slate-100 flex flex-col gap-1">
+        <div className="p-2 border-t-2 border-black flex flex-col gap-1">
           {(['admin', 'ultra_admin', 'hospital_admin'].includes(currentUser?.role || '')) ? (
-            <NavItem href="/dashboard?tab=settings" icon={<Settings size={20} />} label="System Settings" active={pathname === '/dashboard' && tabParam === 'settings'} />
+            <NavItem href="/dashboard?tab=settings" icon={<Settings size={16} />} label="Settings" active={pathname === '/dashboard' && tabParam === 'settings'} />
           ) : null}
-          <button onClick={logout} className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 text-rose-500 hover:bg-rose-50 font-medium">
-            <LogOut size={20} />
-            <span className="hidden lg:block text-sm leading-none">Logout</span>
+          <button onClick={logout} className="w-full flex items-center justify-center lg:justify-start gap-2 px-2 py-1.5 border border-black bg-red-700 text-white hover:bg-red-800 font-mono text-xs uppercase font-bold active:translate-y-px">
+            <LogOut size={14} />
+            <span className="hidden lg:block text-xs">LOG OUT</span>
           </button>
         </div>
       </aside>
 
-      {/* Main */}
+
       <main className="flex-1 flex flex-col min-w-0 relative z-10">
 
-        {/* Top Navbar */}
-        <header className="h-16 bg-white/70 backdrop-blur-xl border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-10 flex-shrink-0 shadow-[0_4px_24px_rgba(0,0,0,0.01)]">
 
-          <div className="flex items-center bg-white border border-slate-200 shadow-sm rounded-full px-4 py-1.5 w-64 lg:w-96 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all">
-            <Search className="w-4 h-4 text-slate-400 mr-2" />
+        <header className="h-16 bg-gray-300 border-b-2 border-black flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-10 flex-shrink-0">
+
+          <div className="flex items-center bg-white border border-black px-2 py-1 w-64 lg:w-96 shadow-[inset_2px_2px_0px_rgba(0,0,0,0.2)]">
+            <Search className="w-4 h-4 text-black mr-2 opacity-50" />
             <input
               type="text"
-              placeholder={currentUser?.role === 'patient' ? "Search..." : "Search patients, wards..."}
-              className="bg-transparent border-none outline-none text-sm w-full text-slate-700 placeholder:text-slate-400"
+              placeholder={currentUser?.role === 'patient' ? "SEARCH..." : "SEARCH FOR PATIENTS..."}
+              className="bg-transparent border-none outline-none font-mono text-xs w-full text-black placeholder:text-gray-500 uppercase"
             />
           </div>
 
@@ -236,30 +228,27 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <button
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
                 className={cn(
-                  "relative p-2.5 rounded-full transition-all focus:outline-none",
+                  "relative px-3 py-1 font-mono font-bold text-xs uppercase border border-black",
                   isNotifOpen
-                    ? "bg-indigo-50 text-indigo-600"
-                    : "bg-white border border-slate-200 text-slate-500 shadow-sm hover:bg-slate-50 hover:text-slate-700 hover:shadow-md"
+                    ? "bg-black text-white"
+                    : "bg-gray-200 text-black shadow-[2px_2px_0px_#000] hover:bg-gray-300 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
                 )}
               >
-                <Bell className="w-5 h-5" />
+                NOTIFICATIONS
                 {totalBadgeCount > 0 && (
-                  <>
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-500 rounded-full animate-ping" />
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center border-2 border-white px-0.5">
-                      {totalBadgeCount > 99 ? '99+' : totalBadgeCount}
-                    </span>
-                  </>
+                  <span className="ml-2 bg-red-600 text-white px-1 border border-black">
+                    {totalBadgeCount > 99 ? '99+' : totalBadgeCount}
+                  </span>
                 )}
               </button>
             )}
 
-            <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200">
+            <div className="hidden sm:flex items-center gap-3 pl-4 border-l-2 border-black">
               <div className="text-right">
-                <p className="text-sm font-semibold text-slate-800 leading-none">{currentUser?.name}</p>
-                <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-wider font-semibold">{currentUser?.role}</p>
+                <p className="font-mono text-xs font-bold text-black uppercase">{currentUser?.name}</p>
+                <p className="font-mono text-[10px] text-gray-700 mt-0.5 uppercase">[{currentUser?.role}]</p>
               </div>
-              <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center border border-indigo-200 text-indigo-600 font-bold">
+              <div className="w-8 h-8 bg-black flex items-center justify-center border border-gray-500 text-white font-mono font-bold text-sm">
                 {currentUser?.name?.charAt(0)}
               </div>
             </div>
@@ -270,7 +259,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         <div className="flex-1 overflow-auto scrollbar-hide relative bg-transparent p-4 md:p-6 lg:p-8">
           {children}
 
-          {/* ── Notifications Dropdown ──────────────────────────────────── */}
+
           <AnimatePresence>
             {isNotifOpen && currentUser?.role !== 'patient' && (
               <>
@@ -279,26 +268,23 @@ export function Shell({ children }: { children: React.ReactNode }) {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setIsNotifOpen(false)}
-                  className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40"
+                  className="fixed inset-0 bg-black/50 z-40"
                 />
 
                 <motion.div
                   initial={{ x: 400, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: 400, opacity: 0 }}
-                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                  className="fixed right-0 top-0 h-full w-80 sm:w-96 bg-white shadow-2xl z-50 flex flex-col"
+                  transition={{ type: "tween", duration: 0.15 }}
+                  className="fixed right-0 top-0 h-full w-80 sm:w-96 bg-gray-200 z-50 flex flex-col border-l-4 border-black"
                 >
-                  {/* Header */}
-                  <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-white/90 backdrop-blur-xl sticky top-0 z-10">
-                    <h3 className="font-bold text-slate-800 flex items-center gap-2 text-lg">
-                      <div className="p-1.5 bg-indigo-50 border border-indigo-100 rounded-lg text-indigo-500">
-                        <Bell className="w-5 h-5" />
-                      </div>
-                      Notifications
+
+                  <div className="p-3 border-b-2 border-black bg-gray-300 flex justify-between items-center sticky top-0 z-10">
+                    <h3 className="font-mono font-bold text-black flex items-center gap-2 text-sm uppercase">
+                      NOTIFICATIONS
                       {unreadCount > 0 && (
-                        <span className="ml-1 px-2 py-0.5 bg-rose-100 text-rose-600 border border-rose-200 text-xs font-extrabold rounded-full">
-                          {unreadCount} new
+                        <span className="ml-1 px-1 py-0 bg-red-600 text-white border border-black text-xs font-bold">
+                          {unreadCount} NEW
                         </span>
                       )}
                     </h3>
@@ -306,27 +292,25 @@ export function Shell({ children }: { children: React.ReactNode }) {
                       {unreadCount > 0 && (
                         <button
                           onClick={markAllRead}
-                          className="text-xs text-indigo-600 hover:text-indigo-700 font-bold bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition-colors"
+                          className="font-mono text-[10px] text-black hover:bg-black hover:text-white border border-black px-2 py-1 uppercase"
                         >
-                          Mark all read
+                          ACK ALL
                         </button>
                       )}
-                      <button onClick={() => setIsNotifOpen(false)} className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition-colors">✕</button>
+                      <button onClick={() => setIsNotifOpen(false)} className="font-mono text-xs text-black border border-black bg-white hover:bg-gray-300 px-2 py-1">[X]</button>
                     </div>
                   </div>
 
-                  {/* Body */}
-                  <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2.5 custom-scrollbar bg-slate-50/50">
+
+                  <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1 custom-scrollbar bg-gray-100">
                     {notifLoading && notifications.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-40 text-slate-400 gap-2">
-                        <Loader2 className="w-6 h-6 animate-spin" />
-                        <p className="text-sm font-medium">Loading notifications...</p>
+                      <div className="flex flex-col items-center justify-center h-40 text-black gap-2 font-mono text-sm font-bold uppercase">
+                        INITIALIZING RECEIVER...
                       </div>
                     ) : notifications.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3 py-16">
-                        <BellOff className="w-12 h-12 opacity-30" />
-                        <p className="font-medium text-slate-500">No notifications yet.</p>
-                        <p className="text-xs text-slate-400 text-center px-4">Notifications appear here when alerts, admissions, or prescriptions are created.</p>
+                      <div className="flex flex-col items-center justify-center h-full text-black gap-2 py-16 font-mono text-sm uppercase">
+                        <p className="font-bold">SYSTEM OK</p>
+                        <p className="text-[10px]">No unread alerts in the event log.</p>
                       </div>
                     ) : (
                       notifications.map(notif => (
@@ -334,40 +318,28 @@ export function Shell({ children }: { children: React.ReactNode }) {
                           layout
                           key={notif.id}
                           className={cn(
-                            'p-4 rounded-2xl border flex items-start gap-3 transition-all cursor-pointer',
+                            'p-2 border border-black font-mono text-[10px] break-words uppercase flex items-center justify-between',
                             notif.is_read
-                              ? 'bg-white border-slate-100 opacity-60'
-                              : 'bg-white border-indigo-100 shadow-sm shadow-indigo-50'
+                              ? 'bg-gray-300 text-gray-700'
+                              : 'bg-white text-black border-l-4 border-l-blue-600'
                           )}
                           onClick={() => !notif.is_read && markRead(notif.id)}
                         >
-                          <div className={cn(
-                            'p-2 rounded-xl mt-0.5 shrink-0',
-                            notif.is_read ? 'bg-slate-100 text-slate-400' : 'bg-indigo-50 text-indigo-500'
-                          )}>
-                            {notif.is_read
-                              ? <CheckCircle className="w-4 h-4" />
-                              : <Bell className="w-4 h-4" />
-                            }
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            {!notif.is_read && (
-                              <span className="inline-block w-2 h-2 bg-indigo-500 rounded-full mb-1 mr-1 align-middle" />
-                            )}
+                          <div className="flex-1 min-w-0 pr-2">
                             {notif.patient_name && (
-                              <p className="text-xs font-bold text-indigo-600 mb-0.5">{notif.patient_name}</p>
+                              <p className="font-bold border-b border-dashed border-gray-400 mb-1 inline-block text-blue-800">REF: {notif.patient_name}</p>
                             )}
-                            <p className="text-sm text-slate-700 font-medium leading-snug">{notif.message}</p>
-                            <p className="text-[10px] text-slate-400 mt-1.5 font-medium">
-                              {new Date(notif.created_at).toLocaleString()}
+                            <p className="leading-tight">{notif.message}</p>
+                            <p className="text-[9px] text-gray-500 mt-1">
+                              TS: {new Date(notif.created_at).toLocaleString()}
                             </p>
                           </div>
                           {!notif.is_read && (
                             <button
                               onClick={e => { e.stopPropagation(); markRead(notif.id); }}
-                              className="text-[10px] px-2 py-1 bg-white hover:bg-slate-50 text-slate-500 rounded-full border border-slate-200 shadow-sm font-medium shrink-0 ml-auto mt-0.5"
+                              className="bg-black text-white px-2 py-1 font-bold text-[9px] shrink-0"
                             >
-                              Dismiss
+                              DISMISS
                             </button>
                           )}
                         </motion.div>
@@ -375,20 +347,20 @@ export function Shell({ children }: { children: React.ReactNode }) {
                     )}
                   </div>
 
-                  {/* Footer */}
+
                   {/* Critical alerts summary at the bottom */}
                   {criticalAlertCount > 0 && (
-                    <div className="p-4 border-t border-slate-100 bg-rose-50">
+                    <div className="p-2 border-t-2 border-black bg-red-200">
                       <Link
                         href="/alerts"
                         onClick={() => setIsNotifOpen(false)}
-                        className="flex items-center justify-between text-rose-700 font-bold text-sm"
+                        className="flex items-center justify-between text-red-900 font-mono font-bold text-xs uppercase"
                       >
-                        <span className="flex items-center gap-2">
-                          <AlertTriangle className="w-4 h-4 animate-pulse" />
-                          {criticalAlertCount} unacknowledged critical alert{criticalAlertCount > 1 ? 's' : ''}
+                        <span className="flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3 animate-pulse" />
+                          {criticalAlertCount} ACTIVE CRITICAL ALERTS
                         </span>
-                        <span className="text-xs bg-rose-600 text-white px-2.5 py-1 rounded-full">View →</span>
+                        <span className="bg-red-800 text-white px-1 border border-black">VIEW &gt;&gt;</span>
                       </Link>
                     </div>
                   )}
@@ -405,16 +377,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
 function NavItem({ icon, label, href, active = false }: { icon: React.ReactNode; label: string; href: string; active?: boolean }) {
   return (
     <Link href={href} className={cn(
-      "w-full flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 relative group font-medium",
+      "w-full flex items-center lg:items-center justify-center lg:justify-start gap-2 px-2 py-2 border-b border-black font-mono text-xs uppercase font-bold transition-none",
       active
-        ? "bg-indigo-50/80 text-indigo-700 shadow-sm border border-indigo-100/50"
-        : "text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent"
+        ? "bg-blue-800 text-white"
+        : "text-black hover:bg-blue-200 hover:text-black bg-white"
     )}>
-      <div className={cn("transition-colors", active ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")}>
+      <span className={cn("hidden lg:inline", active ? "opacity-100" : "opacity-0")}>&gt;</span>
+      <div className={cn("shrink-0", active ? "text-white" : "text-black")}>
         {icon}
       </div>
-      <span className="hidden lg:block text-sm leading-none">{label}</span>
-      {active && <motion.div layoutId="nav-indicator-light" className="hidden lg:block absolute left-0 top-2 bottom-2 w-1 bg-indigo-500 rounded-r-full shadow-[0_0_8px_rgba(99,102,241,0.4)]" />}
+      <span className="hidden lg:block leading-none tracking-tight">{label}</span>
     </Link>
   );
 }

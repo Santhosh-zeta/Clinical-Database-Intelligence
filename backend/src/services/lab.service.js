@@ -41,4 +41,30 @@ async function listTests() {
     return result.rows;
 }
 
-module.exports = { listByAdmission, createOrder, listTests };
+async function recordResults(orderId, orgId, technicianId, results) {
+
+    const { rows: [order] } = await db.query(
+        'SELECT * FROM lab_orders WHERE id = $1 AND organization_id = $2',
+        [orderId, orgId]
+    );
+    if (!order) throw new Error('Order not found');
+
+
+    for (const res of results) {
+        await db.query(
+            `INSERT INTO lab_results (order_id, organization_id, technician_id, test_id, parameter_name, result_value, is_abnormal, verified_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+            [orderId, orgId, technicianId, order.test_id, res.parameter_name, res.result_value, res.is_abnormal || false]
+        );
+    }
+
+
+    const updated = await db.query(
+        "UPDATE lab_orders SET status = 'completed' WHERE id = $1 AND organization_id = $2 RETURNING *",
+        [orderId, orgId]
+    );
+
+    return updated.rows[0];
+}
+
+module.exports = { listByAdmission, createOrder, listTests, recordResults };

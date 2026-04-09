@@ -40,14 +40,14 @@ export function BedStatusGrid({ wardName, beds }: BedStatusGridProps) {
               transition={{ delay: idx * 0.05 }}
               key={bed.bedName} 
               className={cn(
-              "relative rounded-[2rem] border p-6 flex flex-col h-64 transition-all group overflow-hidden",
+              "relative rounded-xl border p-6 flex flex-col h-64 transition-all group overflow-hidden",
               bed.occupant 
-                ? "bg-white shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1 block" 
+                ? "bg-white shadow-sm hover:shadow-sm hover:-translate-y-1 block" 
                 : "bg-slate-50/50 border-slate-200 border-dashed hover:bg-slate-50 hover:border-slate-300"
             )}>
               {/* Absolute Background Accent for Critical */}
               {isCritical && (
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-400 to-rose-600 shadow-[0_0_10px_rgba(244,63,94,0.5)] z-0" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-400 to-rose-600 shadow-sm z-0" />
               )}
               {bed.occupant && !isCritical && (
                 <div className={cn("absolute top-0 left-0 w-full h-1 z-0", 
@@ -59,10 +59,10 @@ export function BedStatusGrid({ wardName, beds }: BedStatusGridProps) {
               {/* Top row */}
               <div className="flex justify-between items-start mb-5 relative z-10">
                 <div className="flex items-center gap-2">
-                  <div className={cn("p-2 rounded-xl border", bed.occupant ? "bg-slate-50 border-slate-100 text-indigo-500" : "bg-white border-slate-200 text-slate-400")}>
+                  <div className={cn("p-2 rounded-xl border", bed.occupant ? "bg-slate-50 border-slate-100 text-indigo-500" : "bg-white border-slate-200 text-slate-500")}>
                     <BedDouble className="w-5 h-5" />
                   </div>
-                  <span className={cn("font-bold text-lg tracking-tight", bed.occupant ? "text-slate-800" : "text-slate-400")}>{bed.bedName}</span>
+                  <span className={cn("font-bold text-lg tracking-tight", bed.occupant ? "text-slate-800" : "text-slate-500")}>{bed.bedName}</span>
                 </div>
                 {bed.occupant ? (
                   <RiskBadge score={bed.occupant.riskScore} />
@@ -88,8 +88,8 @@ export function BedStatusGrid({ wardName, beds }: BedStatusGridProps) {
                   
                   {/* Mini Vitals readout */}
                   <div className="mt-auto grid grid-cols-2 gap-3">
-                    <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100 flex flex-col gap-1 relative overflow-hidden group-hover:bg-indigo-50/30 transition-colors">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest relative z-10">HR (bpm)</span>
+                    <div className="bg-slate-50 rounded-lg p-3 border border-slate-100 flex flex-col gap-1 relative overflow-hidden group-hover:bg-indigo-50/30 transition-colors">
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest relative z-10">HR (bpm)</span>
                       <span className="text-xl font-extrabold text-slate-800 leading-none flex items-center gap-1 relative z-10 tracking-tight">
                         {currentHr ?? '-'} 
                         {currentHr && (
@@ -97,8 +97,8 @@ export function BedStatusGrid({ wardName, beds }: BedStatusGridProps) {
                         )}
                       </span>
                     </div>
-                    <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100 flex flex-col gap-1 relative overflow-hidden group-hover:bg-indigo-50/30 transition-colors">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest relative z-10">SpO2 (%)</span>
+                    <div className="bg-slate-50 rounded-lg p-3 border border-slate-100 flex flex-col gap-1 relative overflow-hidden group-hover:bg-indigo-50/30 transition-colors">
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest relative z-10">SpO2 (%)</span>
                       <span className="text-xl font-extrabold text-slate-800 leading-none relative z-10 tracking-tight">
                         {currentSpo2 ?? '-'}
                       </span>
@@ -106,7 +106,7 @@ export function BedStatusGrid({ wardName, beds }: BedStatusGridProps) {
                   </div>
                 </div>
               ) : (
-                <div className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-400 relative z-10">
+                <div className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-500 relative z-10">
                   <div className="w-16 h-16 rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-sm">
                     <UserCircle className="w-8 h-8 text-slate-300" />
                   </div>

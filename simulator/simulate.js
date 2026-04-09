@@ -124,6 +124,7 @@ async function postVitals(admissionId, vitals) {
 
 async function getActiveAdmissions() {
     const res = await api.get('/api/admissions?status=active');
+    console.log('DEBUG: Admissions Response:', JSON.stringify(res.data));
     return res.data.rows || [];
 }
 

@@ -339,77 +339,81 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
     : patient.riskScore;
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-6 w-full animate-in fade-in duration-700">
-
+    <div className="max-w-[1400px] mx-auto p-4 font-sans text-gray-900">
+      
       {/* Header */}
-      <div>
-        <Link href="/patients" className="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1 w-fit mb-4">
-          <ArrowLeft className="w-4 h-4" /> Back to Patients
+      <div className="mb-4">
+        <Link href="/patients" className="text-sm font-bold text-blue-900 hover:underline mb-4 inline-block">
+          &laquo; Back to Patient Directory
         </Link>
-
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4">
-            <EWSBadge category={ewsCategory} score={ewsData?.total_score ?? null} />
-          </div>
-
-          <div className="flex items-center gap-5 relative z-10">
-            <div className="w-20 h-20 bg-slate-100 rounded-2xl border border-slate-200 flex items-center justify-center shadow-inner overflow-hidden">
-              <UserCircle2 className="w-12 h-12 text-slate-400" />
+        <div className="bg-white border border-gray-400 p-4 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 border border-gray-400 bg-gray-100 flex items-center justify-center font-bold text-3xl text-gray-500">
+              {patient.name.charAt(0)}
             </div>
             <div>
-              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">{patient.name}</h1>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-slate-600 font-medium">
-                <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-slate-400" /> Age {patient.age} • {patient.gender}</span>
-                <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-slate-400" /> {patient.ward} / {patient.bed}</span>
-                <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md text-xs border border-slate-200">{patient.diagnosis || 'Observation'}</span>
+              <h1 className="text-2xl font-bold text-gray-900 m-0">{patient.name}</h1>
+              <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-800 font-bold">
+                <span>Age {patient.age} &bull; {patient.gender}</span>
+                <span>Location: {patient.ward} / Bed {patient.bed}</span>
+                <span className="bg-yellow-100 px-2 border border-yellow-400">Diagnosis: {patient.diagnosis || 'Observation'}</span>
               </div>
-              {/* ── Vitals Trend Indicators ─────────────────────────────── */}
               {trend && (
                 <div className="flex flex-wrap gap-2 mt-3">
                   <TrendChip label="HR" value={trend.heart_rate} />
-                  <TrendChip label="SpO₂" value={trend.spo2} />
-                  <TrendChip label="BP Sys" value={trend.systolic_bp} />
-                  <TrendChip label="Temp" value={trend.temperature} />
+                  <TrendChip label="SpO2" value={trend.spo2} />
+                  <TrendChip label="BP SYS" value={trend.systolic_bp} />
+                  <TrendChip label="TEMP" value={trend.temperature} />
                 </div>
               )}
             </div>
           </div>
+          
+          <div className="flex flex-col items-end gap-4">
+            <div className="border border-gray-400 bg-gray-100 p-2 text-center shadow-sm">
+                <div className="text-xs font-bold text-gray-600 uppercase">EWS Level</div>
+                <div className={cn("text-xl font-bold", ewsCategory === 'Critical' ? "text-red-700" : ewsCategory === 'High' ? "text-orange-600" : "text-green-700")}>
+                    {ewsData?.total_score ?? '-'} ({ewsCategory})
+                </div>
+            </div>
 
-          {/* Action buttons */}
-          <div className="flex flex-wrap gap-2 relative z-10">
-            {dischargeReady === true && (
-              <span className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-bold animate-pulse">
-                <CheckCircle2 className="w-4 h-4" /> Ready for Discharge
-              </span>
-            )}
-            <button onClick={() => setShowSymptomsModal(true)}
-              className="bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition-colors text-sm shadow-sm">
-              <Tag className="w-4 h-4" /> Record Symptoms
-            </button>
-            <button onClick={() => setShowPrescribeModal(true)}
-              className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition-colors text-sm shadow-sm">
-              <PlusCircle className="w-4 h-4" /> Issue Prescription
-            </button>
-            <button onClick={() => setShowDischargeConfirm(true)}
-              className="bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition-colors text-sm shadow-sm">
-              <LogOut className="w-4 h-4" /> Discharge Patient
-            </button>
+            <div className="flex flex-wrap gap-2">
+              {dischargeReady === true && (
+                <span className="px-3 py-1 bg-green-100 border border-green-700 text-green-900 text-sm font-bold shadow-sm">
+                   READY FOR DISCHARGE
+                </span>
+              )}
+              <button onClick={() => setShowSymptomsModal(true)}
+                className="bg-gray-200 border border-gray-400 px-3 py-1 font-bold text-sm text-gray-800 hover:bg-gray-300 shadow-sm">
+                Record Symptoms
+              </button>
+              <button onClick={() => setShowPrescribeModal(true)}
+                className="bg-gray-200 border border-gray-400 px-3 py-1 font-bold text-sm text-gray-800 hover:bg-gray-300 shadow-sm">
+                Issue Prescription
+              </button>
+              <button onClick={() => setShowDischargeConfirm(true)}
+                className="bg-gray-200 border border-gray-400 px-3 py-1 font-bold text-sm text-gray-800 hover:bg-gray-300 shadow-sm">
+                Discharge Patient
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Left Column */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          <VitalsChart vitals={vitals} />
+        <div className="lg:flex-[2] flex flex-col gap-6">
+          <div className="bg-white border border-gray-400 shadow-sm">
+            <VitalsChart vitals={vitals} />
+          </div>
 
           {/* Active Alerts */}
           {activeAlerts.length > 0 && (
-            <div className="bg-rose-50/50 p-4 border border-rose-100 rounded-2xl flex flex-col gap-3">
-              <h3 className="font-bold text-rose-900 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" /> Active Critical Alerts ({activeAlerts.length})
+            <div className="bg-white border-2 border-red-700 p-4 shadow-sm flex flex-col gap-3">
+              <h3 className="font-bold text-red-800 text-lg border-b border-red-200 pb-2">
+                ACTIVE CLINICAL ALERTS ({activeAlerts.length})
               </h3>
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 gap-2">
                 {activeAlerts.map(alert => (
                   <AlertCard key={alert.id} alert={alert} onAcknowledge={markAlertResolved} />
                 ))}
@@ -418,64 +422,51 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
           )}
 
           {/* Prescriptions */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                <Pill className="w-4 h-4 text-indigo-500" /> Active Prescriptions
-              </h3>
+          <div className="bg-white border border-gray-400 shadow-sm p-4">
+            <div className="flex items-center justify-between mb-4 border-b border-gray-300 pb-2">
+              <h3 className="font-bold text-gray-900 text-lg">Active Prescriptions</h3>
               <button onClick={() => setShowPrescribeModal(true)}
-                className="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-100 transition-colors flex items-center gap-1">
-                <PlusCircle className="w-3.5 h-3.5" /> Add
+                className="bg-gray-200 border border-gray-400 px-3 py-1 text-xs font-bold text-gray-800 hover:bg-gray-300 shadow-sm">
+                + New Prescription
               </button>
             </div>
             {rxLoading ? (
-              <div className="flex items-center gap-3 py-8 justify-center text-slate-400">
-                <Loader2 className="w-5 h-5 animate-spin" /> Loading prescriptions...
-              </div>
+              <div className="p-4 text-center font-bold text-gray-600">Loading prescriptions...</div>
             ) : prescriptions.length === 0 ? (
-              <div className="text-center py-10 text-slate-400">
-                <Pill className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                <p className="text-sm font-medium">No prescriptions yet.</p>
-              </div>
+              <div className="p-4 text-center italic text-gray-500">No prescriptions recorded.</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-600 border-collapse">
-                  <thead className="bg-slate-50 text-slate-700 text-xs uppercase font-bold border-b border-slate-200">
+              <div className="overflow-x-auto border border-gray-300">
+                <table className="w-full text-left text-sm border-collapse">
+                  <thead className="bg-gray-200 border-b border-gray-400 font-bold text-gray-800">
                     <tr>
-                      <th className="px-4 py-3 rounded-tl-lg">Medication</th>
-                      <th className="px-4 py-3">Dosage</th>
-                      <th className="px-4 py-3">Frequency</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 rounded-tr-lg text-right">Action</th>
+                      <th className="p-2 border-r border-gray-300">Medication</th>
+                      <th className="p-2 border-r border-gray-300">Dosage</th>
+                      <th className="p-2 border-r border-gray-300">Frequency</th>
+                      <th className="p-2 border-r border-gray-300 text-center">Status</th>
+                      <th className="p-2 text-center">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody>
                     {prescriptions.map((rx: any) => (
-                      <tr key={rx.id} className={cn('transition-colors', rx.status === 'cancelled' ? 'opacity-50 bg-slate-50' : 'hover:bg-slate-50/50')}>
-                        <td className="px-4 py-3 font-medium text-slate-900">
+                      <tr key={rx.id} className={cn('border-b border-gray-200', rx.status === 'cancelled' ? 'bg-gray-50 text-gray-500' : 'bg-white')}>
+                        <td className="p-2 border-r border-gray-200 font-bold">
                           {rx.medication_name || `Med #${rx.medication_id}`}
                           {rx.interaction_warning && (
-                            <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md">
-                              <AlertTriangle className="w-3 h-3" /> Interaction
+                            <span className="ml-2 font-bold text-red-700 bg-red-100 border border-red-300 px-1 text-[10px] uppercase">
+                              Interaction Warning
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-3">{rx.dose}</td>
-                        <td className="px-4 py-3">{rx.frequency}</td>
-                        <td className="px-4 py-3">
-                          <span className={cn('px-2 py-0.5 rounded-md text-xs font-bold border',
-                            rx.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                              rx.status === 'cancelled' ? 'bg-slate-100 text-slate-500 border-slate-200' :
-                                'bg-blue-50 text-blue-700 border-blue-200')}>
-                            {rx.status || 'active'}
-                          </span>
+                        <td className="p-2 border-r border-gray-200">{rx.dose}</td>
+                        <td className="p-2 border-r border-gray-200">{rx.frequency}</td>
+                        <td className="p-2 border-r border-gray-200 text-center">
+                          <span className="font-bold uppercase text-[10px]">{rx.status || 'ACTIVE'}</span>
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="p-2 text-center">
                           {rx.status !== 'cancelled' && (
                             <button onClick={() => handleCancelPrescription(rx.id)} disabled={cancellingId === rx.id}
-                              className="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1 ml-auto">
-                              {cancellingId === rx.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
-                              Cancel
+                              className="text-xs font-bold text-red-800 bg-gray-200 border border-gray-400 px-2 py-1 shadow-sm hover:bg-gray-300 disabled:opacity-50">
+                              {cancellingId === rx.id ? 'Cancelling...' : 'Cancel Rx'}
                             </button>
                           )}
                         </td>
@@ -489,30 +480,24 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
         </div>
 
         {/* Right Column: Real Timeline */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[700px]">
-          <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              <History className="w-4 h-4 text-indigo-500" /> Patient Timeline
-            </h3>
+        <div className="lg:flex-1 bg-white border border-gray-400 shadow-sm p-4 flex flex-col h-[800px]">
+          <div className="flex items-center justify-between mb-4 border-b border-gray-300 pb-2">
+            <h3 className="font-bold text-gray-900 text-lg">System Audit Timeline</h3>
             {timelineSummary && (
-              <div className="flex gap-2 text-[10px] font-bold text-slate-500">
-                <span className="bg-slate-100 px-2 py-1 rounded-lg">{timelineSummary.total_admissions} adm</span>
-                <span className="bg-slate-100 px-2 py-1 rounded-lg">{timelineSummary.total_prescriptions} rx</span>
-                <span className="bg-slate-100 px-2 py-1 rounded-lg">{timelineSummary.total_alerts} alerts</span>
+              <div className="flex gap-2 text-[10px] font-bold text-gray-600 bg-gray-100 border border-gray-300 p-1">
+                <span>{timelineSummary.total_admissions} ADM</span>
+                <span>|</span>
+                <span>{timelineSummary.total_prescriptions} RX</span>
+                <span>|</span>
+                <span>{timelineSummary.total_alerts} ALRT</span>
               </div>
             )}
           </div>
-          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto">
             {timelineLoading ? (
-              <div className="flex items-center justify-center h-full text-slate-400 gap-2">
-                <Loader2 className="w-5 h-5 animate-spin" /> Loading timeline...
-              </div>
+              <div className="p-4 text-center font-bold text-gray-600">Loading timeline...</div>
             ) : timeline.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
-                <ClipboardList className="w-10 h-10 opacity-30" />
-                <p className="text-sm font-medium">No timeline events yet.</p>
-                <p className="text-xs text-center opacity-70">Events appear automatically as vitals are recorded, alerts triggered, and prescriptions issued.</p>
-              </div>
+              <div className="p-4 text-center italic text-gray-500">No events logged in the system.</div>
             ) : (
               <PatientTimeline events={timeline} />
             )}
@@ -520,171 +505,163 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
         </div>
       </div>
 
-      {/* ── Issue Prescription Modal ─────────────────────────────────────────── */}
+      {/* ── Modals ─────────────────────────────────────────────────────────── */}
+      
+      {/* Issue Prescription Modal */}
       {showPrescribeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200 overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-                  <Pill className="w-5 h-5 text-indigo-500" /> Issue Prescription
-                </h3>
-                <p className="text-slate-500 text-xs mt-1">Patient: {patient.name} · Admission #{patient.id}</p>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-none">
+          <div className="bg-white w-full max-w-lg border-2 border-black shadow-lg flex flex-col max-h-[90vh]">
+            <div className="bg-blue-900 border-b border-black p-3 flex justify-between items-center text-white">
+              <h3 className="font-bold text-lg m-0">Issue Prescription</h3>
               <button onClick={() => { setShowPrescribeModal(false); setDrugInteractions([]); setRxSuggestions([]); setRxForm({ medicationId: '', dose: '', frequency: '', notes: '' }); }}
-                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-xl transition-colors">
-                <X className="w-5 h-5" />
+                className="font-bold text-white hover:text-gray-300">
+                [X]
               </button>
             </div>
-            <div className="p-6 overflow-y-auto flex flex-col gap-4">
-              {/* Suggestions */}
+            <div className="p-4 overflow-y-auto flex flex-col gap-4 bg-gray-100">
               {rxSuggestions.length > 0 && (
-                <div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2 border-l-2 border-indigo-400 pl-2">
-                    Suggested for {patient.diagnosis}
+                <div className="bg-white border border-gray-400 p-3 shadow-sm">
+                  <p className="text-xs font-bold text-gray-800 uppercase border-b border-gray-300 pb-1 mb-2">
+                    System Prescriptions Mapped to Diagnosis
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {rxSuggestions.map((s: any) => (
                       <button key={s.medication_id || s.id}
                         onClick={() => setRxForm(f => ({ ...f, medicationId: String(s.medication_id || s.id) }))}
-                        className={cn('px-3 py-1.5 rounded-xl text-xs font-bold border transition-all',
+                        className={cn('px-2 py-1 text-xs font-bold border',
                           rxForm.medicationId === String(s.medication_id || s.id)
-                            ? 'bg-indigo-600 text-white border-indigo-700 shadow-md'
-                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700')}>
+                            ? 'bg-blue-800 text-white border-blue-900 shadow-sm'
+                            : 'bg-gray-200 text-gray-800 border-gray-400 hover:bg-gray-300 shadow-sm')}>
                         {s.medication_name || s.name}
                       </button>
                     ))}
                   </div>
                 </div>
               )}
-              <div className="space-y-3">
-                <RxInput label="Medication ID" type="number" placeholder="Enter medication ID..." value={rxForm.medicationId} onChange={v => setRxForm(f => ({ ...f, medicationId: v }))} />
+              
+              <div className="bg-white border border-gray-400 p-3 shadow-sm space-y-3">
+                <RxInput label="Medication ID" type="number" placeholder="Enter ID..." value={rxForm.medicationId} onChange={v => setRxForm(f => ({ ...f, medicationId: v }))} />
                 <div className="grid grid-cols-2 gap-3">
                   <RxInput label="Dose" placeholder="e.g. 500mg IV" value={rxForm.dose} onChange={v => setRxForm(f => ({ ...f, dose: v }))} />
-                  <RxInput label="Frequency" placeholder="e.g. Twice daily" value={rxForm.frequency} onChange={v => setRxForm(f => ({ ...f, frequency: v }))} />
+                  <RxInput label="Frequency" placeholder="e.g. BID" value={rxForm.frequency} onChange={v => setRxForm(f => ({ ...f, frequency: v }))} />
                 </div>
-                <RxInput label="Notes (optional)" placeholder="Special instructions..." value={rxForm.notes} onChange={v => setRxForm(f => ({ ...f, notes: v }))} />
+                <RxInput label="Notes (Optional)" placeholder="Specials..." value={rxForm.notes} onChange={v => setRxForm(f => ({ ...f, notes: v }))} />
               </div>
+
               {drugInteractions.length > 0 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-                  <p className="text-xs font-bold text-amber-800 flex items-center gap-2 mb-2"><ShieldAlert className="w-4 h-4" /> Drug Interaction Warning ({drugInteractions.length})</p>
-                  <ul className="space-y-1">
+                <div className="bg-white border-2 border-red-700 p-3 shadow-sm">
+                  <p className="text-xs font-bold text-red-800 uppercase border-b border-red-200 pb-1 mb-2">DRUG INTERACTION WARNING</p>
+                  <ul className="list-disc pl-4 space-y-1">
                     {drugInteractions.map((ix: any, idx: number) => (
-                      <li key={idx} className="text-xs text-amber-700 font-medium">⚠ {ix.description || JSON.stringify(ix)}</li>
+                      <li key={idx} className="text-xs font-bold text-red-900">{ix.description || JSON.stringify(ix)}</li>
                     ))}
                   </ul>
                 </div>
               )}
               {drugInteractions.length === 0 && rxForm.medicationId && (
-                <p className="text-xs text-emerald-600 font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> No interaction warnings detected
+                <p className="text-xs text-green-700 font-bold bg-green-50 border border-green-300 p-2 shadow-sm">
+                  System Clearance: No strict contraindications found.
                 </p>
               )}
             </div>
-            <div className="p-6 pt-0 flex gap-3">
+            <div className="p-4 bg-gray-200 border-t border-gray-400 flex gap-4">
               <button onClick={handleInteractionCheck} disabled={!rxForm.medicationId || checkingInteractions}
-                className="flex-1 py-2.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 font-bold text-sm hover:bg-amber-100 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-                {checkingInteractions ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-                Check Interactions
+                className="flex-1 py-2 bg-yellow-100 border border-yellow-700 text-yellow-900 font-bold text-sm shadow-sm hover:bg-yellow-200 disabled:opacity-50">
+                {checkingInteractions ? 'PROCESSING...' : 'RUN INTERACTION CHECK'}
               </button>
               <button onClick={handleIssuePrescription} disabled={isIssuingRx || !rxForm.medicationId || !rxForm.dose || !rxForm.frequency}
-                className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                {isIssuingRx ? <Loader2 className="w-4 h-4 animate-spin" /> : <Pill className="w-4 h-4" />}
-                Issue Prescription
+                className="flex-1 py-2 bg-blue-800 border border-blue-900 text-white font-bold text-sm shadow-sm hover:bg-blue-900 disabled:opacity-50">
+                {isIssuingRx ? 'AUTHORIZING...' : 'COMMIT PRESCRIPTION'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Symptoms Modal ─────────────────────────────────────────────────── */}
+      {/* Symptoms Modal */}
       {showSymptomsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-                  <Tag className="w-5 h-5 text-teal-500" /> Record Symptoms
-                </h3>
-                <p className="text-slate-500 text-xs mt-1">Symptoms will auto-suggest relevant prescriptions</p>
-              </div>
-              <button onClick={() => setShowSymptomsModal(false)} className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-xl transition-colors">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-none">
+          <div className="bg-white w-full max-w-md border-2 border-black shadow-lg flex flex-col">
+            <div className="bg-teal-800 border-b border-black p-3 flex justify-between items-center text-white">
+              <h3 className="font-bold text-lg m-0">Input Current Symptoms</h3>
+              <button onClick={() => setShowSymptomsModal(false)}
+                className="font-bold text-white hover:text-gray-300">
+                [X]
               </button>
             </div>
-            <div className="p-6 flex flex-col gap-3">
-              {symptoms.map((s, i) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <input
-                    placeholder={`Symptom ${i + 1} (e.g. fever, chest pain)`}
-                    value={s.name}
-                    onChange={e => setSymptoms(prev => prev.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-teal-400 focus:ring-2 focus:ring-teal-500/10 outline-none text-sm font-medium text-slate-800"
-                  />
-                  <select
-                    value={s.severity}
-                    onChange={e => setSymptoms(prev => prev.map((x, j) => j === i ? { ...x, severity: e.target.value } : x))}
-                    className="px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-teal-400 outline-none text-xs font-bold text-slate-600 cursor-pointer"
-                  >
-                    <option value="mild">Mild</option>
-                    <option value="moderate">Moderate</option>
-                    <option value="severe">Severe</option>
-                  </select>
-                  {symptoms.length > 1 && (
-                    <button onClick={() => setSymptoms(prev => prev.filter((_, j) => j !== i))} className="p-2 text-slate-400 hover:text-rose-500 transition-colors">
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button onClick={() => setSymptoms(prev => [...prev, { name: '', severity: 'moderate' }])}
-                className="text-teal-600 text-sm font-bold hover:text-teal-700 flex items-center gap-1 mt-1">
-                <PlusCircle className="w-4 h-4" /> Add another symptom
-              </button>
+            <div className="p-4 flex flex-col gap-4 bg-gray-100">
+              <div className="bg-white border border-gray-400 p-3 shadow-sm flex flex-col gap-3">
+                {symptoms.map((s, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <input
+                      placeholder={`Symptom ${i + 1}`}
+                      value={s.name}
+                      onChange={e => setSymptoms(prev => prev.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}
+                      className="flex-1 px-2 py-1 bg-white border border-gray-400 outline-none text-sm font-bold text-gray-800"
+                    />
+                    <select
+                      value={s.severity}
+                      onChange={e => setSymptoms(prev => prev.map((x, j) => j === i ? { ...x, severity: e.target.value } : x))}
+                      className="px-2 py-1 bg-white border border-gray-400 outline-none text-sm font-bold text-gray-800"
+                    >
+                      <option value="mild">Mild</option>
+                      <option value="moderate">Moderate</option>
+                      <option value="severe">Severe</option>
+                    </select>
+                    {symptoms.length > 1 && (
+                      <button onClick={() => setSymptoms(prev => prev.filter((_, j) => j !== i))} className="px-2 py-1 bg-gray-200 border border-gray-400 font-bold text-red-700 hover:bg-gray-300">
+                        X
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button onClick={() => setSymptoms(prev => [...prev, { name: '', severity: 'moderate' }])}
+                  className="bg-gray-200 border border-gray-400 font-bold text-gray-800 text-xs py-1 px-3 w-fit shadow-sm hover:bg-gray-300">
+                  + Add Line
+                </button>
+              </div>
+
               {symptomsSuccess && (
-                <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-medium p-3 rounded-xl flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4" /> Symptoms saved successfully!
+                <div className="bg-green-100 border border-green-700 text-green-900 text-sm font-bold p-2 text-center shadow-sm">
+                  SYMPTOMS SAVED IN DATABASE
                 </div>
               )}
             </div>
-            <div className="p-6 pt-0 flex gap-3">
+            <div className="p-4 bg-gray-200 border-t border-gray-400 flex gap-4">
               <button onClick={() => setShowSymptomsModal(false)}
-                className="flex-1 py-3 rounded-2xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all">
-                Cancel
+                className="flex-1 py-2 bg-gray-100 border border-gray-400 font-bold text-gray-800 shadow-sm hover:bg-gray-300">
+                CANCEL
               </button>
               <button onClick={handleSaveSymptoms} disabled={isSavingSymptoms || !symptoms.some(s => s.name.trim())}
-                className="flex-1 py-3 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold shadow-lg shadow-teal-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                {isSavingSymptoms ? <Loader2 className="w-4 h-4 animate-spin" /> : <Tag className="w-4 h-4" />}
-                {isSavingSymptoms ? 'Saving...' : 'Save Symptoms'}
+                className="flex-[2] py-2 bg-teal-800 border border-teal-900 text-white font-bold shadow-sm hover:bg-teal-900 disabled:opacity-50">
+                {isSavingSymptoms ? 'SAVING...' : 'COMMIT SYMPTOMS'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Discharge Confirm Modal ──────────────────────────────────────── */}
+      {/* Discharge Confirm Modal */}
       {showDischargeConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl border border-rose-200 animate-in zoom-in-95 duration-200 p-8">
-            <div className="w-16 h-16 bg-rose-100 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-rose-200">
-              <LogOut className="w-8 h-8 text-rose-600" />
-            </div>
-            <h3 className="text-xl font-extrabold text-slate-900 text-center mb-2">Discharge Patient?</h3>
-            <p className="text-slate-500 text-sm text-center mb-6">
-              This will discharge <strong>{patient.name}</strong> from <strong>{patient.ward} / {patient.bed}</strong>. Bed will be freed and admission closed.
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-none">
+          <div className="bg-white w-full max-w-sm border-2 border-red-900 shadow-lg p-6 text-center shadow-xl">
+            <h3 className="text-xl font-bold text-red-900 mb-2 uppercase">Discharge Authorization</h3>
+            <p className="text-gray-700 text-sm mb-6 font-bold">
+              Release patient <strong>{patient.name}</strong> from <strong>{patient.ward}</strong>?<br/>This action finalizes the current admission record.
             </p>
             {dischargeReady === false && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-xs text-amber-700 font-medium flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0" /> Clinical system indicates patient may not be ready for discharge yet.
+              <div className="bg-yellow-50 border border-yellow-400 p-2 mb-4 text-xs text-yellow-800 font-bold">
+                WARNING: EWS SCORES INDICATE UNSTABLE VITALS.
               </div>
             )}
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <button onClick={() => setShowDischargeConfirm(false)}
-                className="flex-1 py-3 rounded-2xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all">Cancel</button>
+                className="flex-1 py-2 bg-gray-200 border border-gray-400 font-bold text-gray-800 shadow-sm hover:bg-gray-300">
+                ABORT
+              </button>
               <button onClick={handleDischarge} disabled={isDischarging}
-                className="flex-1 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-lg shadow-rose-200 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
-                {isDischarging ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
-                {isDischarging ? 'Discharging...' : 'Confirm Discharge'}
+                className="flex-1 py-2 bg-red-800 border border-red-900 text-white font-bold shadow-sm hover:bg-red-900 disabled:opacity-50">
+                {isDischarging ? 'PROCESSING...' : 'CONFIRM RELEASE'}
               </button>
             </div>
           </div>
@@ -702,13 +679,12 @@ function TrendChip({ label, value }: { label: string; value?: any }) {
   const isDown = dir === 'down' || dir === 'decreasing';
   return (
     <span className={cn(
-      'inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold border',
-      isUp ? 'bg-rose-50 text-rose-700 border-rose-200' :
-        isDown ? 'bg-blue-50 text-blue-700 border-blue-200' :
-          'bg-slate-50 text-slate-600 border-slate-200'
+      'px-1.5 py-0.5 border text-[10px] font-bold uppercase shadow-sm',
+      isUp ? 'bg-red-50 text-red-800 border-red-400' :
+        isDown ? 'bg-blue-50 text-blue-800 border-blue-400' :
+          'bg-gray-100 text-gray-800 border-gray-400'
     )}>
-      {isUp ? <TrendingUp className="w-3 h-3" /> : isDown ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
-      {label}
+      {label} {isUp ? '▲' : isDown ? '▼' : '▬'}
     </span>
   );
 }
@@ -716,10 +692,10 @@ function TrendChip({ label, value }: { label: string; value?: any }) {
 // ── Prescription input helper ────────────────────────────────────────────────
 function RxInput({ label, value, onChange, type = 'text', placeholder }: { label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string }) {
   return (
-    <div>
-      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1 border-l-2 border-indigo-400">{label}</label>
+    <div className="flex flex-col gap-1">
+      <label className="text-[10px] font-bold text-gray-700 uppercase bg-gray-200 border border-gray-400 px-2 py-0.5 w-fit">{label}</label>
       <input type={type} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)}
-        className="w-full mt-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10 outline-none text-sm font-medium text-slate-800" />
+        className="w-full px-2 py-1 bg-white border border-gray-400 outline-none text-sm font-bold text-gray-800" />
     </div>
   );
 }

@@ -5,8 +5,7 @@ const db = require('../config/db');
 
 const router = Router();
 
-// ── GET /api/notifications ─────────────────────────────────────────────────
-// Accepts ?doctor_id=N and optional ?unread_only=true
+
 router.get('/', async (req, res, next) => {
     try {
         const { doctor_id, unread_only, page = 1, limit = 30 } = req.query;
@@ -29,7 +28,7 @@ router.get('/', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-// ── PUT /api/notifications/:id/read ───────────────────────────────────────
+
 router.put('/:id/read', async (req, res, next) => {
     try {
         await db.query('UPDATE notifications SET is_read=TRUE WHERE id=$1', [req.params.id]);

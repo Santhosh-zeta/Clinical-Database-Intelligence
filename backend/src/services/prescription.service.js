@@ -6,7 +6,7 @@ const { createError } = require('../middleware/errorHandler');
 /** Get prescription suggestions based on a diagnosis keyword */
 async function getSuggestions(diagnosisText) {
     const keyword = diagnosisText.toLowerCase().trim();
-    // Fuzzy match against disease_medication_map keywords
+
     const result = await db.query(
         `SELECT dmm.diagnosis_keyword, dmm.recommended_dose, dmm.recommended_frequency,
                 dmm.recommended_route, dmm.priority,
@@ -41,7 +41,7 @@ async function checkInteractions(medicationIds) {
 async function create(body, orgId, prescribedBy) {
     const { admission_id, medication_id, dose, frequency, route, start_date, end_date, notes } = body;
 
-    // Verify admission is in this org
+
     const check = await db.query(
         `SELECT a.id, a.patient_id FROM admissions a
          WHERE a.id = $1 AND a.organization_id = $2 AND a.status = 'active'`,
@@ -49,7 +49,7 @@ async function create(body, orgId, prescribedBy) {
     );
     if (!check.rowCount) throw createError('Active admission not found in this organization', 404);
 
-    // Check for interactions with currently active prescriptions
+
     const activeMeds = await db.query(
         `SELECT medication_id FROM prescriptions
          WHERE admission_id = $1 AND status = 'active'`,
@@ -67,7 +67,7 @@ async function create(body, orgId, prescribedBy) {
          start_date || new Date().toISOString().split('T')[0], end_date, notes]
     );
 
-    // Log to patient timeline
+
     const { patient_id } = check.rows[0];
     await db.query(
         `INSERT INTO patient_events (patient_id, organization_id, event_type, reference_id, reference_table, description, created_by)

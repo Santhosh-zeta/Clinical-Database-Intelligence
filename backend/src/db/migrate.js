@@ -50,10 +50,39 @@ async function run() {
             }
 
             const filePath = path.join(dir, file);
-            const sql = readFileSync(filePath, 'utf8');
+            const sqlContent = readFileSync(filePath, 'utf8');
             console.log(`  ▶  Applying: ${path.relative(process.cwd(), filePath)}`);
+            
             try {
-                await pool.query(sql);
+                // Determine if we should split by semicolon.
+                // Naive split breaks PL/pgSQL functions (which have ; inside $$ blocks)
+                // If it's a function or trigger file, run it as a single block.
+                const shouldSplit = !isFunction && 
+                                   !sqlContent.includes('CREATE OR REPLACE FUNCTION') &&
+                                   !sqlContent.includes('CREATE TRIGGER');
+
+                if (shouldSplit) {
+                    const statements = sqlContent
+                        .split(';')
+                        .map(s => s.trim())
+                        .filter(s => s.length > 0);
+
+                    for (const sql of statements) {
+                        try {
+                            await pool.query(sql);
+                        } catch (err) {
+                            if (err.code === '42P07' || err.code === '42710') {
+                                console.log(`     (Skipped existing relation: ${err.message.split('"')[1] || 'unknown'})`);
+                                continue;
+                            }
+                            throw err;
+                        }
+                    }
+                } else {
+                    // Execute entire file as one statement
+                    await pool.query(sqlContent);
+                }
+
                 // Record migration as applied
                 await pool.query(
                     'INSERT INTO schema_migrations (filename) VALUES ($1) ON CONFLICT DO NOTHING',

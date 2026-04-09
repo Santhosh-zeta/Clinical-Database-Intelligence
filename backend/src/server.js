@@ -28,8 +28,14 @@ const doctorsRoutes = require('./routes/doctors');
 const settingsRoutes = require('./routes/settings');
 const bedsRoutes = require('./routes/beds');
 
+const http = require('http');
+const realtime = require('./services/realtime.service');
+
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
+
+// ... (middleware and routes remain unchanged)
 
 // ── Security & Parsing ────────────────────────────────────────────────────────
 app.use(helmet());
@@ -88,9 +94,11 @@ app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));
 app.use(errorHandler);
 
 // ── Start Server ──────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
+realtime.init(server);
+
+server.listen(PORT, () => {
     console.log(`\n[Server] Clinical Intelligence API running on port ${PORT}`);
-    console.log(`[Server] Architecture: routes → controllers → services → functions → DB`);
+    console.log(`[Server] Architecture: Express + Socket.io + PG Listeners`);
     console.log(`[Server] Multi-tenancy: org_id from JWT → req.orgId → all queries\n`);
 });
 

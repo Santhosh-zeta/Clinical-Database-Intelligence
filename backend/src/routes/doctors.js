@@ -13,7 +13,7 @@ const validate = (req, res, next) => {
     next();
 };
 
-// ── POST /api/doctors ──────────────────────────────────────────────────────
+
 router.post(
     '/',
     [
@@ -41,7 +41,7 @@ router.post(
     }
 );
 
-// ── GET /api/doctors ───────────────────────────────────────────────────────
+
 router.get('/', async (req, res, next) => {
     try {
         const result = await db.query(
@@ -55,7 +55,7 @@ router.get('/', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-// ── GET /api/doctors/:id ───────────────────────────────────────────────────
+
 router.get('/:id', param('id').isInt(), validate, async (req, res, next) => {
     try {
         const result = await db.query(

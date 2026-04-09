@@ -1,104 +1,129 @@
-# Clinical Decision Support & Hospital Intelligence System
+# 🏥 Clinical Database Intelligence Platform
 
-A full-stack, real-time hospital management and clinical intelligence dashboard. 
-This system integrates a traditional relational database with a time-series database to track patient records, monitor vitals continuously, dynamically generate risk scores, and automate ICU escalation and alerts using PostgreSQL database triggers natively.
+<div align="center">
+  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-18+-green.svg?style=for-the-badge&logo=nodedotjs" />
+  <img alt="Express.js" src="https://img.shields.io/badge/Express-Fast-black?style=for-the-badge&logo=express" />
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-14-black.svg?style=for-the-badge&logo=nextdotjs" />
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-16-blue?style=for-the-badge&logo=postgresql" />
+  <img alt="TimescaleDB" src="https://img.shields.io/badge/TimescaleDB-Time%20Series-FDB515?style=for-the-badge&logo=timescale" />
+  <img alt="Socket.io" src="https://img.shields.io/badge/Socket.io-Realtime-white.svg?style=for-the-badge&logo=socketdotio" />
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-Ready-2496ED.svg?style=for-the-badge&logo=docker" />
+</div>
+<br/>
 
-## Architecture
-
-* **Database (`timescale/timescaledb:latest-pg16`)**: Runs in Docker. Stores relational hospital data and high-frequency time-series patient vitals. Implements native DB triggers for alert generation.
-* **Backend (`backend/`)**: Node.js & Express REST API handling CRUD operations, exposing active patients, vitals, and generated alerts.
-* **Frontend (`frontend/`)**: Next.js & React Dashboard displaying real-time interactive charts (Recharts), unacknowledged alerts, and active hospital metrics.
-* **Simulator (`simulator/`)**: A continuous data generator that seeds the database and acts as medical hardware, posting live patient vitals every 5 seconds to test the intelligence engine.
-
----
-
-## Prerequisites
-* **Docker** & **Docker Compose**
-* **Node.js** (v18+)
+A full-stack, real-time hospital management and clinical intelligence command center. This system seamlessly integrates a robust **relational database** with a high-frequency **time-series database**, enabling continuous patient vitals tracking, dynamic risk scoring, ICU escalation automation, and real-time medical alerting driven by native PostgreSQL database algorithms.
 
 ---
 
-## How to Run the Complete Website
+## ✨ Key Features
 
-### 1. Start the Database (Docker)
-Open a terminal in the root directory and start the TimescaleDB container:
+* **Multi-Tenant Clinical Command Center**: A modernized Next.js web application utilizing RBAC (Role-Based Access Control) to securely view real-time patient analytics.
+* **Native Database Triggers**: Automated event streaming processing Early Warning Scores (EWS) immediately at the database level when new telemetry hits TimescaleDB.
+* **Real-Time Data Streaming**: Socket.io pipelines binding database row triggers to dashboard graphs bridging hardware monitors directly to clinician screens.
+* **Complex Telemetry Simulation**: Built-in simulator acting as ICU medical hardware, testing system tolerance under continuous time-series loads.
+* **Automated Admission & Ward Logic**: Seamless bed assignments, multi-department analytics, and clinical handovers logic.
+
+---
+
+## 🏗️ System Architecture
+
+1. **Database** (`Docker: timescale/timescaledb:latest-pg16`): The central single-source-of-truth. Marries patient records (RDBMS) with TimescaleDB continuous aggregates (high-frequency vitals vectors).
+2. **Backend API** (`backend/`): Node.js/Express service responsible for authentication, business logic, prescription constraint validation, and API routing.
+3. **Frontend Application** (`frontend/`): React (Next.js App Router) utilizing Tailwind CSS. Automatically syncs via Websockets to present beautiful analytical dashboards with Recharts.
+4. **Clinical Simulator** (`simulator/`): A headless continuous data generator pushing stochastic biometric variables directly mimicking real-world bed hardware.
+
+---
+
+## 🛠️ Prerequisites
+
+Ensure your system has the following dependencies installed before initializing the project:
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Compose
+* [Node.js](https://nodejs.org/) (Version 18 or higher)
+* [Git](https://git-scm.com/)
+
+---
+
+## 🚀 Quickstart Installation Guide
+
+Follow these sequential steps carefully to bootstrap the entire development environment securely.
+
+### 1. Boot up the Database (Docker)
+Ensure Docker is running locally. The database sits on `localhost:5433`.
 ```bash
-# This will pull the timescale image and start the DB on localhost:5433
+# In the root project directory:
 docker compose up -d
 ```
-*(Note: If the `api` build hangs in docker compose, you can safely cancel and run the backend natively as the `.env` is configured for it).*
+> *Wait sequence: Give the database 15-20 seconds to fully initialize its internal extensions.*
 
-### 2. Setup & Run the Backend API
-Open a new terminal and navigate to the `backend/` directory:
+### 2. Initialize the Backend Service
+Setup your backend dependencies, run complex relational migrations, and start the local Node server.
 ```bash
 cd backend
 
-# Install dependencies
+# Install all API dependencies
 npm install
 
-# Run database migrations (creates all schemas, hypertables, and triggers)
-# Make sure your Timescale container is fully running before executing this!
+# Run database migrations (Generates RBAC, Tenancy, Triggers, & Roles)
 npm run migrate
 
-# Start the Express server on http://localhost:3001
-npm start
-```
-
-### 3. Start the Frontend Dashboard
-Open another terminal and navigate to the `frontend/` directory:
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start the Next.js development server on http://localhost:3000
+# Keep this terminal open: Starts API on http://localhost:3001
 npm run dev
 ```
 
-### 4. Seed Data & Run the Simulator
-To see the system actually "thinking", we need to generate live data. Open a final terminal in the `simulator/` directory:
+### 3. Initialize the Frontend Application
+In a **new terminal tab**, spin up the Next.js development server.
+```bash
+cd frontend
 
+# Install all UI dependencies
+npm install
+
+# Keep this terminal open: Starts UI on http://localhost:3000
+npm run dev
+```
+
+### 4. Setup Default Staff & Data Simulation
+To see the system "thinking" and displaying active patient profiles, we must seed the tables and start the live simulator. Open a **third terminal**:
 ```bash
 cd simulator
 
-# Install dependencies
+# Install simulator dependencies
 npm install
 
-# 1. Seed initial Doctors and Patients via the API
+# 1. Establish basic structural hierarchy (Wards, Beds, Test Staff)
+node setup_db.js
+
+# 2. Register dummy patients into the system
 node seed.js
-```
 
-**Note on Wards & Admissions:**
-You must initialize Wards and Beds directly into the database, and admit the seeded patients to trigger the vitals monitor.
-Run the following SQL against your Database (`postgresql://postgres:postgres@localhost:5433/clinical_db`):
-```sql
-INSERT INTO wards (name, ward_type, total_beds) VALUES
-  ('General Ward A','general',10), ('ICU','icu',5), ('Emergency','emergency',8);
+# 3. Formally admit patients into available ICU/General beds
+node admit_patients.js
 
-INSERT INTO beds (bed_number, ward_id, is_icu) VALUES
-  ('GEN-01',1,false),('GEN-02',1,false),('GEN-03',1,false),('GEN-04',1,false),('GEN-05',1,false),
-  ('ICU-01',2,true),('ICU-02',2,true),('ICU-03',2,true),('ICU-04',2,true),('ICU-05',2,true);
-```
-
-**Admit a Patient (Example Request):**
-```bash
-curl -X POST http://localhost:3001/api/admissions \
-  -H "Content-Type: application/json" \
-  -d '{"patient_id": 1, "doctor_id": 1, "ward_id": 1, "bed_id": 1, "diagnosis": "Fever Observation"}'
-```
-
-**Start the Live Vitals Feed:**
-Once admissions exist, start the continuous simulator:
-```bash
+# 4. Initiate continuous medical hardware telemetry
 node simulate.js
 ```
-This script acts as the hospital hardware monitors. It will fetch all active patient admissions and begin POSTing random, fluctuating Heart Rate, SpO2, and BP vitals to the API every 3-5 seconds.
+> *The `simulate.js` process will remain running endlessly, POSTing stochastic heart rates and vital signs every few seconds over the REST APIs to mimic living patients.*
 
-### 5. View the Dashboard
-Navigate to [http://localhost:3000](http://localhost:3000) in your browser. 
-You will see:
-* The live **Patients Directory** with interactive spark-line charts pulling native TimescaleDB aggregated vitals from the backend.
-* **Critical Alerts** dynamically flooding in real-time if the simulator triggers a "Critical Risk" patient profile (e.g., SpO2 drops below 90%). 
+---
 
-The UI actively polls the backend and rerenders automatically!
+## 💻 Working on the Project 
+
+### Log In to the Dashboard
+Navigate to [**http://localhost:3000**](http://localhost:3000)
+
+Your root administrative clinical login operates on global defaults matching the simulator context:
+* **Email:** `a1@intellicare.demo`
+* **Password:** `password123`
+
+### Development Workflow
+* **Frontend Hot-Reloading:** The Next.js platform will natively update styling and logic the moment you save a file in `frontend/src/*`.
+* **Backend Nodemon:** The backend utilizes `node --watch` (or Nodemon) where modifying `backend/src/*` will automatically restart the Express API routes.
+* **Monitoring Telemetry:** If you wish to halt live graphs temporarily or test zero-load behavior, manually kill the process running `node simulate.js`. The dashboard will immediately reflect the paused hardware state gracefully.
+
+## 📝 Documentations
+For deep-dive technical explorations referencing exact source patterns, please refer explicitly to:
+* [Backend Architecture & Docs](./backend/README.md)
+* [Frontend Architecture & Docs](./frontend/README.md)
+
+---
+*Built tightly integrating Medical IoT scaling constraints and enterprise Multi-Tenancy capabilities natively.*

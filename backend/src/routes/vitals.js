@@ -12,8 +12,7 @@ const validate = (req, res, next) => {
     next();
 };
 
-// ── POST /api/vitals ───────────────────────────────────────────────────────
-// Inserting a vitals row fires trg_after_vitals_insert automatically.
+
 router.post(
     '/',
     [
@@ -53,8 +52,7 @@ router.post(
     }
 );
 
-// ── GET /api/vitals/:patient_id ────────────────────────────────────────────
-// Time-series query: returns vitals for all active admissions of this patient
+
 router.get(
     '/:patient_id',
     [
@@ -87,7 +85,7 @@ router.get(
     }
 );
 
-// ── GET /api/vitals/:patient_id/latest ────────────────────────────────────
+
 router.get('/:patient_id/latest', param('patient_id').isInt(), validate, async (req, res, next) => {
     try {
         const result = await db.query(

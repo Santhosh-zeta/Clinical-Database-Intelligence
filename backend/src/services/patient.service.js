@@ -48,7 +48,6 @@ async function update(id, body, orgId) {
 async function getTimeline(patientId, orgId, { page = 1, limit = 100 } = {}) {
     const offset = (page - 1) * limit;
 
-    // Unified timeline from patient_events (populated by DB triggers + services)
     const eventsResult = await db.query(
         `SELECT pe.id, pe.event_type, pe.description, pe.metadata,
                 pe.reference_id, pe.reference_table, pe.created_at,
@@ -61,7 +60,6 @@ async function getTimeline(patientId, orgId, { page = 1, limit = 100 } = {}) {
         [patientId, orgId, limit, offset]
     );
 
-    // Enrich events with live data from their source tables
     const events = await Promise.all(eventsResult.rows.map(async (ev) => {
         let detail = null;
         try {
@@ -95,7 +93,6 @@ async function getTimeline(patientId, orgId, { page = 1, limit = 100 } = {}) {
                 );
                 detail = r.rows[0] || null;
             } else if (ev.event_type === 'ews_score') {
-                // metadata already has ews + category from trigger
                 detail = ev.metadata;
             } else if (ev.event_type === 'diagnosis' && ev.reference_id) {
                 const r = await db.query(
@@ -109,7 +106,6 @@ async function getTimeline(patientId, orgId, { page = 1, limit = 100 } = {}) {
         return { ...ev, detail };
     }));
 
-    // Parallel: get summary counts for the patient
     const [admCount, alertCount, presCount, ewsLatest] = await Promise.all([
         db.query(`SELECT COUNT(*) FROM admissions WHERE patient_id=$1`, [patientId]),
         db.query(`SELECT COUNT(*) FROM alerts al JOIN admissions a ON a.id=al.admission_id WHERE a.patient_id=$1`, [patientId]),
@@ -171,7 +167,6 @@ async function getPatientSummary(patientId, orgId) {
         db.query('SELECT COUNT(*) FROM billing_invoices bi JOIN admissions a ON a.id = bi.admission_id WHERE a.patient_id = $1 AND bi.status != \'paid\'', [patientId])
     ]);
 
-    // 5. Recent Activity Preview
     const activity = await db.query(
         `(SELECT 'lab' as type, test_name as name, result_value as value, recorded_at as date 
           FROM lab_results WHERE patient_id = $1 
@@ -182,7 +177,6 @@ async function getPatientSummary(patientId, orgId) {
         [patientId]
     );
 
-    // 6. Active Prescriptions Preview
     const meds = await db.query(
         `SELECT medication_name, dose, frequency FROM prescriptions 
          WHERE patient_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 3`,

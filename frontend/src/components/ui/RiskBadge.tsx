@@ -5,7 +5,7 @@ import { RiskLevel } from '../../lib/types';
 export function RiskBadge({ score }: { score: string }) {
   const isCritical = score === 'Critical';
   const styles: Record<string, string> = {
-    Critical: 'bg-rose-50 text-rose-600 border-rose-200 shadow-[0_2px_10px_rgba(244,63,94,0.1)]',
+    Critical: 'bg-rose-50 text-rose-600 border-rose-200 shadow-sm',
     High: 'bg-orange-50 text-orange-600 border-orange-200',
     Medium: 'bg-amber-50 text-amber-700 border-amber-200',
     Low: 'bg-slate-50 text-slate-600 border-slate-200 font-semibold',

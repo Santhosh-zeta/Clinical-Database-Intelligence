@@ -4,8 +4,7 @@ const db = require('../config/db');
 const { createError } = require('../middleware/errorHandler');
 
 async function listPending(orgId) {
-    // Current shift (last 4 hours) medications that haven't been administered
-    // In a real system, frequency logic would be more complex
+
     const result = await db.query(
         `SELECT * FROM v_pending_medications 
          WHERE organization_id = $1 
@@ -17,7 +16,7 @@ async function listPending(orgId) {
 }
 
 async function administer(orgId, userId, { prescription_id, dose_given, notes, status = 'given' }) {
-    // Verify prescription exists
+
     const check = await db.query(
         'SELECT id, dose FROM prescriptions WHERE id = $1 AND organization_id = $2',
         [prescription_id, orgId]

@@ -42,7 +42,7 @@ async function create(body, orgId) {
              RETURNING id, name, email, role, specialization, department_id, phone, created_at`,
             [name, email, password_hash, role, specialization, department_id, phone, orgId]
         );
-        // Assign role in user_roles table
+
         await db.query(
             `INSERT INTO user_roles (doctor_id, role_id, org_id)
              SELECT $1, r.id, $2 FROM roles r WHERE r.name = $3 ON CONFLICT DO NOTHING`,

@@ -5,7 +5,7 @@ const db = require('../config/db');
 
 const router = Router();
 
-// ── GET /api/audit-logs ────────────────────────────────────────────────────
+
 router.get('/', async (req, res, next) => {
     try {
         const { table_name, action, page = 1, limit = 50 } = req.query;

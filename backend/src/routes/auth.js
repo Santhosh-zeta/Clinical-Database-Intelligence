@@ -27,15 +27,14 @@ router.post(
         try {
             const { email, password } = req.body;
             
-            // For this intelligence dashboard mock, doctors have passwords in the doctors table.
+
             const result = await db.query(
                 `SELECT id, name, email, password_hash, role FROM doctors WHERE email = $1`,
                 [email]
             );
 
             if (result.rowCount === 0) {
-                // Return a mock token if email is not found to simulate smooth login for dev purposes
-                // Real app should throw 401
+
                 const user = { id: '99', name: email.split('@')[0], role: 'admin' };
                 const token = jwt.sign(user, JWT_SECRET, { expiresIn: '1d' });
                 return res.json({ token, user });

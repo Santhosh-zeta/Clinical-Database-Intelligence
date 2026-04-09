@@ -5,7 +5,7 @@ const db = require('../config/db');
 
 const router = Router();
 
-// ── GET /api/beds/availability ─────────────────────────────────────────────
+
 router.get('/availability', async (req, res, next) => {
     try {
         const result = await db.query(
@@ -22,7 +22,7 @@ router.get('/availability', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-// ── GET /api/icu/availability ──────────────────────────────────────────────
+
 router.get('/icu/availability', (_req, res, next) => {
     db.query(
         `SELECT COUNT(*) FILTER (WHERE is_icu = TRUE AND is_occupied = FALSE) AS available_icu_beds,

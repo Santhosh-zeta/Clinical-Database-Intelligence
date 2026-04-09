@@ -12,8 +12,7 @@ const validate = (req, res, next) => {
     next();
 };
 
-// ── GET /api/alerts ────────────────────────────────────────────────────────
-// All unacknowledged alerts, newest first
+
 router.get('/', async (req, res, next) => {
     try {
         const { severity, page = 1, limit = 50 } = req.query;
@@ -35,7 +34,7 @@ router.get('/', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-// ── GET /api/alerts/:patient_id ────────────────────────────────────────────
+
 router.get('/:patient_id', param('patient_id').isInt(), validate, async (req, res, next) => {
     try {
         const result = await db.query(
@@ -50,7 +49,7 @@ router.get('/:patient_id', param('patient_id').isInt(), validate, async (req, re
     } catch (err) { next(err); }
 });
 
-// ── PUT /api/alerts/:id/acknowledge ───────────────────────────────────────
+
 router.put('/:id/acknowledge', param('id').isInt(), validate, async (req, res, next) => {
     try {
         const acknowledged_by = req.body.doctor_id || null;

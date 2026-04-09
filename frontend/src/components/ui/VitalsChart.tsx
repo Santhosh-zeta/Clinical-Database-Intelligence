@@ -18,7 +18,7 @@ export function VitalsChart({ vitals }: VitalsChartProps) {
     );
   }
 
-  // Format timestamp for display
+
   const data = vitals.map(v => ({
     time: new Date(v.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     HR: v.heartRate,

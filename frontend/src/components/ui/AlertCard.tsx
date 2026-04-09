@@ -14,7 +14,7 @@ export function AlertCard({ alert, onAcknowledge }: AlertCardProps) {
   const isCritical = alert.type === 'Critical';
   const isWarning = alert.type === 'Warning';
   
-  // Style mapping
+
   const styles = alert.resolved 
     ? {
         bg: 'bg-gray-50',
