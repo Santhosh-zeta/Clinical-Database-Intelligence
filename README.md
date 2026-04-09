@@ -1,21 +1,11 @@
-# 🏥 Clinical Database Intelligence Platform
+# Clinical Database Intelligence Platform
 
-<div align="center">
-  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-18+-green.svg?style=for-the-badge&logo=nodedotjs" />
-  <img alt="Express.js" src="https://img.shields.io/badge/Express-Fast-black?style=for-the-badge&logo=express" />
-  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-14-black.svg?style=for-the-badge&logo=nextdotjs" />
-  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-16-blue?style=for-the-badge&logo=postgresql" />
-  <img alt="TimescaleDB" src="https://img.shields.io/badge/TimescaleDB-Time%20Series-FDB515?style=for-the-badge&logo=timescale" />
-  <img alt="Socket.io" src="https://img.shields.io/badge/Socket.io-Realtime-white.svg?style=for-the-badge&logo=socketdotio" />
-  <img alt="Docker" src="https://img.shields.io/badge/Docker-Ready-2496ED.svg?style=for-the-badge&logo=docker" />
-</div>
-<br/>
 
 A full-stack, real-time hospital management and clinical intelligence command center. This system seamlessly integrates a robust **relational database** with a high-frequency **time-series database**, enabling continuous patient vitals tracking, dynamic risk scoring, ICU escalation automation, and real-time medical alerting driven by native PostgreSQL database algorithms.
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
 * **Multi-Tenant Clinical Command Center**: A modernized Next.js web application utilizing RBAC (Role-Based Access Control) to securely view real-time patient analytics.
 * **Native Database Triggers**: Automated event streaming processing Early Warning Scores (EWS) immediately at the database level when new telemetry hits TimescaleDB.
@@ -25,7 +15,7 @@ A full-stack, real-time hospital management and clinical intelligence command ce
 
 ---
 
-## 🏗️ System Architecture
+##  System Architecture
 
 1. **Database** (`Docker: timescale/timescaledb:latest-pg16`): The central single-source-of-truth. Marries patient records (RDBMS) with TimescaleDB continuous aggregates (high-frequency vitals vectors).
 2. **Backend API** (`backend/`): Node.js/Express service responsible for authentication, business logic, prescription constraint validation, and API routing.
@@ -34,7 +24,7 @@ A full-stack, real-time hospital management and clinical intelligence command ce
 
 ---
 
-## 🛠️ Prerequisites
+##  Prerequisites
 
 Ensure your system has the following dependencies installed before initializing the project:
 * [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Compose
@@ -43,7 +33,7 @@ Ensure your system has the following dependencies installed before initializing 
 
 ---
 
-## 🚀 Quickstart Installation Guide
+##  Quickstart Installation Guide
 
 Follow these sequential steps carefully to bootstrap the entire development environment securely.
 
@@ -120,7 +110,7 @@ Your root administrative clinical login operates on global defaults matching the
 * **Backend Nodemon:** The backend utilizes `node --watch` (or Nodemon) where modifying `backend/src/*` will automatically restart the Express API routes.
 * **Monitoring Telemetry:** If you wish to halt live graphs temporarily or test zero-load behavior, manually kill the process running `node simulate.js`. The dashboard will immediately reflect the paused hardware state gracefully.
 
-## 📝 Documentations
+##  Documentations
 For deep-dive technical explorations referencing exact source patterns, please refer explicitly to:
 * [Backend Architecture & Docs](./backend/README.md)
 * [Frontend Architecture & Docs](./frontend/README.md)
