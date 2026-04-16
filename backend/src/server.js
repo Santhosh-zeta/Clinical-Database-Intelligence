@@ -11,7 +11,6 @@ const { authenticate } = require('./middleware/auth');
 const { tenancy } = require('./middleware/tenancy');
 const { errorHandler } = require('./middleware/errorHandler');
 
-// ── Routes ────────────────────────────────────────────────────────────────────
 const authRoutes = require('./routes/auth.routes');
 const patientRoutes = require('./routes/patient.routes');
 const vitalsRoutes = require('./routes/vitals.routes');
@@ -19,12 +18,12 @@ const alertsRoutes = require('./routes/alerts.routes');
 const admissionsRoutes = require('./routes/admissions.routes');
 const prescriptionRoutes = require('./routes/prescription.routes');
 const adminRoutes = require('./routes/admin.routes');
-const dashboardRoutes = require('./routes/dashboard'); // Added
+const dashboardRoutes = require('./routes/dashboard');
 const notifRoutes = require('./routes/notifications.routes');
 const consultRoutes = require('./routes/consult.routes');
 const doctorsRoutes = require('./routes/doctors');
+const ambulanceRoutes = require('./routes/ambulance.routes');
 
-// Legacy routes (still serviced for frontend backward compat)
 const settingsRoutes = require('./routes/settings');
 const bedsRoutes = require('./routes/beds');
 
@@ -35,9 +34,6 @@ const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
 
-// ... (middleware and routes remain unchanged)
-
-// ── Security & Parsing ────────────────────────────────────────────────────────
 app.use(helmet());
 app.use(cors({
     origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
@@ -48,7 +44,6 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
 
-// ── Health Check ──────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({
     status: 'ok',
     service: 'Clinical Intelligence API',
@@ -56,10 +51,8 @@ app.get('/health', (_req, res) => res.json({
     timestamp: new Date().toISOString(),
 }));
 
-// ── Public Routes ─────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 
-// ── Protected Routes (JWT + tenancy on all) ───────────────────────────────────
 const guard = [authenticate, tenancy];
 
 app.use('/api/patients', ...guard, patientRoutes);
@@ -77,23 +70,18 @@ app.use('/api/appointments', ...guard, require('./routes/appointment.routes'));
 app.use('/api/consults', ...guard, require('./routes/consult.routes'));
 app.use('/api/symptoms', ...guard, require('./routes/symptoms.routes'));
 app.use('/api/doctors', ...guard, doctorsRoutes);
-
-
+app.use('/api/ambulances', ...guard, ambulanceRoutes);
 
 app.get('/api/dashboard/stats', (req, res) => res.json({ message: 'direct hit' }));
 app.use('/api/notifications', ...guard, notifRoutes);
 
-// Legacy routes — kept for frontend backward compat (still JWT-guarded)
 app.use('/api/settings', ...guard, settingsRoutes);
 app.use('/api/beds', ...guard, bedsRoutes);
 
-// ── 404 Catch-all ─────────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));
 
-// ── Global Error Handler ──────────────────────────────────────────────────────
 app.use(errorHandler);
 
-// ── Start Server ──────────────────────────────────────────────────────────────
 realtime.init(server);
 
 server.listen(PORT, () => {

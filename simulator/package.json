@@ -6,9 +6,12 @@
     "scripts": {
         "start": "node index.js",
         "seed": "node seed.js",
-        "simulate": "node simulate.js"
+        "simulate": "node simulate.js",
+        "fleet": "node ambulance_sim.js"
     },
     "dependencies": {
+        "@googlemaps/google-maps-services-js": "^3.4.2",
+        "@mapbox/polyline": "^1.2.1",
         "axios": "^1.6.0",
         "bcryptjs": "^3.0.3",
         "chalk": "^4.1.2",

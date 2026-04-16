@@ -13,7 +13,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     const handleSimulatedLogin = async (mockUser: any) => {
         setIsLoading(true);
         try {
-            // We pass dummy values to the backend to generate a signed JWT since we are bypassing the UI form
+
             const res = await fetch('http://localhost:3001/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -33,7 +33,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         return (
             <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans text-gray-900">
                 <div className="w-full max-w-lg border border-gray-300 bg-white shadow-sm">
-                    
+
                     <div className="p-8">
                         <div className="text-center mb-8 border-b border-gray-200 pb-6">
                             <h2 className="text-2xl font-bold text-gray-800">Welcome to IntelliCare</h2>
@@ -54,7 +54,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                                 </button>
                             ))}
                         </div>
-                        
+
                         <div className="flex flex-col gap-3 min-h-[200px]">
                             {selectedRole === 'admin' && (
                                 <CleanLoginOption title="System Admin" desc="Manage hospital settings and staff" onClick={() => handleSimulatedLogin({ id: 'a1', name: 'Super Admin', role: 'admin' })} loading={isLoading} />
@@ -75,7 +75,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                                 </>
                             )}
                         </div>
-                        
+
                         <div className="mt-8 pt-4 border-t border-gray-200 text-center text-sm text-gray-500">
                             {isLoading ? "Signing in... Please wait." : "Demo system is active."}
                         </div>
@@ -94,11 +94,11 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
 function CleanLoginOption({ title, desc, onClick, loading }: any) {
     return (
-        <button 
-            onClick={loading ? undefined : onClick} 
+        <button
+            onClick={loading ? undefined : onClick}
             disabled={loading}
             className={cn(
-                "w-full px-5 py-4 border border-gray-300 rounded-lg bg-gray-50 hover:bg-white hover:border-blue-500 hover:shadow-sm transition-all flex items-center text-left", 
+                "w-full px-5 py-4 border border-gray-300 rounded-lg bg-gray-50 hover:bg-white hover:border-blue-500 hover:shadow-sm transition-all flex items-center text-left",
                 loading ? "opacity-50 pointer-events-none" : ""
             )}
         >

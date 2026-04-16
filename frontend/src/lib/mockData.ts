@@ -1,6 +1,5 @@
 import { Patient, Vitals, Alert, RiskLevel } from './types';
 
-// Mock Patients List
 export const mockPatients: Patient[] = [
   {
     id: 'P-001',
@@ -64,12 +63,10 @@ export const mockPatients: Patient[] = [
   },
 ];
 
-// Helper to generate a random number within a range
 const randomInRange = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-// Generate realistic starting vitals based on Patient Risk Level
 export const generateInitialVitals = (patients: Patient[]): Vitals[] => {
   return patients.map((patient) => {
     let hr = 75;
@@ -125,12 +122,11 @@ export const generateHistoricalVitals = (patient: Patient, points = 10): Vitals[
   const history: Vitals[] = [];
   let baseHr = patient.riskScore === 'Critical' ? 120 : patient.riskScore === 'High' ? 105 : 75;
   let baseSpo2 = patient.riskScore === 'Critical' ? 90 : patient.riskScore === 'High' ? 94 : 98;
-  
+
   const now = new Date();
-  
-  // Create points spaced 1 minute apart
+
   for (let i = points; i >= 0; i--) {
-     const time = new Date(now.getTime() - i * 60000); // i minutes ago
+     const time = new Date(now.getTime() - i * 60000);
      history.push({
        patientId: patient.id,
        timestamp: time.toISOString(),
@@ -179,7 +175,7 @@ export const evaluateAlerts = (vitals: Vitals, patient: Patient): Alert | null =
     issue = `Elevated HR: ${vitals.heartRate} bpm.`;
     metric = 'Heart Rate';
   } else {
-      return null; // Normal vitals
+      return null;
   }
 
   return {

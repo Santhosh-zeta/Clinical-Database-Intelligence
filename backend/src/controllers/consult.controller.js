@@ -43,4 +43,22 @@ async function resolve(req, res, next) {
     }
 }
 
-module.exports = { list, create, resolve };
+async function finalize(req, res, next) {
+    try {
+        const { id } = req.params;
+        const { findings, recommendations, symptomIds, prescriptions, labOrders } = req.body;
+        const consult = await service.finalize(req.orgId, req.user.id, id, {
+            findings,
+            recommendations,
+            symptomIds,
+            prescriptions,
+            labOrders
+        });
+        if (!consult) return res.status(404).json({ error: 'Consultation not found' });
+        res.json({ data: consult });
+    } catch (e) {
+        next(e);
+    }
+}
+
+module.exports = { list, create, resolve, finalize };

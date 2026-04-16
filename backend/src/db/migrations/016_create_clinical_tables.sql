@@ -1,9 +1,3 @@
--- ============================================================
--- Migration 016: Clinical Context Tables
--- diagnoses, symptoms, patient_symptoms, patient_events
--- ============================================================
-
--- ── Clinical Diagnoses ───────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS diagnoses (
     id              SERIAL PRIMARY KEY,
     admission_id    INT NOT NULL REFERENCES admissions(id) ON DELETE CASCADE,
@@ -21,14 +15,12 @@ CREATE TABLE IF NOT EXISTS diagnoses (
 CREATE INDEX idx_diagnoses_admission ON diagnoses(admission_id);
 CREATE INDEX idx_diagnoses_keyword ON diagnoses USING GIN (to_tsvector('english', diagnosis_text));
 
--- ── Symptoms Master Catalog ──────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS symptoms (
     id       SERIAL PRIMARY KEY,
     name     VARCHAR(100) NOT NULL UNIQUE,
-    category VARCHAR(50)  -- 'cardiac', 'respiratory', 'neurological', etc.
+    category VARCHAR(50)
 );
 
--- ── Patient-Symptom Mapping ──────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS patient_symptoms (
     id           SERIAL PRIMARY KEY,
     patient_id   INT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
@@ -40,7 +32,6 @@ CREATE TABLE IF NOT EXISTS patient_symptoms (
     UNIQUE (admission_id, symptom_id)
 );
 
--- ── Patient Event Timeline ───────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS patient_events (
     id              BIGSERIAL PRIMARY KEY,
     patient_id      INT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
@@ -63,7 +54,6 @@ CREATE INDEX idx_patient_events_patient ON patient_events(patient_id, created_at
 CREATE INDEX idx_patient_events_org     ON patient_events(organization_id, created_at DESC);
 CREATE INDEX idx_patient_events_type    ON patient_events(event_type, created_at DESC);
 
--- ── Seed Common Symptoms ─────────────────────────────────────────────────────
 INSERT INTO symptoms (name, category) VALUES
     ('Chest Pain',         'cardiac'),
     ('Shortness of Breath','respiratory'),

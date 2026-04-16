@@ -8,7 +8,6 @@ const { detectTrend } = require('../functions/clinical/detectTrend');
 async function record(body, orgId, recordedBy) {
     const { admission_id, heart_rate, systolic_bp, diastolic_bp, spo2, temperature, respiratory_rate, blood_glucose, notes } = body;
 
-
     const check = await db.query(
         `SELECT a.id, a.patient_id, a.doctor_id FROM admissions a
          JOIN patients p ON p.id = a.patient_id
@@ -16,7 +15,6 @@ async function record(body, orgId, recordedBy) {
         [admission_id, orgId]
     );
     if (!check.rowCount) throw createError('Active admission not found for this organization', 404);
-
 
     const result = await db.query(
         `INSERT INTO vitals
@@ -27,9 +25,7 @@ async function record(body, orgId, recordedBy) {
             respiratory_rate, blood_glucose, recordedBy, notes]
     );
 
-
     const ews = calculateEWS({ heart_rate, systolic_bp, spo2, temperature, respiratory_rate });
-
 
     const recentRows = await db.query(
         `SELECT heart_rate, systolic_bp, spo2, temperature, respiratory_rate

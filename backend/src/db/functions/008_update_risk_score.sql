@@ -1,9 +1,3 @@
--- ============================================================
--- Function 008: Updated calculate_risk_score
--- Adds: Respiratory Rate scoring + Blood Glucose scoring
--- Uses CREATE OR REPLACE to safely override Function 001
--- ============================================================
-
 CREATE OR REPLACE FUNCTION calculate_risk_score(p_admission_id INT)
 RETURNS SMALLINT
 LANGUAGE plpgsql
@@ -20,8 +14,8 @@ DECLARE
     v_bp_score      SMALLINT := 0;
     v_spo2_score    SMALLINT := 0;
     v_temp_score    SMALLINT := 0;
-    v_rr_score      SMALLINT := 0;  -- NEW
-    v_glucose_score SMALLINT := 0;  -- NEW
+    v_rr_score      SMALLINT := 0;
+    v_glucose_score SMALLINT := 0;
     v_total         SMALLINT := 0;
     v_category      VARCHAR(20);
 BEGIN
@@ -36,7 +30,6 @@ BEGIN
     WHERE admission_id = p_admission_id ORDER BY recorded_at DESC LIMIT 1;
     IF NOT FOUND THEN RETURN 0; END IF;
 
-    -- Heart Rate
     IF v_rec.heart_rate IS NOT NULL THEN
         v_hr_score := CASE
             WHEN v_rec.heart_rate < v_hr_min OR v_rec.heart_rate > v_hr_max THEN 3
@@ -46,7 +39,6 @@ BEGIN
         END;
     END IF;
 
-    -- Blood Pressure
     IF v_rec.systolic_bp IS NOT NULL THEN
         v_bp_score := CASE
             WHEN v_rec.systolic_bp < 70 OR v_rec.systolic_bp > v_sys_max THEN 3
@@ -56,7 +48,6 @@ BEGIN
         END;
     END IF;
 
-    -- SpO2
     IF v_rec.spo2 IS NOT NULL THEN
         v_spo2_score := CASE
             WHEN v_rec.spo2 < v_spo2_min THEN 3
@@ -66,7 +57,6 @@ BEGIN
         END;
     END IF;
 
-    -- Temperature
     IF v_rec.temperature IS NOT NULL THEN
         v_temp_score := CASE
             WHEN v_rec.temperature < 34 OR v_rec.temperature > v_temp_max THEN 3
@@ -76,7 +66,6 @@ BEGIN
         END;
     END IF;
 
-    -- Respiratory Rate (NEWLY ADDED — was captured but never scored)
     IF v_rec.respiratory_rate IS NOT NULL THEN
         v_rr_score := CASE
             WHEN v_rec.respiratory_rate <= 8  THEN 3
@@ -87,7 +76,6 @@ BEGIN
         END;
     END IF;
 
-    -- Blood Glucose (NEWLY ADDED — was captured but never scored)
     IF v_rec.blood_glucose IS NOT NULL THEN
         v_glucose_score := CASE
             WHEN v_rec.blood_glucose < 60  OR v_rec.blood_glucose > 400 THEN 3

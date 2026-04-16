@@ -12,13 +12,10 @@ const validate = (req, res, next) => {
     next();
 };
 
-/** GET  /api/prescriptions/suggest?diagnosis=hypertension — rule-based suggestions */
 router.get('/suggest', requirePermission('VIEW_PRESCRIPTIONS'), ctrl.suggest);
 
-/** GET  /api/prescriptions/:patientId — prescriptions for patient */
 router.get('/:patientId', requirePermission('VIEW_PRESCRIPTIONS'), ctrl.listByPatient);
 
-/** POST /api/prescriptions/check      — check drug interactions */
 router.post('/check',
     requirePermission('CREATE_PRESCRIPTION'),
     [body('medicationIds').isArray({ min: 1 })],
@@ -26,7 +23,6 @@ router.post('/check',
     ctrl.check
 );
 
-/** POST /api/prescriptions           — issue a prescription */
 router.post('/',
     requirePermission('CREATE_PRESCRIPTION'),
     [body('admission_id').isInt(), body('medication_id').isInt(),
@@ -35,7 +31,6 @@ router.post('/',
     ctrl.create
 );
 
-/** PATCH /api/prescriptions/:id/cancel — cancel */
 router.patch('/:id/cancel', requirePermission('CANCEL_PRESCRIPTION'), ctrl.cancel);
 
 module.exports = router;

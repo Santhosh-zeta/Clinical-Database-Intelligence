@@ -1,9 +1,3 @@
--- ============================================================
--- Function 011: Alert Notify Trigger
--- Sends a PostgreSQL NOTIFY event whenever an alert is created.
--- JSON payload includes: alert_id, admission_id, organization_id, severity, type, message
--- ============================================================
-
 CREATE OR REPLACE FUNCTION fn_alert_notify()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -14,14 +8,13 @@ DECLARE
     v_adm_name   VARCHAR;
     v_payload    JSONB;
 BEGIN
-    -- Get current admission and org context
-    SELECT a.organization_id, a.patient_id, p.name 
+
+    SELECT a.organization_id, a.patient_id, p.name
     INTO v_org_id, v_patient_id, v_adm_name
     FROM admissions a
     JOIN patients p ON p.id = a.patient_id
     WHERE a.id = NEW.admission_id;
 
-    -- Construct payload
     v_payload := jsonb_build_object(
         'event', 'new_alert',
         'alert_id', NEW.id,
@@ -35,7 +28,6 @@ BEGIN
         'triggered_at', NEW.triggered_at
     );
 
-    -- Emit notification
     PERFORM pg_notify('clinical_alerts', v_payload::text);
 
     RETURN NEW;

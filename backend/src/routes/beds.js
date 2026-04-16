@@ -5,7 +5,6 @@ const db = require('../config/db');
 
 const router = Router();
 
-
 router.get('/availability', async (req, res, next) => {
     try {
         const result = await db.query(
@@ -22,7 +21,6 @@ router.get('/availability', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-
 router.get('/icu/availability', (_req, res, next) => {
     db.query(
         `SELECT COUNT(*) FILTER (WHERE is_icu = TRUE AND is_occupied = FALSE) AS available_icu_beds,
@@ -32,6 +30,17 @@ router.get('/icu/availability', (_req, res, next) => {
     )
         .then((r) => res.json({ data: r.rows[0] }))
         .catch(next);
+});
+
+router.post('/', async (req, res, next) => {
+    try {
+        const { bed_number, ward_id, is_icu } = req.body;
+        const result = await db.query(
+            'INSERT INTO beds (bed_number, ward_id, is_icu) VALUES ($1, $2, $3) RETURNING *',
+            [bed_number, ward_id, is_icu || false]
+        );
+        res.status(201).json({ data: result.rows[0] });
+    } catch (err) { next(err); }
 });
 
 module.exports = router;

@@ -12,7 +12,6 @@ const API = 'http://localhost:3001/api';
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
 const ah = () => ({ Authorization: `Bearer ${getToken()}` });
 
-
 interface Patient {
   id: string;
   patient_id: number;
@@ -35,9 +34,7 @@ interface VitalsData {
   ews: number;
 }
 
-
-
-export default function VitalsMonitor() {
+export default function VitalsMonitor({ admissionId }: { admissionId?: number | null }) {
   const { currentUser } = useAuth();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -46,7 +43,6 @@ export default function VitalsMonitor() {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'detailed'>('detailed');
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-
 
   const fetchPatients = useCallback(async () => {
     try {
@@ -73,7 +69,6 @@ export default function VitalsMonitor() {
     setLoading(false);
   }, [selectedPatient]);
 
-
   const fetchVitals = useCallback(async (p: Patient) => {
     try {
       const res = await fetch(`${API}/vitals/${p.patient_id}?limit=60`, { headers: ah() });
@@ -94,7 +89,6 @@ export default function VitalsMonitor() {
     } catch (_) { }
   }, []);
 
-
   useEffect(() => {
     fetchPatients();
     const id = setInterval(fetchPatients, 10000);
@@ -102,12 +96,18 @@ export default function VitalsMonitor() {
   }, [fetchPatients]);
 
   useEffect(() => {
+    if (admissionId && patients.length > 0) {
+      const target = patients.find(p => Number(p.id) === admissionId);
+      if (target) setSelectedPatient(target);
+    }
+  }, [admissionId, patients]);
+
+  useEffect(() => {
     if (!selectedPatient) return;
     fetchVitals(selectedPatient);
-    const id = setInterval(() => fetchVitals(selectedPatient), 5000); // 5s for real-time feel
+    const id = setInterval(() => fetchVitals(selectedPatient), 5000);
     return () => clearInterval(id);
   }, [selectedPatient, fetchVitals]);
-
 
   const filteredPatients = useMemo(() => {
     return patients.filter(p =>
@@ -145,120 +145,115 @@ export default function VitalsMonitor() {
             Active Monitored Patients
           </div>
           <div className="flex-1 overflow-y-auto p-2 bg-white">
-              {filteredPatients.map((p) => (
-                <PatientSidebarCard
-                  key={p.id}
-                  patient={p}
-                  isSelected={selectedPatient?.id === p.id}
-                  onClick={() => setSelectedPatient(p)}
-                  vitals={vitalsHistory[p.id]?.slice(-1)[0]}
-                />
-              ))}
+            {filteredPatients.map((p) => (
+              <PatientSidebarCard
+                key={p.id}
+                patient={p}
+                isSelected={selectedPatient?.id === p.id}
+                onClick={() => setSelectedPatient(p)}
+                vitals={vitalsHistory[p.id]?.slice(-1)[0]}
+              />
+            ))}
             {loading && (
               <div className="p-4 text-center text-gray-600 italic text-sm">Loading remote feed...</div>
             )}
           </div>
         </aside>
 
-
         <main className="flex-1 border border-gray-400 bg-white shadow-sm overflow-y-auto p-4 flex flex-col relative">
-            {selectedPatient ? (
-              <div className="flex flex-col gap-4 h-full">
+          {selectedPatient ? (
+            <div className="flex flex-col gap-4 h-full">
 
-                <div className="bg-gray-100 border border-gray-400 p-4 flex justify-between items-start shrink-0">
-                    <div className="flex gap-4 items-center">
-                      <img
-                        src={selectedPatient.avatarUrl}
-                        className="w-20 h-20 border border-gray-400 bg-white"
-                        alt="Patient Avatar"
-                      />
-                      <div>
-                        <h2 className="text-xl font-bold text-gray-900">{selectedPatient.name}</h2>
-                        <div className="mt-1 text-sm text-gray-700">
-                          <strong>Location:</strong> {selectedPatient.ward} | {selectedPatient.bed} <br/>
-                          <strong>Age:</strong> {selectedPatient.age} Yrs
-                        </div>
-                        <div className="mt-2 text-sm">
-                          <strong>Diagnosis:</strong> {selectedPatient.diagnosis}
-                        </div>
-                      </div>
+              <div className="bg-gray-100 border border-gray-400 p-4 flex justify-between items-start shrink-0">
+                <div className="flex gap-4 items-center">
+                  <img
+                    src={selectedPatient.avatarUrl}
+                    className="w-20 h-20 border border-gray-400 bg-white"
+                    alt="Patient Avatar"
+                  />
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">{selectedPatient.name}</h2>
+                    <div className="mt-1 text-sm text-gray-700">
+                      <strong>Location:</strong> {selectedPatient.ward} | {selectedPatient.bed} <br />
+                      <strong>Age:</strong> {selectedPatient.age} Yrs
                     </div>
-
-                    <div className="text-right border-l border-gray-400 pl-4 h-full flex flex-col justify-end">
-                      <p className="text-sm font-bold text-gray-600 mb-1">Live Feed Synchronized:</p>
-                      <p className="text-lg font-bold mb-3 text-gray-800">{lastUpdate.toLocaleTimeString()}</p>
-                      <div className={cn(
-                        "px-4 py-1 text-sm font-bold border",
-                        selectedPatient.riskScore === 'critical' || selectedPatient.riskScore === 'high' ? 'bg-red-100 text-red-800 border-red-300' : 'bg-green-100 text-green-800 border-green-300'
-                      )}>
-                        Risk Status: {selectedPatient.riskScore}
-                      </div>
+                    <div className="mt-2 text-sm">
+                      <strong>Diagnosis:</strong> {selectedPatient.diagnosis}
                     </div>
-                </div>
-
-
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
-                  <VitalCard
-                    label="Heart Rate"
-                    value={latestVitals?.heartRate || '—'}
-                    unit="BPM"
-                  />
-                  <VitalCard
-                    label="Oxygen Saturation"
-                    value={latestVitals?.oxygenLevel || '—'}
-                    unit="%"
-                  />
-                  <VitalCard
-                    label="Blood Pressure"
-                    value={latestVitals ? `${latestVitals.systolicBp}/${latestVitals.diastolicBp}` : '—'}
-                    unit="mmHg"
-                  />
-                  <VitalCard
-                    label="Core Temperature"
-                    value={latestVitals?.temperature?.toFixed(1) || '—'}
-                    unit="°C"
-                  />
-                </div>
-
-
-                <div className="flex-1 bg-white border border-gray-400 p-4 flex flex-col relative min-h-[300px]">
-                  <div className="border-b border-gray-300 pb-2 mb-4 flex justify-between items-end">
-                      <div>
-                          <h3 className="text-md font-bold text-gray-800">Clinical Telemetry History</h3>
-                      </div>
-                      <div className="flex gap-4">
-                        <div className="text-sm font-bold text-gray-700"><span className="text-red-600">■</span> Heart Rate</div>
-                        <div className="text-sm font-bold text-gray-700"><span className="text-blue-600">■</span> SpO2%</div>
-                      </div>
                   </div>
+                </div>
 
-                  <div className="flex-1 w-full relative">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={vitalsHistory[selectedPatient.id]}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis dataKey="timestamp" hide />
-                        <YAxis yAxisId="left" stroke="#374151" fontSize={12} domain={[40, 180]} />
-                        <YAxis yAxisId="right" orientation="right" stroke="#374151" fontSize={12} domain={[85, 100]} />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Line yAxisId="left" type="monotone" dataKey="heartRate" stroke="#dc2626" strokeWidth={2} dot={false} isAnimationActive={false} />
-                        <Line yAxisId="right" type="monotone" dataKey="oxygenLevel" stroke="#2563eb" strokeWidth={2} dot={false} isAnimationActive={false} />
-                      </LineChart>
-                    </ResponsiveContainer>
+                <div className="text-right border-l border-gray-400 pl-4 h-full flex flex-col justify-end">
+                  <p className="text-sm font-bold text-gray-600 mb-1">Live Feed Synchronized:</p>
+                  <p className="text-lg font-bold mb-3 text-gray-800">{lastUpdate.toLocaleTimeString()}</p>
+                  <div className={cn(
+                    "px-4 py-1 text-sm font-bold border",
+                    selectedPatient.riskScore === 'critical' || selectedPatient.riskScore === 'high' ? 'bg-red-100 text-red-800 border-red-300' : 'bg-green-100 text-green-800 border-green-300'
+                  )}>
+                    Risk Status: {selectedPatient.riskScore}
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center p-4">
-                 <div className="text-center text-gray-500 italic">Please select a patient from the list to view telemetry.</div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+                <VitalCard
+                  label="Heart Rate"
+                  value={latestVitals?.heartRate || '—'}
+                  unit="BPM"
+                />
+                <VitalCard
+                  label="Oxygen Saturation"
+                  value={latestVitals?.oxygenLevel || '—'}
+                  unit="%"
+                />
+                <VitalCard
+                  label="Blood Pressure"
+                  value={latestVitals ? `${latestVitals.systolicBp}/${latestVitals.diastolicBp}` : '—'}
+                  unit="mmHg"
+                />
+                <VitalCard
+                  label="Core Temperature"
+                  value={latestVitals?.temperature?.toFixed(1) || '—'}
+                  unit="°C"
+                />
               </div>
-            )}
+
+              <div className="flex-1 bg-white border border-gray-400 p-4 flex flex-col relative min-h-[300px]">
+                <div className="border-b border-gray-300 pb-2 mb-4 flex justify-between items-end">
+                  <div>
+                    <h3 className="text-md font-bold text-gray-800">Clinical Telemetry History</h3>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="text-sm font-bold text-gray-700"><span className="text-red-600">■</span> Heart Rate</div>
+                    <div className="text-sm font-bold text-gray-700"><span className="text-blue-600">■</span> SpO2%</div>
+                  </div>
+                </div>
+
+                <div className="flex-1 w-full relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={vitalsHistory[selectedPatient.id]}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="timestamp" hide />
+                      <YAxis yAxisId="left" stroke="#374151" fontSize={12} domain={[40, 180]} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#374151" fontSize={12} domain={[85, 100]} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Line yAxisId="left" type="monotone" dataKey="heartRate" stroke="#dc2626" strokeWidth={2} dot={false} isAnimationActive={false} />
+                      <Line yAxisId="right" type="monotone" dataKey="oxygenLevel" stroke="#2563eb" strokeWidth={2} dot={false} isAnimationActive={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+              <div className="text-center text-gray-500 italic">Please select a patient from the list to view telemetry.</div>
+            </div>
+          )}
         </main>
       </div>
     </div>
   );
 }
-
-
 
 function PatientSidebarCard({ patient, isSelected, onClick, vitals }: any) {
   return (
@@ -279,9 +274,9 @@ function PatientSidebarCard({ patient, isSelected, onClick, vitals }: any) {
         </p>
       </div>
       {(vitals?.heartRate && vitals.heartRate > 120 || vitals?.heartRate < 50 || patient.riskScore === 'critical') && (
-          <div className="mt-1 bg-red-100 text-red-800 px-1.5 py-0.5 text-[10px] font-bold border border-red-300 rounded-sm">
-              ALERT
-          </div>
+        <div className="mt-1 bg-red-100 text-red-800 px-1.5 py-0.5 text-[10px] font-bold border border-red-300 rounded-sm">
+          ALERT
+        </div>
       )}
     </button>
   );

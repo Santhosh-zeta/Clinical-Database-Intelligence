@@ -13,7 +13,6 @@ const validate = (req, res, next) => {
     next();
 };
 
-
 router.post(
     '/',
     [
@@ -41,7 +40,6 @@ router.post(
     }
 );
 
-
 router.get('/', async (req, res, next) => {
     try {
         const result = await db.query(
@@ -54,7 +52,6 @@ router.get('/', async (req, res, next) => {
         res.json({ data: result.rows });
     } catch (err) { next(err); }
 });
-
 
 router.get('/:id', param('id').isInt(), validate, async (req, res, next) => {
     try {

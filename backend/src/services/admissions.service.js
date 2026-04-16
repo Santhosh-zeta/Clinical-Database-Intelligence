@@ -74,19 +74,16 @@ async function create(body, orgId) {
         await client.query('BEGIN');
         const { patient_id, doctor_id, ward_id, bed_id, diagnosis, notes } = body;
 
-        // Verify patient belongs to org
         const patCheck = await client.query(
             'SELECT id FROM patients WHERE id=$1 AND organization_id=$2', [patient_id, orgId]
         );
         if (!patCheck.rowCount) throw createError('Patient not found in this organization', 404);
 
-        // Prevent duplicate active admission
         const dupCheck = await client.query(
             `SELECT id FROM admissions WHERE patient_id=$1 AND status='active'`, [patient_id]
         );
         if (dupCheck.rowCount) throw createError('Patient already has an active admission', 409);
 
-        // Bed availability check
         if (bed_id) {
             const bedCheck = await client.query('SELECT is_occupied FROM beds WHERE id=$1', [bed_id]);
             if (bedCheck.rows[0]?.is_occupied) throw createError('Bed is already occupied', 409);

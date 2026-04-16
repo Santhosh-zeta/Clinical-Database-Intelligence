@@ -12,10 +12,8 @@ const validate = (req, res, next) => {
     next();
 };
 
-/** GET  /api/patients            — list (search, paginate) */
 router.get('/', requirePermission('VIEW_PATIENT'), ctrl.list);
 
-/** POST /api/patients            — create */
 router.post('/',
     requirePermission('CREATE_PATIENT'),
     [body('name').notEmpty().trim(), body('gender').isIn(['M', 'F', 'O'])],
@@ -23,19 +21,14 @@ router.post('/',
     ctrl.create
 );
 
-/** GET  /api/patients/:id        — get by ID */
 router.get('/:id', requirePermission('VIEW_PATIENT'), ctrl.getById);
 
-/** PUT  /api/patients/:id        — update */
 router.put('/:id', requirePermission('UPDATE_PATIENT'), ctrl.update);
 
-/** GET  /api/patients/:id/timeline — event timeline */
 router.get('/:id/timeline', requirePermission('VIEW_TIMELINE'), ctrl.getTimeline);
 
-/** GET  /api/patients/:id/summary — dashboard summary */
 router.get('/:id/summary', requirePermission('VIEW_PATIENT'), ctrl.getSummary);
 
-/** POST /api/patients/:id/symptoms — record symptoms */
 router.post('/:id/symptoms',
     requirePermission('UPDATE_PATIENT'),
     [body('symptoms').isArray({ min: 1 })],
@@ -43,7 +36,6 @@ router.post('/:id/symptoms',
     ctrl.addSymptoms
 );
 
-/** GET  /api/patients/:id/appointments — scheduled appointments */
 const db = require('../config/db');
 router.get('/:id/appointments', requirePermission('VIEW_PATIENT'), async (req, res, next) => {
     try {
@@ -59,7 +51,6 @@ router.get('/:id/appointments', requirePermission('VIEW_PATIENT'), async (req, r
     } catch (e) { next(e); }
 });
 
-/** GET  /api/patients/:id/admissions — admission history */
 router.get('/:id/admissions', requirePermission('VIEW_PATIENT'), async (req, res, next) => {
     try {
         const result = await db.query(
@@ -70,7 +61,6 @@ router.get('/:id/admissions', requirePermission('VIEW_PATIENT'), async (req, res
     } catch (e) { next(e); }
 });
 
-/** POST /api/patients/:id/appointments — book appointment */
 router.post('/:id/appointments',
     requirePermission('UPDATE_PATIENT'),
     [
@@ -81,5 +71,7 @@ router.post('/:id/appointments',
     validate,
     ctrl.createAppointment
 );
+
+router.get('/:id/proposed-plan', requirePermission('VIEW_PATIENT'), ctrl.getProposedPlan);
 
 module.exports = router;

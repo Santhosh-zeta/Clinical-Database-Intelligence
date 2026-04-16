@@ -5,7 +5,6 @@ const db = require('../config/db');
 
 const router = Router();
 
-
 router.get('/stats', async (req, res, next) => {
   console.log('[DEBUG] Hit /api/dashboard/stats');
   return res.json({ message: 'Dashboard stats hit' });

@@ -1,10 +1,3 @@
--- ============================================================
--- Function 009: Alert Escalation + Deduplication Cleanup
--- escalate_unacknowledged_alerts() — called by pg_cron or API
--- cleanup_duplicate_alerts()       — removes duplicate actives
--- ============================================================
-
--- Escalates overdue high/critical alerts to senior staff
 CREATE OR REPLACE FUNCTION escalate_unacknowledged_alerts()
 RETURNS INT
 LANGUAGE plpgsql
@@ -29,7 +22,6 @@ BEGIN
         FROM organization_settings os WHERE os.org_id = v_alert.organization_id;
         v_wait := COALESCE(v_wait, 10);
 
-        -- Bump escalation level and set new deadline
         UPDATE alerts
         SET escalation_level  = escalation_level + 1,
             escalated_at      = NOW(),
@@ -37,7 +29,6 @@ BEGIN
             response_deadline = NOW() + (v_wait || ' minutes')::INTERVAL
         WHERE id = v_alert.id;
 
-        -- Notify admin of this org
         SELECT d.id INTO v_doctor_id
         FROM doctors d
         JOIN user_roles ur ON ur.doctor_id = d.id
@@ -60,7 +51,6 @@ BEGIN
 END;
 $$;
 
--- Removes duplicate non-acknowledged alerts, keeping newest per (admission, type)
 CREATE OR REPLACE FUNCTION cleanup_duplicate_alerts()
 RETURNS INT
 LANGUAGE plpgsql

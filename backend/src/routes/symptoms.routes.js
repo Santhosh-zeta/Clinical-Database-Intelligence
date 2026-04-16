@@ -6,7 +6,6 @@ const { requirePermission } = require('../middleware/rbac');
 
 const router = Router();
 
-/** GET /api/symptoms - list all known symptoms */
 router.get('/', requirePermission('VIEW_PATIENT'), async (req, res, next) => {
     try {
         const result = await db.query(`SELECT id, name, category FROM symptoms ORDER BY category, name ASC`);

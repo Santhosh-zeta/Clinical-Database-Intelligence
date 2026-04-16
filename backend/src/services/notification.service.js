@@ -34,4 +34,14 @@ async function markAllRead(doctorId) {
     return result.rowCount;
 }
 
-module.exports = { list, markRead, markAllRead };
+async function create(data) {
+    const { doctor_id, admission_id, alert_id, message, type = 'alert' } = data;
+    const result = await db.query(
+        `INSERT INTO notifications (doctor_id, admission_id, alert_id, message, type)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [doctor_id, admission_id, alert_id, message, type]
+    );
+    return result.rows[0];
+}
+
+module.exports = { list, markRead, markAllRead, create };

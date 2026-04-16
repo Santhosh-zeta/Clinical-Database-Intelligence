@@ -1,8 +1,5 @@
 'use strict';
 
-/**
- * Detects deteriorating trends in vitals over a window.
- */
 function detectTrend(rows, windowSize) {
     const alerts = [];
     const deltas = {};
@@ -21,7 +18,6 @@ function detectTrend(rows, windowSize) {
         const delta = last - first;
         deltas[v] = delta;
 
-        // Examples of deteriorating trends
         if (v === 'heart_rate' && delta > 20) {
             deteriorating = true;
             alerts.push(`Rising heart rate (+${delta} bpm)`);

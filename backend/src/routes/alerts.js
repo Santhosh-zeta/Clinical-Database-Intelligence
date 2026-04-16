@@ -12,7 +12,6 @@ const validate = (req, res, next) => {
     next();
 };
 
-
 router.get('/', async (req, res, next) => {
     try {
         const { severity, page = 1, limit = 50 } = req.query;
@@ -34,7 +33,6 @@ router.get('/', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-
 router.get('/:patient_id', param('patient_id').isInt(), validate, async (req, res, next) => {
     try {
         const result = await db.query(
@@ -48,7 +46,6 @@ router.get('/:patient_id', param('patient_id').isInt(), validate, async (req, re
         res.json({ data: result.rows });
     } catch (err) { next(err); }
 });
-
 
 router.put('/:id/acknowledge', param('id').isInt(), validate, async (req, res, next) => {
     try {

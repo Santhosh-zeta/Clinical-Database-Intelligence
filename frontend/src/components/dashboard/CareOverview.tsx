@@ -51,7 +51,7 @@ export default function DashboardSummary() {
 
   useEffect(() => {
     fetchDashboard();
-    const id = setInterval(fetchDashboard, 10000); // 10s refresh
+    const id = setInterval(fetchDashboard, 10000);
     return () => clearInterval(id);
   }, []);
 
@@ -69,7 +69,6 @@ export default function DashboardSummary() {
 
   return (
     <div className="max-w-[1200px] mx-auto p-4 font-sans text-gray-900">
-      
 
       <div className="border-b-2 border-blue-800 pb-2 mb-6 flex justify-between items-end">
         <div>
@@ -78,16 +77,15 @@ export default function DashboardSummary() {
           </h1>
         </div>
         <div className="text-sm text-gray-600 font-bold">
-          {lastRefreshed ? `Last Updated: ${lastRefreshed.toLocaleTimeString()}` : 'Loading data...'} 
-          <button 
-            onClick={fetchDashboard} 
+          {lastRefreshed ? `Last Updated: ${lastRefreshed.toLocaleTimeString()}` : 'Loading data...'}
+          <button
+            onClick={fetchDashboard}
             className="ml-4 bg-gray-200 border border-gray-400 px-3 py-1 text-sm font-bold shadow-sm hover:bg-gray-300 active:bg-gray-400"
           >
             Refresh Data
           </button>
         </div>
       </div>
-
 
       <div className="flex gap-4 mb-6">
         <StatBox label="Active Admissions" value={loading ? '...' : activeAdmissions} subtext={`Discharged today: ${dischargedToday}`} />
@@ -141,7 +139,6 @@ export default function DashboardSummary() {
           </Panel>
         </div>
 
-
         <div className="lg:w-1/3 flex flex-col gap-6">
           <Panel title="Recent System Alerts">
              <div className="p-4 flex flex-col gap-2">
@@ -182,7 +179,6 @@ export default function DashboardSummary() {
     </div>
   );
 }
-
 
 function PatientDashboard() {
   const { currentUser } = useAuth();
@@ -311,8 +307,6 @@ function PatientDashboard() {
     </div>
   )
 }
-
-
 
 function Panel({ title, children }: any) {
   return (

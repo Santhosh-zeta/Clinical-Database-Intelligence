@@ -5,10 +5,6 @@ const { pool } = require('../config/db');
 
 let io;
 
-/**
- * Initializes the Socket.io server and PostgreSQL listeners.
- * @param {import('http').Server} httpServer 
- */
 function init(httpServer) {
     io = new Server(httpServer, {
         cors: {
@@ -20,7 +16,6 @@ function init(httpServer) {
     io.on('connection', (socket) => {
         console.log(`[Realtime] Socket connected: ${socket.id}`);
 
-        // Rooms are based on organization ID to ensure multi-tenant isolation
         socket.on('join-org', (orgId) => {
             if (!orgId) return;
             const room = `org_${orgId}`;
@@ -33,35 +28,28 @@ function init(httpServer) {
         });
     });
 
-
     setupPostgresListeners();
 }
 
-/**
- * Connects to PostgreSQL using a dedicated client for LISTEN/NOTIFY.
- */
 async function setupPostgresListeners() {
     try {
         const client = await pool.connect();
         await client.query('LISTEN clinical_alerts');
-        console.log('[Realtime] Listening for PostgreSQL notifications: clinical_alerts');
+        await client.query('LISTEN clinical_notifications');
+        console.log('[Realtime] Listening for PostgreSQL: clinical_alerts, clinical_notifications');
 
         client.on('notification', (msg) => {
-            if (msg.channel === 'clinical_alerts') {
-                try {
-                    const payload = JSON.parse(msg.payload);
-                    const room = `org_${payload.organization_id}`;
-                    
-                    console.log(`[Realtime] Alert received for Org ${payload.organization_id}: ${payload.message}`);
-                    
+            try {
+                const payload = JSON.parse(msg.payload);
+                const room = `org_${payload.organization_id}`;
 
+                if (msg.channel === 'clinical_alerts') {
                     io.to(room).emit('new-alert', payload);
-                    
-
-                    io.to('org_admin').emit('new-alert', payload);
-                } catch (e) {
-                    console.error('[Realtime] Failed to parse PG notification payload:', e);
+                } else if (msg.channel === 'clinical_notifications') {
+                    io.to(room).emit('new-notification', payload);
                 }
+            } catch (e) {
+                console.error('[Realtime] Failed to parse PG notification payload:', e);
             }
         });
 
@@ -75,4 +63,11 @@ async function setupPostgresListeners() {
     }
 }
 
-module.exports = { init };
+function sendNotification(orgId, event, data) {
+    if (io) {
+        const room = `org_${orgId}`;
+        io.to(room).emit(event, data);
+    }
+}
+
+module.exports = { init, sendNotification };

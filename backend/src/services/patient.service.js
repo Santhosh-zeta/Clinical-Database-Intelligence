@@ -48,63 +48,76 @@ async function update(id, body, orgId) {
 async function getTimeline(patientId, orgId, { page = 1, limit = 100 } = {}) {
     const offset = (page - 1) * limit;
 
-    const eventsResult = await db.query(
-        `SELECT pe.id, pe.event_type, pe.description, pe.metadata,
-                pe.reference_id, pe.reference_table, pe.created_at,
-                d.name AS created_by_name
-         FROM patient_events pe
-         LEFT JOIN doctors d ON d.id = pe.created_by
-         WHERE pe.patient_id = $1 AND pe.organization_id = $2
-         ORDER BY pe.created_at DESC
-         LIMIT $3 OFFSET $4`,
-        [patientId, orgId, limit, offset]
-    );
+    const query = `
+        SELECT pe.id, pe.event_type, pe.description, pe.metadata,
+               pe.reference_id, pe.reference_table, pe.created_at,
+               d.name AS created_by_name,
+               jsonb_build_object(
+                 'admission', adm_detail,
+                 'alert', alert_detail,
+                 'prescription', rx_detail,
+                 'diagnosis', diag_detail
+               ) as details
+        FROM patient_events pe
+        LEFT JOIN doctors d ON d.id = pe.created_by
+        LEFT JOIN LATERAL (
+            SELECT jsonb_build_object(
+                'diagnosis', a.diagnosis, 'status', a.status,
+                'admitted_at', a.admitted_at, 'discharged_at', a.discharged_at,
+                'doctor_name', d2.name, 'ward_name', w.name, 'bed_number', b.bed_number
+            ) as adm_detail
+            FROM admissions a
+            JOIN doctors d2 ON d2.id = a.doctor_id
+            LEFT JOIN wards w ON w.id = a.ward_id
+            LEFT JOIN beds b  ON b.id = a.bed_id
+            WHERE a.id = pe.reference_id AND pe.event_type = 'admission'
+        ) adm ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT jsonb_build_object(
+                'severity', al.severity, 'alert_type', al.alert_type,
+                'message', al.message, 'status', al.status,
+                'escalation_level', al.escalation_level, 'triggered_at', al.triggered_at,
+                'is_acknowledged', al.is_acknowledged
+            ) as alert_detail
+            FROM alerts al WHERE al.id = pe.reference_id AND pe.event_type = 'alert'
+        ) alt ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT jsonb_build_object(
+                'dose', pr.dose, 'frequency', pr.frequency, 'route', pr.route, 'status', pr.status,
+                'medication_name', m.name, 'category', m.category,
+                'prescribed_by', d3.name
+            ) as rx_detail
+            FROM prescriptions pr
+            JOIN medications m ON m.id = pr.medication_id
+            JOIN doctors d3     ON d3.id = pr.prescribed_by
+            WHERE pr.id = pe.reference_id AND pe.event_type = 'prescription'
+        ) rx ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT jsonb_build_object(
+                'diagnosis_text', di.diagnosis_text, 'severity', di.severity,
+                'type', di.type, 'icd10_code', di.icd10_code, 'doctor_name', d4.name
+            ) as diag_detail
+            FROM diagnoses di LEFT JOIN doctors d4 ON d4.id = di.doctor_id
+            WHERE di.id = pe.reference_id AND pe.event_type = 'diagnosis'
+        ) diag ON TRUE
+        WHERE pe.patient_id = $1 AND pe.organization_id = $2
+        ORDER BY pe.created_at DESC
+        LIMIT $3 OFFSET $4
+    `;
 
-    const events = await Promise.all(eventsResult.rows.map(async (ev) => {
+    const eventsResult = await db.query(query, [patientId, orgId, limit, offset]);
+
+    const events = eventsResult.rows.map(ev => {
         let detail = null;
-        try {
-            if (ev.event_type === 'admission' && ev.reference_id) {
-                const r = await db.query(
-                    `SELECT a.diagnosis, a.status, a.admitted_at, a.discharged_at,
-                            d.name AS doctor_name, w.name AS ward_name, b.bed_number
-                     FROM admissions a
-                     JOIN doctors d ON d.id = a.doctor_id
-                     LEFT JOIN wards w ON w.id = a.ward_id
-                     LEFT JOIN beds b  ON b.id = a.bed_id
-                     WHERE a.id = $1`, [ev.reference_id]
-                );
-                detail = r.rows[0] || null;
-            } else if (ev.event_type === 'alert' && ev.reference_id) {
-                const r = await db.query(
-                    `SELECT severity, alert_type, message, status,
-                            escalation_level, triggered_at, is_acknowledged
-                     FROM alerts WHERE id = $1`, [ev.reference_id]
-                );
-                detail = r.rows[0] || null;
-            } else if (ev.event_type === 'prescription' && ev.reference_id) {
-                const r = await db.query(
-                    `SELECT pr.dose, pr.frequency, pr.route, pr.status,
-                            m.name AS medication_name, m.category,
-                            d.name AS prescribed_by
-                     FROM prescriptions pr
-                     JOIN medications m ON m.id = pr.medication_id
-                     JOIN doctors d     ON d.id = pr.prescribed_by
-                     WHERE pr.id = $1`, [ev.reference_id]
-                );
-                detail = r.rows[0] || null;
-            } else if (ev.event_type === 'ews_score') {
-                detail = ev.metadata;
-            } else if (ev.event_type === 'diagnosis' && ev.reference_id) {
-                const r = await db.query(
-                    `SELECT diagnosis_text, severity, type, icd10_code, d.name AS doctor_name
-                     FROM diagnoses di LEFT JOIN doctors d ON d.id = di.doctor_id
-                     WHERE di.id = $1`, [ev.reference_id]
-                );
-                detail = r.rows[0] || null;
-            }
-        } catch (_) { /* detail stays null if sub-query fails */ }
-        return { ...ev, detail };
-    }));
+        if (ev.event_type === 'ews_score') detail = ev.metadata;
+        else if (ev.event_type === 'admission') detail = ev.details.admission;
+        else if (ev.event_type === 'alert') detail = ev.details.alert;
+        else if (ev.event_type === 'prescription') detail = ev.details.prescription;
+        else if (ev.event_type === 'diagnosis') detail = ev.details.diagnosis;
+
+        const { details, ...rest } = ev;
+        return { ...rest, detail };
+    });
 
     const [admCount, alertCount, presCount, ewsLatest] = await Promise.all([
         db.query(`SELECT COUNT(*) FROM admissions WHERE patient_id=$1`, [patientId]),
@@ -168,8 +181,8 @@ async function getPatientSummary(patientId, orgId) {
     ]);
 
     const activity = await db.query(
-        `(SELECT 'lab' as type, test_name as name, result_value as value, recorded_at as date 
-          FROM lab_results WHERE patient_id = $1 
+        `(SELECT 'lab' as type, test_name as name, result_value as value, recorded_at as date
+          FROM lab_results WHERE patient_id = $1
           UNION ALL
           SELECT 'billing' as type, item_name as name, total_price::text as value, recorded_at as date
           FROM billing_items bi JOIN billing_invoices bv ON bi.invoice_id = bv.id WHERE bv.admission_id IN (SELECT id FROM admissions WHERE patient_id = $1))
@@ -178,7 +191,7 @@ async function getPatientSummary(patientId, orgId) {
     );
 
     const meds = await db.query(
-        `SELECT medication_name, dose, frequency FROM prescriptions 
+        `SELECT medication_name, dose, frequency FROM prescriptions
          WHERE patient_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 3`,
         [patientId]
     );
@@ -194,4 +207,70 @@ async function getPatientSummary(patientId, orgId) {
     };
 }
 
-module.exports = { list, getById, create, update, getTimeline, addSymptoms, createAppointment, getPatientSummary };
+async function getPatientProfile(admissionId, orgId) {
+    const [admRes, countsRes, latestVitals, trendRes, dischargeReady] = await Promise.all([
+        db.query(`
+            SELECT a.*, p.name AS patient_name, p.date_of_birth, p.gender, p.blood_group, p.allergies,
+                   d.name AS doctor_name, w.name AS ward_name, b.bed_number,
+                   ew.total_score AS ews, ew.category AS ews_category
+            FROM admissions a
+            JOIN patients p ON p.id = a.patient_id
+            JOIN doctors  d ON d.id = a.doctor_id
+            LEFT JOIN wards w ON w.id = a.ward_id
+            LEFT JOIN beds  b ON b.id = a.bed_id
+            LEFT JOIN LATERAL (
+                SELECT total_score, category FROM ews_scores
+                WHERE admission_id = a.id ORDER BY calculated_at DESC LIMIT 1
+            ) ew ON TRUE
+            WHERE a.id = $1 AND a.organization_id = $2
+        `, [admissionId, orgId]),
+
+        db.query(`
+            SELECT
+                (SELECT COUNT(*) FROM admissions WHERE patient_id = (SELECT patient_id FROM admissions WHERE id = $1)) as total_admissions,
+                (SELECT COUNT(*) FROM alerts WHERE admission_id = $1) as active_alerts,
+                (SELECT COUNT(*) FROM patient_appointments WHERE patient_id = (SELECT patient_id FROM admissions WHERE id = $1) AND appointment_at > NOW()) as upcoming_appts
+        `, [admissionId]),
+
+        db.query(`
+            SELECT * FROM vitals WHERE admission_id = $1 ORDER BY recorded_at DESC LIMIT 1
+        `, [admissionId]),
+
+        db.query(`
+            SELECT v.* FROM vitals v WHERE v.admission_id = $1 ORDER BY v.recorded_at DESC LIMIT 10
+        `, [admissionId]),
+
+        db.query('SELECT suggest_discharge($1) AS discharge_ready', [admissionId])
+    ]);
+
+    const admission = admRes.rows[0];
+    if (!admission) throw createError('Admission not found', 404);
+
+    const vitalsSvc = require('./vitals.service');
+    const trend = trendRes.rows.length >= 3 ? vitalsSvc.detectTrend([...trendRes.rows].reverse(), trendRes.rows.length) : null;
+
+    return {
+        admission,
+        counts: {
+            total_admissions: parseInt(countsRes.rows[0]?.total_admissions || 0),
+            active_alerts: parseInt(countsRes.rows[0]?.active_alerts || 0),
+            upcoming_appts: parseInt(countsRes.rows[0]?.upcoming_appts || 0)
+        },
+        latest_vitals: latestVitals.rows[0] || null,
+        trend,
+        discharge_ready: dischargeReady.rows[0]?.discharge_ready === true
+    };
+}
+
+module.exports = {
+    list,
+    getById,
+    create,
+    update,
+    getTimeline,
+    addSymptoms,
+    createAppointment,
+    getPatientSummary,
+    getProposedCarePlan,
+    getPatientProfile
+};

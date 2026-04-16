@@ -12,7 +12,6 @@ const validate = (req, res, next) => {
     next();
 };
 
-/** GET /api/appointments - List all appointments for staff */
 router.get('/', requirePermission('VIEW_PATIENT'), async (req, res, next) => {
     try {
         const result = await db.query(
@@ -28,7 +27,6 @@ router.get('/', requirePermission('VIEW_PATIENT'), async (req, res, next) => {
     } catch (e) { next(e); }
 });
 
-/** PUT /api/appointments/:id/status - Update appointment status */
 router.put('/:id/status',
     requirePermission('UPDATE_PATIENT'),
     [body('status').isIn(['scheduled', 'cancelled', 'completed'])],
@@ -38,7 +36,7 @@ router.put('/:id/status',
             const { id } = req.params;
             const { status } = req.body;
             const result = await db.query(
-                `UPDATE patient_appointments SET status = $1 
+                `UPDATE patient_appointments SET status = $1
                  WHERE id = $2 AND organization_id = $3 RETURNING *`,
                 [status, id, req.orgId]
             );

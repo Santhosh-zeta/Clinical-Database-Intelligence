@@ -1,6 +1,3 @@
--- ============================================================
--- Migration 010: Audit Logs
--- ============================================================
 CREATE TABLE IF NOT EXISTS audit_logs (
     id              BIGSERIAL PRIMARY KEY,
     table_name      VARCHAR(50) NOT NULL,

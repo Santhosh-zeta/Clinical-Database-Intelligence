@@ -15,9 +15,6 @@ function fixConflicts(filePath) {
   let content = fs.readFileSync(filePath, 'utf8');
   let originalContent = content;
 
-  // Clean up conflicting classes: if a div has bg-white, text-slate-800, and text-white, we want to remove text-white.
-  // Less risky way: find instances of " text-white " or " text-white" in the same className string.
-  // Actually, we can just look for lines containing both and do a safe string replace.
   let lines = content.split('\n');
   let changed = false;
   for (let i = 0; i < lines.length; i++) {
@@ -25,8 +22,7 @@ function fixConflicts(filePath) {
          lines[i] = lines[i].replace('text-white', '');
          changed = true;
      }
-     
-     // Also fix `text-indigo-100` inside light boxes
+
      if (lines[i].includes('text-indigo-100') && lines[i].includes('tracking-wide')) {
          lines[i] = lines[i].replace('text-indigo-100', 'text-slate-500');
          changed = true;

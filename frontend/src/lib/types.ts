@@ -16,13 +16,19 @@ export interface Patient {
 export interface Vitals {
   patientId: string;
   timestamp: string;
-  heartRate: number; // bpm
+  heartRate: number;
   bloodPressure: {
     systolic: number;
     diastolic: number;
   };
-  oxygenLevel: number; // SpO2 %
-  temperature: number; // Celsius
+  oxygenLevel: number;
+  temperature: number;
+  // Backend snake_case fields
+  recorded_at?: string;
+  heart_rate?: number;
+  systolic_bp?: number;
+  diastolic_bp?: number;
+  spo2?: number;
 }
 
 export interface Alert {

@@ -1,8 +1,3 @@
--- ============================================================
--- Migration 004: Wards & Beds
--- ============================================================
-
--- Ward types include general, ICU, surgical, paediatric, etc.
 CREATE TABLE IF NOT EXISTS wards (
     id              SERIAL PRIMARY KEY,
     name            VARCHAR(100) NOT NULL UNIQUE,

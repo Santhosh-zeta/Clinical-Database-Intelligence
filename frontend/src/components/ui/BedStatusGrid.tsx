@@ -26,37 +26,37 @@ export function BedStatusGrid({ wardName, beds }: BedStatusGridProps) {
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight">{wardName}</h2>
         <div className="h-px bg-slate-200 flex-1 ml-4" />
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {beds.map((bed, idx) => {
           const currentHr = bed.currentVitals?.heartRate;
           const currentSpo2 = bed.currentVitals?.oxygenLevel;
           const isCritical = bed.occupant && bed.occupant.riskScore === 'Critical';
-          
+
           return (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: idx * 0.05 }}
-              key={bed.bedName} 
+              key={bed.bedName}
               className={cn(
               "relative rounded-xl border p-6 flex flex-col h-64 transition-all group overflow-hidden",
-              bed.occupant 
-                ? "bg-white shadow-sm hover:shadow-sm hover:-translate-y-1 block" 
+              bed.occupant
+                ? "bg-white shadow-sm hover:shadow-sm hover:-translate-y-1 block"
                 : "bg-slate-50/50 border-slate-200 border-dashed hover:bg-slate-50 hover:border-slate-300"
             )}>
-              {/* Absolute Background Accent for Critical */}
+              {}
               {isCritical && (
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-400 to-rose-600 shadow-sm z-0" />
               )}
               {bed.occupant && !isCritical && (
-                <div className={cn("absolute top-0 left-0 w-full h-1 z-0", 
+                <div className={cn("absolute top-0 left-0 w-full h-1 z-0",
                     bed.occupant.riskScore === 'High' ? "bg-orange-400" :
                     bed.occupant.riskScore === 'Medium' ? "bg-amber-400" : "bg-emerald-400"
                 )} />
               )}
 
-              {/* Top row */}
+              {}
               <div className="flex justify-between items-start mb-5 relative z-10">
                 <div className="flex items-center gap-2">
                   <div className={cn("p-2 rounded-xl border", bed.occupant ? "bg-slate-50 border-slate-100 text-indigo-500" : "bg-white border-slate-200 text-slate-500")}>
@@ -73,7 +73,7 @@ export function BedStatusGrid({ wardName, beds }: BedStatusGridProps) {
                 )}
               </div>
 
-              {/* Body */}
+              {}
               {bed.occupant ? (
                 <div className="flex-1 flex flex-col relative z-10">
                   <div className="flex items-center gap-4 mb-5">
@@ -85,13 +85,13 @@ export function BedStatusGrid({ wardName, beds }: BedStatusGridProps) {
                       <p className="text-xs text-slate-500 font-medium truncate mt-0.5">{bed.occupant.diagnosis || 'Observation'}</p>
                     </div>
                   </div>
-                  
-                  {/* Mini Vitals readout */}
+
+                  {}
                   <div className="mt-auto grid grid-cols-2 gap-3">
                     <div className="bg-slate-50 rounded-lg p-3 border border-slate-100 flex flex-col gap-1 relative overflow-hidden group-hover:bg-indigo-50/30 transition-colors">
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest relative z-10">HR (bpm)</span>
                       <span className="text-xl font-extrabold text-slate-800 leading-none flex items-center gap-1 relative z-10 tracking-tight">
-                        {currentHr ?? '-'} 
+                        {currentHr ?? '-'}
                         {currentHr && (
                            <HeartPulse className={cn("w-3.5 h-3.5", (currentHr > 110 || currentHr < 50) ? "text-rose-500 animate-pulse" : "text-slate-300")} />
                         )}
@@ -114,7 +114,7 @@ export function BedStatusGrid({ wardName, beds }: BedStatusGridProps) {
                 </div>
               )}
 
-              {/* Overlay Link */}
+              {}
               {bed.occupant && (
                 <Link href={`/patients/${bed.occupant.id}`} className="absolute inset-0 z-20" aria-label={`View ${bed.occupant.name} details`} />
               )}

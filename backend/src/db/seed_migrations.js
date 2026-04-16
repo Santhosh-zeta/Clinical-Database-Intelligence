@@ -1,9 +1,5 @@
 'use strict';
-/**
- * One-time bootstrap: marks existing 001-012 migrations as already applied
- * in the schema_migrations table, so they won't re-run.
- * Run ONCE: node src/db/seed_migrations.js
- */
+
 require('dotenv').config();
 const { pool } = require('../config/db');
 const fs   = require('fs');

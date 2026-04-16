@@ -47,7 +47,6 @@ export function PatientTimeline({ events }: PatientTimelineProps) {
     return <div className="text-gray-500 text-center py-4">No events found.</div>;
   }
 
-
   const sortedEvents = [...events].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   return (

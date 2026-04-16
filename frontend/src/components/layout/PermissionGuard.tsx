@@ -12,15 +12,15 @@ interface GuardProps {
 
 export function PermissionGuard({ children, requiredPermission, fallback }: GuardProps) {
     const { hasPermission } = useAuth();
-    
+
     if (hasPermission(requiredPermission)) {
         return <>{children}</>;
     }
-    
+
     if (fallback) {
         return <>{fallback}</>;
     }
-    
+
     return (
         <div className="flex flex-col items-center justify-center p-12 w-full h-full text-center min-h-[50vh]">
             <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mb-4">

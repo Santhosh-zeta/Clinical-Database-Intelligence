@@ -1,20 +1,5 @@
 'use strict';
 
-/**
- * simulate.js — Real-time vitals simulator.
- *
- * Simulates 3 patient profiles every N seconds:
- *   - STABLE    → normal vitals (score 0-2, no alerts)
- *   - MODERATE  → slightly off (score 3-4, yellow alert)
- *   - CRITICAL  → severely abnormal (score 7-10, red alert + ICU escalation)
- *
- * Usage:
- *   node simulate.js [admission_ids...]
- *   e.g.  node simulate.js 1 2 3
- *
- * If no IDs are passed, it tries to fetch active admissions from the API.
- */
-
 require('dotenv').config();
 const axios = require('axios');
 const chalk = require('chalk');
@@ -23,12 +8,6 @@ const API = process.env.API_URL || 'http://localhost:3001';
 const INTERVAL = parseInt(process.env.VITALS_INTERVAL_MS || '5000', 10);
 const api = axios.create({ baseURL: API, timeout: 8000 });
 
-// ── Authentication ────────────────────────────────────────────────────────────
-
-/**
- * Login to the backend to get a JWT token.
- * Uses a mock account since the backend has dev fallback.
- */
 async function login() {
     try {
         const res = await api.post('/api/auth/login', {
@@ -44,13 +23,6 @@ async function login() {
     }
 }
 
-
-// ── Patient Profiles ─────────────────────────────────────────────────────────
-
-/**
- * Generate a vitals reading for a given clinical state.
- * Adds realistic noise using Gaussian-like jitter.
- */
 function jitter(base, range) {
     return Math.round(base + (Math.random() * range * 2 - range));
 }
@@ -70,21 +42,21 @@ const PROFILES = {
     }),
 
     moderate: () => ({
-        heart_rate: jitter(108, 8),          // mild tachycardia
-        systolic_bp: jitter(148, 10),          // mild hypertension
+        heart_rate: jitter(108, 8),
+        systolic_bp: jitter(148, 10),
         diastolic_bp: jitter(92, 5),
-        spo2: jitterF(92, 1.5, 1),      // mild hypoxia
-        temperature: jitterF(38.4, 0.3),       // low-grade fever
+        spo2: jitterF(92, 1.5, 1),
+        temperature: jitterF(38.4, 0.3),
         respiratory_rate: jitter(22, 3),
         blood_glucose: jitterF(160, 10, 1),
     }),
 
     critical: () => ({
-        heart_rate: jitter(148, 10),          // severe tachycardia
-        systolic_bp: jitter(186, 8),           // hypertensive crisis
+        heart_rate: jitter(148, 10),
+        systolic_bp: jitter(186, 8),
         diastolic_bp: jitter(110, 5),
-        spo2: jitterF(84, 2, 1),        // critical hypoxia → triggers ICU
-        temperature: jitterF(39.9, 0.3),       // high fever
+        spo2: jitterF(84, 2, 1),
+        temperature: jitterF(39.9, 0.3),
         respiratory_rate: jitter(32, 4),
         blood_glucose: jitterF(280, 20, 1),
     }),
@@ -100,8 +72,6 @@ const PROFILES = {
     }),
 };
 
-// ── Color Helpers ─────────────────────────────────────────────────────────────
-
 function colorScore(score) {
     if (score >= 8) return chalk.bgRed.white.bold(` CRITICAL [${score}] `);
     if (score >= 5) return chalk.bgYellow.black.bold(` HIGH [${score}] `);
@@ -114,8 +84,6 @@ function colorVital(label, value, unit, low, high) {
     const str = `${label}: ${value}${unit}`;
     return isAbnormal ? chalk.red(str) : chalk.gray(str);
 }
-
-// ── API Calls ─────────────────────────────────────────────────────────────────
 
 async function postVitals(admissionId, vitals) {
     const res = await api.post('/api/vitals', { admission_id: admissionId, ...vitals });
@@ -137,8 +105,6 @@ async function getDashboardStats() {
     const res = await api.get('/api/admin/dashboard');
     return res.data.data || {};
 }
-
-// ── Render Dashboard ──────────────────────────────────────────────────────────
 
 function clearScreen() {
     process.stdout.write('\x1Bc');
@@ -185,11 +151,9 @@ async function renderStats() {
         }
         console.log();
     } catch {
-        // Stats not critical to simulation
+
     }
 }
-
-// ── Main Loop ─────────────────────────────────────────────────────────────────
 
 async function simulate(admissionIds) {
     if (admissionIds.length === 0) {
@@ -204,7 +168,6 @@ async function simulate(admissionIds) {
         console.log(chalk.green(` Found ${admissionIds.length} active admission(s): ${admissionIds.join(', ')}\n`));
     }
 
-    // Assign each admission a cycling profile
     const profileNames = ['stable', 'moderate', 'critical', 'recovering'];
     const assignments = admissionIds.map((id, i) => ({
         admissionId: id,
@@ -212,7 +175,6 @@ async function simulate(admissionIds) {
         cycle: 0,
     }));
 
-    // Profile rotation: each patient shifts profile every ~5 cycles to simulate real changes
     const ROTATION_EVERY = 5;
 
     let tick = 0;
@@ -247,7 +209,6 @@ async function simulate(admissionIds) {
                 console.log(` Admission #${asgn.admissionId}`, chalk.red('✗ Failed:'), e.response?.data?.error || e.message);
             }
 
-            // Rotate profile every N cycles
             asgn.cycle++;
             if (asgn.cycle >= ROTATION_EVERY) {
                 asgn.cycle = 0;
@@ -258,15 +219,10 @@ async function simulate(admissionIds) {
         console.log(chalk.gray(`\n  Next update in ${INTERVAL / 1000}s... (Ctrl+C to stop)\n`));
     };
 
-    // Run immediately, then on interval
     await run();
     setInterval(run, INTERVAL);
 }
 
-/**
- * Local score estimator (mirrors DB logic) for display only.
- * The actual score is computed in the DB trigger.
- */
 function estimateScore(v) {
     let s = 0;
     if (v.heart_rate) s += v.heart_rate < 40 || v.heart_rate > 140 ? 3 : v.heart_rate < 50 || v.heart_rate > 120 ? 2 : v.heart_rate < 60 || v.heart_rate > 100 ? 1 : 0;
@@ -275,8 +231,6 @@ function estimateScore(v) {
     if (v.temperature) s += v.temperature < 34 || v.temperature > 40 ? 3 : v.temperature < 35 || v.temperature > 39 ? 2 : v.temperature < 36 || v.temperature > 38 ? 1 : 0;
     return Math.min(s, 10);
 }
-
-// ── Entry Point ───────────────────────────────────────────────────────────────
 
 const args = process.argv.slice(2).map(Number).filter(Boolean);
 

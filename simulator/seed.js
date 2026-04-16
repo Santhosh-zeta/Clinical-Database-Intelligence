@@ -1,21 +1,11 @@
 'use strict';
 
-/**
- * seed.js — One-time data seeder.
- * Creates departments, doctors, patients, wards, beds, and admissions
- * via the REST API so the simulator has real IDs to work with.
- *
- * Run once: node seed.js
- */
-
 require('dotenv').config();
 const axios = require('axios');
 const chalk = require('chalk');
 
 const API = process.env.API_URL || 'http://localhost:3001';
 const api = axios.create({ baseURL: API, timeout: 10000 });
-
-// ── Authentication ────────────────────────────────────────────────────────────
 
 async function login() {
     try {
@@ -33,15 +23,12 @@ async function login() {
     }
 }
 
-
 const log = {
     ok: (msg) => console.log(chalk.green('  ✓'), msg),
     info: (msg) => console.log(chalk.cyan('  ▶'), msg),
     warn: (msg) => console.log(chalk.yellow('  ⚠'), msg),
     err: (msg) => console.log(chalk.red('  ✗'), msg),
 };
-
-// ── Seed Data ────────────────────────────────────────────────────────────────
 
 const DOCTORS = [
     { name: 'Dr. Ananya Ramesh', email: 'ananya@hospital.com', password: 'Pass@1234', role: 'doctor', specialization: 'Cardiology' },
@@ -64,8 +51,6 @@ const WARDS = [
     { name: 'Emergency', ward_type: 'emergency', total_beds: 8 },
 ];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 async function post(path, data) {
     const res = await api.post(path, data);
     return res.data.data;
@@ -84,12 +69,9 @@ async function createBedsForWard(wardId, wardType, count) {
     return results;
 }
 
-// ── Main Seeder ───────────────────────────────────────────────────────────────
-
 async function seed() {
     console.log(chalk.bold.blue('\n🏥  Clinical System — Data Seeder\n'));
 
-    // 1. Health check
     try {
         await api.get('/health');
         log.ok('API is reachable at ' + API);
@@ -98,7 +80,6 @@ async function seed() {
         process.exit(1);
     }
 
-    // 2. Auth & Doctors
     await login();
     log.info('Creating doctors/staff...');
     const doctors = [];
@@ -112,7 +93,6 @@ async function seed() {
         }
     }
 
-    // 3. Create Patients
     log.info('\nCreating patients...');
     const patients = [];
     for (const p of PATIENTS) {
@@ -125,8 +105,6 @@ async function seed() {
         }
     }
 
-    // 4. Create Wards (direct DB only — no ward route exposed yet, using seed SQL)
-    //    We'll add a simple beds endpoint seed
     log.info('\nNote: Run migrations first to create ward/bed tables.');
     log.info('Wards must be inserted via SQL or Supabase UI for now.');
     log.info('Use the SQL below, then re-run with admissions:\n');
@@ -143,7 +121,6 @@ INSERT INTO beds (bed_number, ward_id, is_icu) VALUES
   ('EMG-01',3,false),('EMG-02',3,false),('EMG-03',3,false),('EMG-04',3,false);
   `));
 
-    // 5. Seed summary
     console.log(chalk.bold.green('\n✅ Seed complete!'));
     console.log(chalk.gray(`   Doctors created:  ${doctors.length}`));
     console.log(chalk.gray(`   Patients created: ${patients.length}`));

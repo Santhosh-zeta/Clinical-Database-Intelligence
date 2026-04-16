@@ -27,4 +27,8 @@ const getSummary = async (req, res, next) => {
     try { res.json({ data: await svc.getPatientSummary(req.params.id, req.orgId) }); } catch (e) { next(e); }
 };
 
-module.exports = { list, getById, create, update, getTimeline, addSymptoms, createAppointment, getSummary };
+const getProposedPlan = async (req, res, next) => {
+    try { res.json({ data: await svc.getProposedCarePlan(req.params.id, req.orgId) }); } catch (e) { next(e); }
+};
+
+module.exports = { list, getById, create, update, getTimeline, addSymptoms, createAppointment, getSummary, getProposedPlan };

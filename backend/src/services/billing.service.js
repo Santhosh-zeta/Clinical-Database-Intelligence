@@ -25,17 +25,16 @@ async function getInvoice(admissionId, orgId) {
     return { ...invoice.rows[0], items: items.rows };
 }
 
-async function addItem(invoiceId, orgId, { item_type, item_name, unit_price, quantity = 1 }) {
+async function addItem(invoiceId, orgId, { item_type, item_name, unit_price, quantity = 1, consult_id = null, lab_order_id = null }) {
     const total_price = unit_price * quantity;
     const result = await db.query(
-        `INSERT INTO billing_items (invoice_id, item_type, item_name, unit_price, quantity, total_price)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [invoiceId, item_type, item_name, unit_price, quantity, total_price]
+        `INSERT INTO billing_items (invoice_id, item_type, item_name, unit_price, quantity, total_price, consult_id, lab_order_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+        [invoiceId, item_type, item_name, unit_price, quantity, total_price, consult_id, lab_order_id]
     );
 
-
     await db.query(
-        `UPDATE billing_invoices 
+        `UPDATE billing_invoices
          SET total_amount = (SELECT SUM(total_price) FROM billing_items WHERE invoice_id = $1)
          WHERE id = $1`,
         [invoiceId]
@@ -46,7 +45,7 @@ async function addItem(invoiceId, orgId, { item_type, item_name, unit_price, qua
 
 async function payInvoice(admissionId, orgId) {
     const result = await db.query(
-        `UPDATE billing_invoices 
+        `UPDATE billing_invoices
          SET status = 'paid', issued_at = NOW()
          WHERE admission_id = $1 AND organization_id = $2 RETURNING *`,
         [admissionId, orgId]
@@ -68,7 +67,6 @@ async function generateInvoice(admissionId, orgId) {
     const inv = await getInvoice(admissionId, orgId);
     const invoiceId = inv.id;
 
-
     const stayEnd = adm.discharged_at || new Date();
     const days = Math.max(1, Math.ceil((new Date(stayEnd) - new Date(adm.admitted_at)) / (1000 * 60 * 60 * 24)));
     await addItem(invoiceId, orgId, {
@@ -78,6 +76,21 @@ async function generateInvoice(admissionId, orgId) {
         quantity: days
     });
 
+    const consults = await db.query(`
+        SELECT c.*
+        FROM clinical_consults c
+        WHERE c.patient_id = $1 AND c.status = 'completed' AND c.organization_id = $2
+    `, [adm.patient_id, orgId]);
+
+    for (const c of consults.rows) {
+        await addItem(invoiceId, orgId, {
+            item_type: 'consultation',
+            item_name: `Specialist Consult: ${c.specialty}`,
+            unit_price: 150.00,
+            quantity: 1,
+            consult_id: c.id
+        });
+    }
 
     const labs = await db.query(`
         SELECT lo.*, lt.name as test_name, lt.base_price
@@ -91,10 +104,10 @@ async function generateInvoice(admissionId, orgId) {
             item_type: 'laboratory',
             item_name: `Lab: ${lab.test_name}`,
             unit_price: lab.base_price || 50.00,
-            quantity: 1
+            quantity: 1,
+            lab_order_id: lab.id
         });
     }
-
 
     const meds = await db.query(`
         SELECT p.*, m.name as med_name, m.price_per_unit
@@ -115,4 +128,30 @@ async function generateInvoice(admissionId, orgId) {
     return getInvoice(admissionId, orgId);
 }
 
-module.exports = { getInvoice, addItem, payInvoice, generateInvoice };
+async function getUnbilledItems(admissionId, orgId) {
+
+    const labs = await db.query(`
+        SELECT lo.id, lt.name as item_name, lt.base_price as unit_price, lo.ordered_at as date
+        FROM lab_orders lo
+        JOIN lab_tests lt ON lt.id = lo.test_id
+        WHERE lo.admission_id = $1
+        AND lo.status = 'completed'
+        AND NOT EXISTS (SELECT 1 FROM billing_items bi WHERE bi.lab_order_id = lo.id)
+    `, [admissionId]);
+
+    const { rows: [adm] } = await db.query('SELECT patient_id FROM admissions WHERE id = $1', [admissionId]);
+    const consults = await db.query(`
+        SELECT c.id, c.specialty as item_name, 150.00 as unit_price, c.completed_at as date
+        FROM clinical_consults c
+        WHERE c.patient_id = $1
+        AND c.status = 'completed'
+        AND NOT EXISTS (SELECT 1 FROM billing_items bi WHERE bi.consult_id = c.id)
+    `, [adm.patient_id]);
+
+    return {
+        labs: labs.rows,
+        consults: consults.rows
+    };
+}
+
+module.exports = { getInvoice, addItem, payInvoice, generateInvoice, getUnbilledItems };

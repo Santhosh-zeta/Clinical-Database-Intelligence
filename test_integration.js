@@ -38,11 +38,9 @@ async function testEndpoint(name, url, expectedShapeValidator) {
 async function runTests() {
     console.log(chalk.blue('\n🧪 Starting E2E Integration Suite...\n'));
 
-    // 1. Test Frontend Accessibility
     console.log(chalk.bold('Testing Frontend:'));
     await testEndpoint('Next.js Dashboard', FRONTEND_URL);
 
-    // 2. Test Backend API -> Active Admissions
     console.log(chalk.bold('\nTesting Backend API Integrations:'));
     const patientsResult = await testEndpoint(
         'Fetch Active Admissions',
@@ -50,17 +48,14 @@ async function runTests() {
         (json) => Array.isArray(json.data) && json.data.length > 0 && json.data[0].patient_id !== undefined
     );
 
-    // Get the first active patient
     const patientId = patientsResult.data[0].patient_id;
 
-    // 3. Test Backend API -> Vitals matching frontend schema
     await testEndpoint(
         `Fetch Vitals for Patient #${patientId}`,
         `${API_BASE}/vitals/${patientId}?limit=5`,
         (json) => Array.isArray(json.data) && json.data.length > 0 && json.data[0].heart_rate !== undefined
     );
 
-    // 4. Test Backend API -> Alerts System
     await testEndpoint(
         'Fetch Database-Computed Alerts',
         `${API_BASE}/alerts?limit=5`,

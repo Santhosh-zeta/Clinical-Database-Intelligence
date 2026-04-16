@@ -6,7 +6,6 @@ const stats        = async (req, res, next) => { try { res.json({ data: await sv
 const bedHeatmap   = async (req, res, next) => { try { res.json({ data: await svc.getBedHeatmap(req.orgId) }); } catch(e){next(e);} };
 const ewsSummary   = async (req, res, next) => { try { res.json({ data: await svc.getEWSSummary(req.orgId) }); } catch(e){next(e);} };
 
-// New Smart Dashboard Endpoints
 const getCriticalPatients = async (req, res, next) => { try { res.json({ data: await svc.getCriticalPatients(req.orgId) }); } catch(e) { next(e); } };
 const getAlertsSummary    = async (req, res, next) => { try { res.json({ data: await svc.getAlertsSummary(req.orgId) }); } catch(e) { next(e); } };
 const getBedStatus        = async (req, res, next) => { try { res.json({ data: await svc.getBedStatus(req.orgId) }); } catch(e) { next(e); } };

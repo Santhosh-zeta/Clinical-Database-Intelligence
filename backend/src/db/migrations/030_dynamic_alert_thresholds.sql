@@ -1,7 +1,3 @@
--- ============================================================
--- Migration 030: Dynamic Alert Thresholds
--- ============================================================
-
 ALTER TABLE organization_settings
     ADD COLUMN hr_min          SMALLINT NOT NULL DEFAULT 50,
     ADD COLUMN hr_max          SMALLINT NOT NULL DEFAULT 130,

@@ -1,6 +1,3 @@
--- ============================================================
--- Migration 005: Admissions
--- ============================================================
 CREATE TABLE IF NOT EXISTS admissions (
     id              SERIAL PRIMARY KEY,
     patient_id      INT NOT NULL REFERENCES patients(id) ON DELETE RESTRICT,

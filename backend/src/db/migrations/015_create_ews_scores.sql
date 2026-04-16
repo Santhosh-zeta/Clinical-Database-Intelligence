@@ -1,24 +1,16 @@
--- ============================================================
--- Migration 015: EWS Scores (NEWS2 — National Early Warning Score 2)
--- Industry-standard clinical scoring: 0-20 scale
--- Stored as TimescaleDB hypertable (same pattern as vitals)
--- ============================================================
-
 CREATE TABLE IF NOT EXISTS ews_scores (
     id                  BIGSERIAL,
     admission_id        INT NOT NULL REFERENCES admissions(id) ON DELETE CASCADE,
     organization_id     INT REFERENCES organizations(id) ON DELETE SET NULL DEFAULT 1,
 
-    -- NEWS2 sub-scores (each 0-3)
     total_score         SMALLINT NOT NULL CHECK (total_score BETWEEN 0 AND 20),
-    rr_score            SMALLINT NOT NULL DEFAULT 0,   -- Respiratory Rate
-    spo2_score          SMALLINT NOT NULL DEFAULT 0,   -- Oxygen Saturation
-    temp_score          SMALLINT NOT NULL DEFAULT 0,   -- Temperature
-    bp_score            SMALLINT NOT NULL DEFAULT 0,   -- Systolic BP
-    hr_score            SMALLINT NOT NULL DEFAULT 0,   -- Heart Rate
-    consciousness_score SMALLINT NOT NULL DEFAULT 0,   -- AVPU (0=Alert, 3=CVPU)
+    rr_score            SMALLINT NOT NULL DEFAULT 0,
+    spo2_score          SMALLINT NOT NULL DEFAULT 0,
+    temp_score          SMALLINT NOT NULL DEFAULT 0,
+    bp_score            SMALLINT NOT NULL DEFAULT 0,
+    hr_score            SMALLINT NOT NULL DEFAULT 0,
+    consciousness_score SMALLINT NOT NULL DEFAULT 0,
 
-    -- Clinical category (org-configurable thresholds)
     category            VARCHAR(20) NOT NULL DEFAULT 'low'
                         CHECK (category IN ('low', 'medium', 'high', 'urgent')),
 
@@ -26,7 +18,6 @@ CREATE TABLE IF NOT EXISTS ews_scores (
     PRIMARY KEY (id, calculated_at)
 );
 
--- Convert to TimescaleDB hypertable
 SELECT create_hypertable('ews_scores', 'calculated_at',
     chunk_time_interval => INTERVAL '1 day',
     if_not_exists => TRUE

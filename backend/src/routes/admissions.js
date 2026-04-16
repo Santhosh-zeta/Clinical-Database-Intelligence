@@ -12,7 +12,6 @@ const validate = (req, res, next) => {
     next();
 };
 
-
 router.post(
     '/',
     [
@@ -27,7 +26,6 @@ router.post(
         const client = await db.getClient();
         try {
             await client.query('BEGIN');
-
 
             if (req.body.bed_id) {
                 const bedCheck = await client.query('SELECT is_occupied FROM beds WHERE id=$1', [req.body.bed_id]);
@@ -54,7 +52,6 @@ router.post(
     }
 );
 
-
 router.get('/:id', param('id').isInt(), validate, async (req, res, next) => {
     try {
         const result = await db.query(
@@ -80,7 +77,6 @@ router.get('/:id', param('id').isInt(), validate, async (req, res, next) => {
         res.json({ data: result.rows[0] });
     } catch (err) { next(err); }
 });
-
 
 router.get('/', async (req, res, next) => {
     try {
@@ -110,7 +106,6 @@ router.get('/', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-
 router.put('/:id/discharge', param('id').isInt(), validate, async (req, res, next) => {
     try {
         const result = await db.query(
@@ -125,7 +120,6 @@ router.put('/:id/discharge', param('id').isInt(), validate, async (req, res, nex
         res.json({ data: result.rows[0], message: 'Patient discharged successfully' });
     } catch (err) { next(err); }
 });
-
 
 router.get('/:id/discharge-ready', param('id').isInt(), validate, async (req, res, next) => {
     try {

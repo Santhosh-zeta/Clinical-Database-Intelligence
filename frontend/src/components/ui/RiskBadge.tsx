@@ -13,7 +13,7 @@ export function RiskBadge({ score }: { score: string }) {
 
   return (
     <div className={cn("px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-widest border flex items-center gap-2 shadow-sm", styles[score] || styles.Low)}>
-      <div className={cn("w-2 h-2 rounded-full", 
+      <div className={cn("w-2 h-2 rounded-full",
         score === 'Critical' ? 'bg-rose-500 animate-pulse' :
         score === 'High' ? 'bg-orange-500' :
         score === 'Medium' ? 'bg-amber-500' : 'bg-slate-400'

@@ -18,7 +18,6 @@ const API = 'http://localhost:3001/api';
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
 const authHeader = () => ({ Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' });
 
-// ── Helper: map backend event_type → PatientTimeline type ───────────────────
 function mapEventType(t: string): TimelineEvent['type'] {
   if (t === 'admission') return 'admission';
   if (t === 'alert') return 'alert';
@@ -80,7 +79,6 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
   const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
   const [patientDbId, setPatientDbId] = useState<number | null>(null);
 
-  // ── Fetch Patient data ────────────────────────────────────────────────────
   const fetchDynamic = useCallback(async () => {
     if (!patientDbId) return;
     try {
@@ -105,7 +103,6 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
     return () => clearInterval(id);
   }, [fetchDynamic]);
 
-  // ── Fetch Initial / Static Patient ────────────────────────────────────────
   useEffect(() => {
     async function fetchPatientData() {
       try {
@@ -137,7 +134,6 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
     } catch (_) { }
   };
 
-  // ── Prescriptions ─────────────────────────────────────────────────────────
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [rxLoading, setRxLoading] = useState(true);
   const [rxSuggestions, setRxSuggestions] = useState<any[]>([]);
@@ -146,25 +142,20 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
   const [checkingInteractions, setCheckingInteractions] = useState(false);
   const [isIssuingRx, setIsIssuingRx] = useState(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [rxForm, setRxForm] = useState({ medicationId: '', dose: '', frequency: '', notes: '' });
+  const [rxForm, setRxForm] = useState({ medicationId: '', dose: '', frequency: '', route: 'oral', notes: '' });
 
-  // ── Discharge ─────────────────────────────────────────────────────────────
   const [dischargeReady, setDischargeReady] = useState<boolean | null>(null);
   const [isDischarging, setIsDischarging] = useState(false);
   const [showDischargeConfirm, setShowDischargeConfirm] = useState(false);
 
-  // ── Real EWS ──────────────────────────────────────────────────────────────
   const [ewsData, setEwsData] = useState<{ total_score: number; category: string } | null>(null);
 
-  // ── Real Timeline ─────────────────────────────────────────────────────────
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
   const [timelineSummary, setTimelineSummary] = useState<any>(null);
   const [timelineLoading, setTimelineLoading] = useState(true);
 
-  // ── Vitals Trend ──────────────────────────────────────────────────────────
   const [trend, setTrend] = useState<any | null>(null);
 
-  // ── Symptoms ──────────────────────────────────────────────────────────────
   const [showSymptomsModal, setShowSymptomsModal] = useState(false);
   const [symptoms, setSymptoms] = useState<{ name: string; severity: string }[]>([{ name: '', severity: 'moderate' }]);
   const [isSavingSymptoms, setIsSavingSymptoms] = useState(false);
@@ -181,7 +172,6 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
 
   useEffect(() => { fetchPrescriptions(); }, [fetchPrescriptions]);
 
-  // ── Fetch EWS ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!patient?.id) return;
     fetch(`${API}/vitals/ews/${patient.id}`, { headers: authHeader() })
@@ -190,7 +180,6 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
       .catch(() => { });
   }, [patient?.id]);
 
-  // ── Fetch discharge-ready ─────────────────────────────────────────────────
   useEffect(() => {
     if (!patient?.id) return;
     fetch(`${API}/admissions/${patient.id}/discharge-ready`, { headers: authHeader() })
@@ -199,7 +188,6 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
       .catch(() => { });
   }, [patient?.id]);
 
-  // ── Fetch real timeline from backend ─────────────────────────────────────
   useEffect(() => {
     if (!patientDbId) return;
     setTimelineLoading(true);
@@ -223,7 +211,6 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
       .finally(() => setTimelineLoading(false));
   }, [patientDbId]);
 
-  // ── Fetch vitals trend ────────────────────────────────────────────────────
   useEffect(() => {
     if (!patientDbId) return;
     fetch(`${API}/vitals/${patientDbId}/trend`, { headers: authHeader() })
@@ -232,7 +219,6 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
       .catch(() => { });
   }, [patientDbId]);
 
-  // ── Fetch suggestions when modal opens ───────────────────────────────────
   useEffect(() => {
     if (!showPrescribeModal || !patient?.diagnosis) return;
     fetch(`${API}/prescriptions/suggest?diagnosis=${encodeURIComponent(patient.diagnosis)}`, { headers: authHeader() })
@@ -241,7 +227,6 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
       .catch(() => setRxSuggestions([]));
   }, [showPrescribeModal, patient?.diagnosis]);
 
-  // ── Drug interaction check ────────────────────────────────────────────────
   const handleInteractionCheck = async () => {
     if (!rxForm.medicationId) return;
     setCheckingInteractions(true);
@@ -258,7 +243,6 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
     setCheckingInteractions(false);
   };
 
-  // ── Cancel prescription ───────────────────────────────────────────────────
   const handleCancelPrescription = async (id: string) => {
     setCancellingId(id);
     try {
@@ -268,7 +252,6 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
     setCancellingId(null);
   };
 
-  // ── Issue prescription ────────────────────────────────────────────────────
   const handleIssuePrescription = async () => {
     if (!rxForm.medicationId || !rxForm.dose || !rxForm.frequency) return;
     setIsIssuingRx(true);
@@ -278,20 +261,24 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
         body: JSON.stringify({
           admission_id: parseInt(patient!.id),
           medication_id: parseInt(rxForm.medicationId),
-          dose: rxForm.dose, frequency: rxForm.frequency, notes: rxForm.notes,
+          dose: rxForm.dose, frequency: rxForm.frequency, route: rxForm.route, notes: rxForm.notes,
         }),
       });
       const result = await res.json();
       if (result.interaction_warning && result.interactions?.length > 0) setDrugInteractions(result.interactions);
       await fetchPrescriptions();
-      setShowPrescribeModal(false);
-      setRxForm({ medicationId: '', dose: '', frequency: '', notes: '' });
-      setDrugInteractions([]);
+
+      if (!result.interaction_warning) {
+        setShowPrescribeModal(false);
+        setRxForm({ medicationId: '', dose: '', frequency: '', route: 'oral', notes: '' });
+        setDrugInteractions([]);
+      } else {
+        setDrugInteractions(result.interactions || []);
+      }
     } catch (_) { }
     setIsIssuingRx(false);
   };
 
-  // ── Discharge ─────────────────────────────────────────────────────────────
   const handleDischarge = async () => {
     setIsDischarging(true);
     try {
@@ -305,7 +292,6 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
     setShowDischargeConfirm(false);
   };
 
-  // ── Save symptoms ─────────────────────────────────────────────────────────
   const handleSaveSymptoms = async () => {
     const valid = symptoms.filter(s => s.name.trim());
     if (!valid.length || !patientDbId) return;
@@ -317,7 +303,7 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
       });
       if (res.ok) {
         setSymptomsSuccess(true);
-        // Trigger prescription suggestions based on saved symptoms
+
         if (!showPrescribeModal) {
           fetch(`${API}/prescriptions/suggest?diagnosis=${encodeURIComponent(valid.map(s => s.name).join(','))}`, { headers: authHeader() })
             .then(r => r.json())
@@ -340,8 +326,8 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
 
   return (
     <div className="max-w-[1400px] mx-auto p-4 font-sans text-gray-900">
-      
-      {/* Header */}
+
+      {}
       <div className="mb-4">
         <Link href="/patients" className="text-sm font-bold text-blue-900 hover:underline mb-4 inline-block">
           &laquo; Back to Patient Directory
@@ -368,19 +354,19 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
               )}
             </div>
           </div>
-          
+
           <div className="flex flex-col items-end gap-4">
             <div className="border border-gray-400 bg-gray-100 p-2 text-center shadow-sm">
-                <div className="text-xs font-bold text-gray-600 uppercase">EWS Level</div>
-                <div className={cn("text-xl font-bold", ewsCategory === 'Critical' ? "text-red-700" : ewsCategory === 'High' ? "text-orange-600" : "text-green-700")}>
-                    {ewsData?.total_score ?? '-'} ({ewsCategory})
-                </div>
+              <div className="text-xs font-bold text-gray-600 uppercase">EWS Level</div>
+              <div className={cn("text-xl font-bold", ewsCategory === 'Critical' ? "text-red-700" : ewsCategory === 'High' ? "text-orange-600" : "text-green-700")}>
+                {ewsData?.total_score ?? '-'} ({ewsCategory})
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-2">
               {dischargeReady === true && (
                 <span className="px-3 py-1 bg-green-100 border border-green-700 text-green-900 text-sm font-bold shadow-sm">
-                   READY FOR DISCHARGE
+                  READY FOR DISCHARGE
                 </span>
               )}
               <button onClick={() => setShowSymptomsModal(true)}
@@ -401,13 +387,13 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Left Column */}
+        {}
         <div className="lg:flex-[2] flex flex-col gap-6">
           <div className="bg-white border border-gray-400 shadow-sm">
             <VitalsChart vitals={vitals} />
           </div>
 
-          {/* Active Alerts */}
+          {}
           {activeAlerts.length > 0 && (
             <div className="bg-white border-2 border-red-700 p-4 shadow-sm flex flex-col gap-3">
               <h3 className="font-bold text-red-800 text-lg border-b border-red-200 pb-2">
@@ -421,7 +407,7 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
             </div>
           )}
 
-          {/* Prescriptions */}
+          {}
           <div className="bg-white border border-gray-400 shadow-sm p-4">
             <div className="flex items-center justify-between mb-4 border-b border-gray-300 pb-2">
               <h3 className="font-bold text-gray-900 text-lg">Active Prescriptions</h3>
@@ -479,7 +465,7 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
           </div>
         </div>
 
-        {/* Right Column: Real Timeline */}
+        {}
         <div className="lg:flex-1 bg-white border border-gray-400 shadow-sm p-4 flex flex-col h-[800px]">
           <div className="flex items-center justify-between mb-4 border-b border-gray-300 pb-2">
             <h3 className="font-bold text-gray-900 text-lg">System Audit Timeline</h3>
@@ -505,15 +491,15 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
         </div>
       </div>
 
-      {/* ── Modals ─────────────────────────────────────────────────────────── */}
-      
-      {/* Issue Prescription Modal */}
+      {}
+
+      {}
       {showPrescribeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-none">
           <div className="bg-white w-full max-w-lg border-2 border-black shadow-lg flex flex-col max-h-[90vh]">
             <div className="bg-blue-900 border-b border-black p-3 flex justify-between items-center text-white">
               <h3 className="font-bold text-lg m-0">Issue Prescription</h3>
-              <button onClick={() => { setShowPrescribeModal(false); setDrugInteractions([]); setRxSuggestions([]); setRxForm({ medicationId: '', dose: '', frequency: '', notes: '' }); }}
+              <button onClick={() => { setShowPrescribeModal(false); setDrugInteractions([]); setRxSuggestions([]); setRxForm({ medicationId: '', dose: '', frequency: '', route: 'oral', notes: '' }); }}
                 className="font-bold text-white hover:text-gray-300">
                 [X]
               </button>
@@ -538,14 +524,30 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
                   </div>
                 </div>
               )}
-              
+
               <div className="bg-white border border-gray-400 p-3 shadow-sm space-y-3">
                 <RxInput label="Medication ID" type="number" placeholder="Enter ID..." value={rxForm.medicationId} onChange={v => setRxForm(f => ({ ...f, medicationId: v }))} />
                 <div className="grid grid-cols-2 gap-3">
-                  <RxInput label="Dose" placeholder="e.g. 500mg IV" value={rxForm.dose} onChange={v => setRxForm(f => ({ ...f, dose: v }))} />
+                  <RxInput label="Dose" placeholder="e.g. 500mg" value={rxForm.dose} onChange={v => setRxForm(f => ({ ...f, dose: v }))} />
                   <RxInput label="Frequency" placeholder="e.g. BID" value={rxForm.frequency} onChange={v => setRxForm(f => ({ ...f, frequency: v }))} />
                 </div>
-                <RxInput label="Notes (Optional)" placeholder="Specials..." value={rxForm.notes} onChange={v => setRxForm(f => ({ ...f, notes: v }))} />
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-gray-700 uppercase bg-gray-200 border border-gray-400 px-2 py-0.5 w-fit">Route</label>
+                  <select
+                    value={rxForm.route}
+                    onChange={e => setRxForm(f => ({ ...f, route: e.target.value }))}
+                    className="w-full px-2 py-1 bg-white border border-gray-400 outline-none text-sm font-bold text-gray-800"
+                  >
+                    <option value="oral">Oral</option>
+                    <option value="IV">IV</option>
+                    <option value="IM">IM</option>
+                    <option value="SQ">SQ</option>
+                    <option value="topical">Topical</option>
+                    <option value="inhaled">Inhaled</option>
+                    <option value="sublingual">Sublingual</option>
+                  </select>
+                </div>
+                <RxInput label="Clinical Notes" placeholder="Observation/Instructions..." value={rxForm.notes} onChange={v => setRxForm(f => ({ ...f, notes: v }))} />
               </div>
 
               {drugInteractions.length > 0 && (
@@ -578,7 +580,7 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
         </div>
       )}
 
-      {/* Symptoms Modal */}
+      {}
       {showSymptomsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-none">
           <div className="bg-white w-full max-w-md border-2 border-black shadow-lg flex flex-col">
@@ -641,13 +643,13 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
         </div>
       )}
 
-      {/* Discharge Confirm Modal */}
+      {}
       {showDischargeConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-none">
           <div className="bg-white w-full max-w-sm border-2 border-red-900 shadow-lg p-6 text-center shadow-xl">
             <h3 className="text-xl font-bold text-red-900 mb-2 uppercase">Discharge Authorization</h3>
             <p className="text-gray-700 text-sm mb-6 font-bold">
-              Release patient <strong>{patient.name}</strong> from <strong>{patient.ward}</strong>?<br/>This action finalizes the current admission record.
+              Release patient <strong>{patient.name}</strong> from <strong>{patient.ward}</strong>?<br />This action finalizes the current admission record.
             </p>
             {dischargeReady === false && (
               <div className="bg-yellow-50 border border-yellow-400 p-2 mb-4 text-xs text-yellow-800 font-bold">
@@ -671,7 +673,6 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
   );
 }
 
-// ── Vitals Trend Chip ────────────────────────────────────────────────────────
 function TrendChip({ label, value }: { label: string; value?: any }) {
   if (!value) return null;
   const dir = value.direction ?? (value.rate_of_change > 0 ? 'up' : value.rate_of_change < 0 ? 'down' : 'stable');
@@ -689,7 +690,6 @@ function TrendChip({ label, value }: { label: string; value?: any }) {
   );
 }
 
-// ── Prescription input helper ────────────────────────────────────────────────
 function RxInput({ label, value, onChange, type = 'text', placeholder }: { label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string }) {
   return (
     <div className="flex flex-col gap-1">

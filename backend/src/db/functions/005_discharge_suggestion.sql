@@ -1,9 +1,3 @@
--- ============================================================
--- Function 005: suggest_discharge(admission_id)
--- Returns TRUE if the last 3 risk scores are all <= 2 (stable)
--- API exposes this as the discharge_ready flag.
--- ============================================================
-
 CREATE OR REPLACE FUNCTION suggest_discharge(p_admission_id INT)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
@@ -12,7 +6,7 @@ DECLARE
     v_count     INT;
     v_low_count INT;
 BEGIN
-    -- Count last 3 risk scores
+
     SELECT COUNT(*), SUM(CASE WHEN score <= 2 THEN 1 ELSE 0 END)
     INTO v_count, v_low_count
     FROM (
@@ -23,7 +17,6 @@ BEGIN
         LIMIT 3
     ) AS last_scores;
 
-    -- Need at least 3 readings all in stable range
     RETURN (v_count = 3 AND v_low_count = 3);
 END;
 $$;

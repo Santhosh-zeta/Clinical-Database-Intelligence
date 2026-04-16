@@ -9,5 +9,4 @@ const router = Router();
 router.get('/ward/:wardId', requirePermission('VIEW_PATIENT'), ctrl.listByWard);
 router.post('/', requirePermission('VIEW_PATIENT'), ctrl.create);
 
-
 module.exports = router;

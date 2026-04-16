@@ -11,4 +11,17 @@ async function list(req, res, next) {
     }
 }
 
-module.exports = { list };
+async function create(req, res, next) {
+    try {
+        const { name, ward_type, department_id } = req.body;
+        const result = await db.query(
+            'INSERT INTO wards (name, ward_type, department_id) VALUES ($1, $2, $3) RETURNING *',
+            [name, ward_type, department_id]
+        );
+        res.status(201).json({ data: result.rows[0] });
+    } catch (e) {
+        next(e);
+    }
+}
+
+module.exports = { list, create };

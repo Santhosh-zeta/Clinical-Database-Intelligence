@@ -61,7 +61,7 @@ export default function SettingsPage() {
    return (
       <div className="max-w-[1200px] mx-auto p-4 font-sans text-gray-900 relative">
 
-         {/* Header */}
+         { }
          <div className="border-b-2 border-black pb-2 mb-4 flex justify-between items-end">
             <div>
                <h1 className="text-2xl font-bold text-black m-0 uppercase tracking-widest">System Configurations</h1>
@@ -85,7 +85,7 @@ export default function SettingsPage() {
 
          <div className="flex flex-col md:flex-row gap-6">
 
-            {/* Navigation Menu */}
+            { }
             <div className="w-full md:w-64 flex flex-col border border-black bg-white shadow-sm">
                <div className="bg-gray-300 font-bold p-2 text-sm border-b border-black uppercase text-center tracking-widest">
                   Menu Options
@@ -96,10 +96,10 @@ export default function SettingsPage() {
                <MenuButton active={activeTab === 'security'} onClick={() => setActiveTab('security')} label="4. Data & Security" />
             </div>
 
-            {/* Content Area */}
+            { }
             <div className="flex-1 min-h-[500px]">
 
-               {/* Profile Tab */}
+               { }
                {activeTab === 'profile' && (
                   <div className="border border-black bg-white h-full shadow-sm">
                      <div className="bg-gray-300 font-bold p-2 text-sm border-b border-black uppercase tracking-widest">
@@ -151,7 +151,7 @@ export default function SettingsPage() {
                   </div>
                )}
 
-               {/* Thresholds Tab */}
+               { }
                {activeTab === 'thresholds' && (
                   <div className="border border-black bg-white h-full shadow-sm">
                      <div className="bg-gray-300 font-bold p-2 text-sm border-b border-black uppercase tracking-widest">
@@ -187,7 +187,7 @@ export default function SettingsPage() {
                   </div>
                )}
 
-               {/* Notifications Tab */}
+               { }
                {activeTab === 'notifications' && (
                   <div className="border border-black bg-white h-full shadow-sm">
                      <div className="bg-gray-300 font-bold p-2 text-sm border-b border-black uppercase tracking-widest">
@@ -229,7 +229,7 @@ export default function SettingsPage() {
                   </div>
                )}
 
-               {/* Security Tab */}
+               { }
                {activeTab === 'security' && (
                   <div className="border border-black bg-white h-full shadow-sm">
                      <div className="bg-gray-300 font-bold p-2 text-sm border-b border-black uppercase tracking-widest">

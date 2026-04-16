@@ -1,6 +1,3 @@
--- ============================================================
--- Migration 009: Notifications
--- ============================================================
 CREATE TABLE IF NOT EXISTS notifications (
     id              SERIAL PRIMARY KEY,
     doctor_id       INT NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,

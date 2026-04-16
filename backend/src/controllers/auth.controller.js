@@ -42,9 +42,8 @@ const login = async (req, res, next) => {
         const match = await bcrypt.compare(password, doctor.password_hash);
         if (!match) throw createError('Invalid credentials', 401);
 
-        // Fetch granular permissions from the new RBAC tables
         const permsResult = await db.query(
-            `SELECT p.code 
+            `SELECT p.code
              FROM user_roles ur
              JOIN role_permissions rp ON rp.role_id = ur.role_id
              JOIN permissions p ON p.id = rp.permission_id

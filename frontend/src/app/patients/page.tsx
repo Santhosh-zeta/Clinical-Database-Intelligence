@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { PermissionGuard } from '../../components/layout/PermissionGuard';
+import { cn } from '@/lib/utils';
 
 const API = 'http://localhost:3001/api';
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
 const ah = () => ({ Authorization: `Bearer ${getToken()}` });
 
-export default function PatientsPage() {
+export default function PatientsPage({ admissionId, setAdmissionId }: { admissionId?: number | null, setAdmissionId?: (id: number) => void }) {
   const { currentUser } = useAuth();
   const router = useRouter();
   const [patients, setPatients] = useState<any[]>([]);
@@ -104,35 +105,35 @@ export default function PatientsPage() {
           </div>
         </div>
 
-        {/* Legacy Search & Filter Bar */}
+        { }
         <div className="bg-gray-100 border border-gray-400 p-2 mb-4 flex gap-4 items-center">
-            <div className="flex items-center gap-2">
-                <span className="font-bold text-sm">Search:</span>
-                <input
-                    type="text"
-                    className="border border-gray-400 px-2 py-1 text-sm w-64 bg-white"
-                    placeholder="Search by name, ID, ward..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
-            
-            <div className="border-l border-gray-400 pl-4 flex items-center gap-2">
-                <span className="font-bold text-sm">View Filter:</span>
-                <select 
-                    className="border border-gray-400 px-2 py-1 text-sm bg-white cursor-pointer"
-                    value={filterMode}
-                    onChange={(e) => setFilterMode(e.target.value as any)}
-                >
-                    <option value="all">All Admissions</option>
-                    <option value="critical">Critical / High Risk</option>
-                    <option value="stable">Stable / Low Risk</option>
-                    <option value="icu">ICU Wards</option>
-                </select>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-sm">Search:</span>
+            <input
+              type="text"
+              className="border border-gray-400 px-2 py-1 text-sm w-64 bg-white"
+              placeholder="Search by name, ID, ward..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="border-l border-gray-400 pl-4 flex items-center gap-2">
+            <span className="font-bold text-sm">View Filter:</span>
+            <select
+              className="border border-gray-400 px-2 py-1 text-sm bg-white cursor-pointer"
+              value={filterMode}
+              onChange={(e) => setFilterMode(e.target.value as any)}
+            >
+              <option value="all">All Admissions</option>
+              <option value="critical">Critical / High Risk</option>
+              <option value="stable">Stable / Low Risk</option>
+              <option value="icu">ICU Wards</option>
+            </select>
+          </div>
         </div>
 
-        {/* Legacy Table */}
+        { }
         <div className="bg-white border border-gray-400 shadow-sm overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
@@ -166,13 +167,19 @@ export default function PatientsPage() {
                 </tr>
               )}
               {!loading && paginatedPatients.map((patient) => (
-                <PatientRow key={patient.id} patient={patient} patientDbId={patient.patient_id} />
+                <PatientRow
+                  key={patient.id}
+                  patient={patient}
+                  patientDbId={patient.patient_id}
+                  isSelected={Number(patient.admission_id) === admissionId}
+                  onSelect={setAdmissionId ? () => setAdmissionId(Number(patient.admission_id)) : undefined}
+                />
               ))}
             </tbody>
           </table>
         </div>
 
-        {/* Legacy Pagination */}
+        { }
         {totalPages > 1 && (
           <div className="bg-gray-100 border border-t-0 border-gray-400 p-2 flex justify-between items-center text-sm">
             <div className="font-bold">Page {currentPage} of {totalPages}</div>
@@ -200,7 +207,7 @@ export default function PatientsPage() {
   );
 }
 
-function PatientRow({ patient, patientDbId }: { patient: any; patientDbId?: string | number }) {
+function PatientRow({ patient, patientDbId, isSelected, onSelect }: { patient: any; patientDbId?: string | number; isSelected?: boolean; onSelect?: () => void }) {
   const [history, setHistory] = useState<any[]>([]);
 
   useEffect(() => {
@@ -241,9 +248,9 @@ function PatientRow({ patient, patientDbId }: { patient: any; patientDbId?: stri
       <td className="p-2 border-r border-gray-200 text-center font-bold">
         <span className={
           patient.riskScore === 'Critical' ? 'text-red-700' :
-          patient.riskScore === 'High' ? 'text-orange-700' :
-          patient.riskScore === 'Medium' ? 'text-blue-700' :
-          'text-green-700'
+            patient.riskScore === 'High' ? 'text-orange-700' :
+              patient.riskScore === 'Medium' ? 'text-blue-700' :
+                'text-green-700'
         }>
           {patient.riskScore}
         </span>
@@ -253,9 +260,20 @@ function PatientRow({ patient, patientDbId }: { patient: any; patientDbId?: stri
           {currentHr}
         </span>
       </td>
-      <td className="p-2 text-center">
-        <Link href={`/patients/${patient.id}`} className="text-blue-600 hover:underline font-bold text-sm">
-          Open Chart
+      <td className="p-2 text-center flex flex-col gap-1 items-center">
+        {onSelect && (
+          <button
+            onClick={onSelect}
+            className={cn(
+              "text-[10px] font-black uppercase px-2 py-1 border border-black shadow-[2px_2px_0px_#000] transition-all",
+              isSelected ? "bg-slate-900 text-white" : "bg-white text-slate-900 hover:bg-slate-50"
+            )}
+          >
+            {isSelected ? "SELECTED" : "SELECT CASE"}
+          </button>
+        )}
+        <Link href={`/patients/${patient.id}`} className="text-blue-600 hover:underline font-bold text-[10px] uppercase">
+          Open Chart &rarr;
         </Link>
       </td>
     </tr>

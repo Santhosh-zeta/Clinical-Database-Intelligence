@@ -13,7 +13,6 @@ const validate = (req, res, next) => {
     next();
 };
 
-
 router.post(
     '/',
     [
@@ -37,7 +36,6 @@ router.post(
     }
 );
 
-
 router.get('/', async (req, res, next) => {
     try {
         const { search, page = 1, limit = 20 } = req.query;
@@ -55,7 +53,6 @@ router.get('/', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-
 router.get('/:id', param('id').isInt(), validate, async (req, res, next) => {
     try {
         const result = await db.query('SELECT * FROM patients WHERE id = $1', [req.params.id]);
@@ -63,7 +60,6 @@ router.get('/:id', param('id').isInt(), validate, async (req, res, next) => {
         res.json({ data: result.rows[0] });
     } catch (err) { next(err); }
 });
-
 
 router.put('/:id', param('id').isInt(), validate, async (req, res, next) => {
     try {

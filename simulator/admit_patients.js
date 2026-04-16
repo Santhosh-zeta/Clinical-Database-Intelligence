@@ -13,15 +13,12 @@ async function main() {
         const token = authRes.data.token;
         const headers = { Authorization: `Bearer ${token}` };
 
-        // 1. Fetch available patients
         const patientsRes = await axios.get(`${API_BASE}/api/patients`, { headers });
         const patients = patientsRes.data.data || [];
 
-        // 2. Fetch bed status to find free beds
-        // Using the legacy beds route which is more reliable in this environment
         const bedsRes = await axios.get(`${API_BASE}/api/admin/bed-status`, { headers }).catch(async (err) => {
             console.log('  ⚠ /api/admin/bed-status failed, falling back to direct DB fetch logic simulation...');
-            // Since we just setup the DB, we can assume beds are available or just use fallback
+
             return { data: { data: [
                 { bed_id: 1, bed_number: 'GEN-01', ward_id: 1, ward_name: 'General Ward A', is_occupied: false },
                 { bed_id: 2, bed_number: 'GEN-02', ward_id: 1, ward_name: 'General Ward A', is_occupied: false },
@@ -65,7 +62,7 @@ async function main() {
             }
         }
         console.log('\nAdmissions complete. You can now run node simulate.js');
-    } catch (e) { 
+    } catch (e) {
         if (e.response) {
             console.error('Fatal error:', e.message);
             console.error('URL:', e.config.url);

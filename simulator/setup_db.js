@@ -6,7 +6,7 @@ async function setup() {
     console.log('Finalizing Database Setup (Wards, Beds, Doctors)...');
 
     try {
-        // 1. Insert Wards
+
         console.log('  ▶ Inserting Wards...');
         await pool.query(`
             INSERT INTO wards (name, ward_type, total_beds) VALUES
@@ -16,7 +16,6 @@ async function setup() {
             ON CONFLICT DO NOTHING
         `);
 
-        // 2. Insert Beds
         console.log('  ▶ Inserting Beds...');
         const wardRes = await pool.query('SELECT id, name, ward_type FROM wards');
         const wards = wardRes.rows;
@@ -27,18 +26,17 @@ async function setup() {
             for (let i = 1; i <= count; i++) {
                 const bedNum = `${prefix}-${String(i).padStart(2, '0')}`;
                 await pool.query(`
-                    INSERT INTO beds (bed_number, ward_id, is_icu) 
+                    INSERT INTO beds (bed_number, ward_id, is_icu)
                     VALUES ($1, $2, $3)
                     ON CONFLICT DO NOTHING
                 `, [bedNum, ward.id, ward.ward_type === 'icu']);
             }
         }
 
-        // 3. Insert Doctors (direct DB bypass since seeding endpoint had issues)
         console.log('  ▶ Inserting Doctors/Staff...');
         const bcrypt = require('bcryptjs');
         const passHash = await bcrypt.hash('Pass@1234', 12);
-        
+
         const staff = [
             { name: 'Dr. Ananya Ramesh', email: 'ananya@hospital.com', role: 'doctor', spec: 'Cardiology' },
             { name: 'Dr. Vikram Nair', email: 'vikram@hospital.com', role: 'doctor', spec: 'Pulmonology' },
@@ -53,11 +51,10 @@ async function setup() {
                 ON CONFLICT (email) DO NOTHING
                 RETURNING id
             `, [s.name, s.email, passHash, s.role, s.spec]);
-            
+
             if (res.rowCount > 0) {
                 const docId = res.rows[0].id;
-                // Assign 'admin' role permissions if it's an admin (none here), 
-                // but we should at least add them to user_roles
+
                 const roleRes = await pool.query('SELECT id FROM roles WHERE name = $1', [s.role]);
                 if (roleRes.rowCount > 0) {
                     await pool.query(`

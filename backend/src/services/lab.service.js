@@ -49,7 +49,6 @@ async function recordResults(orderId, orgId, technicianId, results) {
     );
     if (!order) throw new Error('Order not found');
 
-
     for (const res of results) {
         await db.query(
             `INSERT INTO lab_results (order_id, organization_id, technician_id, test_id, parameter_name, result_value, is_abnormal, verified_at)
@@ -57,7 +56,6 @@ async function recordResults(orderId, orgId, technicianId, results) {
             [orderId, orgId, technicianId, order.test_id, res.parameter_name, res.result_value, res.is_abnormal || false]
         );
     }
-
 
     const updated = await db.query(
         "UPDATE lab_orders SET status = 'completed' WHERE id = $1 AND organization_id = $2 RETURNING *",

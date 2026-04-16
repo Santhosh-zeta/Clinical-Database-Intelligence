@@ -41,7 +41,7 @@ async function run() {
             console.log(`  ▶  Applying: ${file}`);
 
             try {
-                // Try applying the whole file first
+
                 await pool.query(sql);
                 await pool.query(
                     'INSERT INTO schema_migrations (filename) VALUES ($1) ON CONFLICT DO NOTHING',
@@ -49,8 +49,7 @@ async function run() {
                 );
                 console.log(`  ✓  Done: ${file}`);
             } catch (err) {
-                // If it fails with transaction error or relation already exists, try splitting if appropriate
-                // or just skip if it's "already exists"
+
                 if (err.code === '42P07' || err.code === '42710') {
                     console.log(`     ⚠  Warning: ${err.message} (Recording as applied anyway)`);
                     await pool.query(

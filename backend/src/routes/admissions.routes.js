@@ -12,14 +12,10 @@ const validate = (req, res, next) => {
     next();
 };
 
-/** GET  /api/admissions              — list (status filter) */
 router.get('/', requirePermission('VIEW_ADMISSIONS'), ctrl.list);
 
-/** GET  /api/admissions/suggestions — list ready for discharge */
 router.get('/suggestions', requirePermission('DISCHARGE_PATIENT'), ctrl.listSuggestions);
 
-
-/** POST /api/admissions              — admit patient */
 router.post('/',
     requirePermission('CREATE_ADMISSION'),
     [body('patient_id').isInt(), body('doctor_id').isInt()],
@@ -27,13 +23,10 @@ router.post('/',
     ctrl.create
 );
 
-/** GET  /api/admissions/:id          — get with risk + EWS */
 router.get('/:id', requirePermission('VIEW_ADMISSIONS'), ctrl.getById);
 
-/** PUT  /api/admissions/:id/discharge — discharge */
 router.put('/:id/discharge', requirePermission('DISCHARGE_PATIENT'), ctrl.discharge);
 
-/** GET  /api/admissions/:id/discharge-ready — suggest discharge */
 router.get('/:id/discharge-ready', requirePermission('DISCHARGE_PATIENT'), ctrl.dischargeReady);
 
 module.exports = router;

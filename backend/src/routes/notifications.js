@@ -5,7 +5,6 @@ const db = require('../config/db');
 
 const router = Router();
 
-
 router.get('/', async (req, res, next) => {
     try {
         const { doctor_id, unread_only, page = 1, limit = 30 } = req.query;
@@ -27,7 +26,6 @@ router.get('/', async (req, res, next) => {
         res.json({ data: result.rows, count: result.rowCount });
     } catch (err) { next(err); }
 });
-
 
 router.put('/:id/read', async (req, res, next) => {
     try {

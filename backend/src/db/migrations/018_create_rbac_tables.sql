@@ -1,9 +1,3 @@
--- ============================================================
--- Migration 018: Full RBAC Tables
--- roles, permissions, role_permissions, user_roles
--- Replaces the simple role column with granular permissions
--- ============================================================
-
 CREATE TABLE IF NOT EXISTS roles (
     id          SERIAL PRIMARY KEY,
     name        VARCHAR(50) UNIQUE NOT NULL,
@@ -31,11 +25,9 @@ CREATE TABLE IF NOT EXISTS user_roles (
     UNIQUE (doctor_id, role_id, org_id)
 );
 
--- Indexes for critical permission lookup path
 CREATE INDEX IF NOT EXISTS idx_user_roles_lookup ON user_roles(doctor_id, org_id);
 CREATE INDEX IF NOT EXISTS idx_role_perms_role   ON role_permissions(role_id);
 
--- ── Seed Standard Roles ──────────────────────────────────────────────────────
 INSERT INTO roles (name, description) VALUES
     ('admin',      'Hospital administrator — full access'),
     ('doctor',     'Attending physician — clinical access'),
@@ -44,7 +36,6 @@ INSERT INTO roles (name, description) VALUES
     ('patient',    'Patient portal access')
 ON CONFLICT (name) DO NOTHING;
 
--- ── Seed All Permission Codes ─────────────────────────────────────────────────
 INSERT INTO permissions (code, description) VALUES
     ('VIEW_PATIENT',        'View patient demographics'),
     ('CREATE_PATIENT',      'Register a new patient'),
@@ -70,12 +61,10 @@ INSERT INTO permissions (code, description) VALUES
     ('VIEW_TIMELINE',       'View patient event timeline')
 ON CONFLICT (code) DO NOTHING;
 
--- ── Admin: all permissions ────────────────────────────────────────────────────
 INSERT INTO role_permissions (role_id, permission_id)
     SELECT (SELECT id FROM roles WHERE name='admin'), id FROM permissions
 ON CONFLICT DO NOTHING;
 
--- ── Doctor: clinical permissions ─────────────────────────────────────────────
 INSERT INTO role_permissions (role_id, permission_id)
     SELECT (SELECT id FROM roles WHERE name='doctor'), id FROM permissions
     WHERE code IN (
@@ -90,7 +79,6 @@ INSERT INTO role_permissions (role_id, permission_id)
     )
 ON CONFLICT DO NOTHING;
 
--- ── Nurse: monitoring + recording ────────────────────────────────────────────
 INSERT INTO role_permissions (role_id, permission_id)
     SELECT (SELECT id FROM roles WHERE name='nurse'), id FROM permissions
     WHERE code IN (
@@ -101,7 +89,6 @@ INSERT INTO role_permissions (role_id, permission_id)
     )
 ON CONFLICT DO NOTHING;
 
--- ── Head Nurse: nurse + management ───────────────────────────────────────────
 INSERT INTO role_permissions (role_id, permission_id)
     SELECT (SELECT id FROM roles WHERE name='head_nurse'), id FROM permissions
     WHERE code IN (
@@ -113,7 +100,6 @@ INSERT INTO role_permissions (role_id, permission_id)
     )
 ON CONFLICT DO NOTHING;
 
--- ── Migrate existing doctors' role column → user_roles ───────────────────────
 INSERT INTO user_roles (doctor_id, role_id, org_id)
     SELECT d.id, r.id, COALESCE(d.organization_id, 1)
     FROM doctors d

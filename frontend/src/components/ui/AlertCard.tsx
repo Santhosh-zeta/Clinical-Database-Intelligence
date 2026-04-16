@@ -13,9 +13,8 @@ interface AlertCardProps {
 export function AlertCard({ alert, onAcknowledge }: AlertCardProps) {
   const isCritical = alert.type === 'Critical';
   const isWarning = alert.type === 'Warning';
-  
 
-  const styles = alert.resolved 
+  const styles = alert.resolved
     ? {
         bg: 'bg-gray-50',
         border: 'border-gray-200',
@@ -26,8 +25,8 @@ export function AlertCard({ alert, onAcknowledge }: AlertCardProps) {
     : {
         bg: isCritical ? 'bg-red-50' : isWarning ? 'bg-amber-50' : 'bg-blue-50',
         border: isCritical ? 'border-red-200' : isWarning ? 'border-amber-200' : 'border-blue-200',
-        icon: isCritical ? <ShieldAlert className="w-6 h-6 text-red-600" /> : 
-              isWarning ? <AlertTriangle className="w-6 h-6 text-amber-600" /> : 
+        icon: isCritical ? <ShieldAlert className="w-6 h-6 text-red-600" /> :
+              isWarning ? <AlertTriangle className="w-6 h-6 text-amber-600" /> :
               <Info className="w-6 h-6 text-blue-600" />,
         text: isCritical ? 'text-red-700' : isWarning ? 'text-amber-800' : 'text-blue-700',
         title: isCritical ? 'text-red-900 font-bold' : isWarning ? 'text-amber-900 font-bold' : 'text-blue-900 font-bold'
@@ -37,7 +36,7 @@ export function AlertCard({ alert, onAcknowledge }: AlertCardProps) {
   const dateString = new Date(alert.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' });
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       className={`p-4 rounded-xl border ${styles.bg} ${styles.border} flex flex-col gap-2 transition-all`}
@@ -54,15 +53,15 @@ export function AlertCard({ alert, onAcknowledge }: AlertCardProps) {
             </p>
           </div>
         </div>
-        
+
         {!alert.resolved && onAcknowledge && (
           <button
             onClick={() => onAcknowledge(alert.id)}
             className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-all flexshrink-0
-              ${isCritical 
-                ? 'bg-red-100 border-red-200 text-red-700 hover:bg-red-200' 
-                : isWarning 
-                ? 'bg-amber-100 border-amber-200 text-amber-700 hover:bg-amber-200' 
+              ${isCritical
+                ? 'bg-red-100 border-red-200 text-red-700 hover:bg-red-200'
+                : isWarning
+                ? 'bg-amber-100 border-amber-200 text-amber-700 hover:bg-amber-200'
                 : 'bg-blue-100 border-blue-200 text-blue-700 hover:bg-blue-200'}`}
           >
             Acknowledge

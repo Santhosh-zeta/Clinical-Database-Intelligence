@@ -1,6 +1,3 @@
--- ============================================================
--- Migration 003: Patients
--- ============================================================
 CREATE TABLE IF NOT EXISTS patients (
     id              SERIAL PRIMARY KEY,
     name            VARCHAR(150) NOT NULL,

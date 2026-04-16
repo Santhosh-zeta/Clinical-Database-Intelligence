@@ -1,19 +1,12 @@
--- ============================================================
--- Migration 017: Prescriptions, Medications, Disease-Medication Map,
---                Drug Interactions
--- ============================================================
-
--- ── Medications Master Catalog ───────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS medications (
     id           SERIAL PRIMARY KEY,
     name         VARCHAR(100) NOT NULL UNIQUE,
     generic_name VARCHAR(100),
-    category     VARCHAR(50),    -- 'antibiotic', 'analgesic', 'antihypertensive', etc.
+    category     VARCHAR(50),
     unit         VARCHAR(20) NOT NULL DEFAULT 'mg',
     description  TEXT
 );
 
--- ── Prescriptions (Doctor-issued medication orders) ─────────────────────────
 CREATE TABLE IF NOT EXISTS prescriptions (
     id              SERIAL PRIMARY KEY,
     admission_id    INT NOT NULL REFERENCES admissions(id) ON DELETE CASCADE,
@@ -21,7 +14,7 @@ CREATE TABLE IF NOT EXISTS prescriptions (
     prescribed_by   INT NOT NULL REFERENCES doctors(id) ON DELETE RESTRICT,
     medication_id   INT NOT NULL REFERENCES medications(id),
     dose            VARCHAR(50) NOT NULL,
-    frequency       VARCHAR(50) NOT NULL,  -- 'OD','BID','TID','QID','PRN','STAT'
+    frequency       VARCHAR(50) NOT NULL,
     route           VARCHAR(30) NOT NULL DEFAULT 'oral'
                     CHECK (route IN ('oral','IV','IM','SQ','topical','inhaled','sublingual')),
     start_date      DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -33,7 +26,6 @@ CREATE TABLE IF NOT EXISTS prescriptions (
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- ── Rule-Based Prescription Suggestion Engine ────────────────────────────────
 CREATE TABLE IF NOT EXISTS disease_medication_map (
     id                    SERIAL PRIMARY KEY,
     diagnosis_keyword     VARCHAR(100) NOT NULL,
@@ -41,10 +33,9 @@ CREATE TABLE IF NOT EXISTS disease_medication_map (
     recommended_dose      VARCHAR(50),
     recommended_frequency VARCHAR(30),
     recommended_route     VARCHAR(30) DEFAULT 'oral',
-    priority              SMALLINT NOT NULL DEFAULT 1  -- 1=first-line, 2=second-line, 3=adjunct
+    priority              SMALLINT NOT NULL DEFAULT 1
 );
 
--- ── Drug-Drug Interaction Table ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS drug_interactions (
     id          SERIAL PRIMARY KEY,
     drug1_id    INT NOT NULL REFERENCES medications(id) ON DELETE CASCADE,
@@ -52,13 +43,12 @@ CREATE TABLE IF NOT EXISTS drug_interactions (
     severity    VARCHAR(20) NOT NULL CHECK (severity IN ('contraindicated','major','moderate','minor')),
     description TEXT,
     UNIQUE (drug1_id, drug2_id),
-    CHECK (drug1_id < drug2_id)  -- prevents duplicate reverse pairs
+    CHECK (drug1_id < drug2_id)
 );
 
 CREATE INDEX idx_prescriptions_admission ON prescriptions(admission_id, status);
 CREATE INDEX idx_disease_med_keyword     ON disease_medication_map(diagnosis_keyword);
 
--- ── Seed Common Medications ──────────────────────────────────────────────────
 INSERT INTO medications (name, generic_name, category, unit) VALUES
     ('Paracetamol 500mg',   'Acetaminophen',          'analgesic',               'mg'),
     ('Amoxicillin 500mg',   'Amoxicillin',            'antibiotic',              'mg'),
@@ -77,7 +67,6 @@ INSERT INTO medications (name, generic_name, category, unit) VALUES
     ('Dexamethasone 4mg',   'Dexamethasone',          'corticosteroid',          'mg')
 ON CONFLICT (name) DO NOTHING;
 
--- ── Seed Disease-Medication Mappings ─────────────────────────────────────────
 INSERT INTO disease_medication_map (diagnosis_keyword, medication_id, recommended_dose, recommended_frequency, priority)
 SELECT 'hypertension',  id, '25mg',   'BID',  1 FROM medications WHERE name='Metoprolol 25mg'  ON CONFLICT DO NOTHING;
 INSERT INTO disease_medication_map (diagnosis_keyword, medication_id, recommended_dose, recommended_frequency, priority)
@@ -103,7 +92,6 @@ SELECT 'heart failure', id, '40mg',   'OD',   1 FROM medications WHERE name='Fur
 INSERT INTO disease_medication_map (diagnosis_keyword, medication_id, recommended_dose, recommended_frequency, priority)
 SELECT 'heart failure', id, '25mg',   'BID',  2 FROM medications WHERE name='Metoprolol 25mg'  ON CONFLICT DO NOTHING;
 
--- ── Seed Drug Interactions ───────────────────────────────────────────────────
 INSERT INTO drug_interactions (drug1_id, drug2_id, severity, description)
 SELECT LEAST(m1.id,m2.id), GREATEST(m1.id,m2.id),
        'major', 'Concurrent use significantly increases bleeding risk'

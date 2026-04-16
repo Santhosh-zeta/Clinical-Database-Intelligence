@@ -12,7 +12,6 @@ const validate = (req, res, next) => {
     next();
 };
 
-/** POST /api/vitals                        — record vitals (fires DB trigger chain) */
 router.post('/',
     requirePermission('RECORD_VITALS'),
     [body('admission_id').isInt(), body('heart_rate').optional().isInt()],
@@ -20,16 +19,12 @@ router.post('/',
     ctrl.record
 );
 
-/** GET  /api/vitals/:patientId             — vitals history */
 router.get('/:patientId', requirePermission('VIEW_VITALS'), ctrl.history);
 
-/** GET  /api/vitals/:patientId/latest      — most recent reading */
 router.get('/:patientId/latest', requirePermission('VIEW_VITALS'), ctrl.latest);
 
-/** GET  /api/vitals/:patientId/trend       — rate-of-change analysis */
 router.get('/:patientId/trend', requirePermission('VIEW_VITALS'), ctrl.trend);
 
-/** GET  /api/vitals/ews/:admissionId       — latest EWS score */
 router.get('/ews/:admissionId', requirePermission('VIEW_VITALS'), ctrl.getEWS);
 
 module.exports = router;

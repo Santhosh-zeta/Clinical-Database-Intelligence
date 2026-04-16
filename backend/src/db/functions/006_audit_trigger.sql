@@ -1,9 +1,3 @@
--- ============================================================
--- Function 006: Generic audit trigger
--- Applied to: patients, admissions, beds
--- Logs every INSERT, UPDATE, DELETE with full JSONB snapshots
--- ============================================================
-
 CREATE OR REPLACE FUNCTION fn_audit_log()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -31,8 +25,6 @@ BEGIN
     RETURN NULL;
 END;
 $$;
-
--- ── Attach to critical tables ──────────────────────────────────
 
 DROP TRIGGER IF EXISTS trg_audit_patients ON patients;
 CREATE TRIGGER trg_audit_patients

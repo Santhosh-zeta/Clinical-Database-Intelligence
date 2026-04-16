@@ -1,12 +1,3 @@
--- ============================================================
--- Function 002: vitals insert trigger (Refactored for Dynamic Thresholds)
--- Fires AFTER INSERT on vitals:
---   1. Calls calculate_risk_score()
---   2. Creates alerts based on score
---   3. Inserts per-vital alerts using ORG-specific dynamic thresholds
---   4. Inserts notifications for the attending doctor
--- ============================================================
-
 CREATE OR REPLACE FUNCTION fn_after_vitals_insert()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -19,8 +10,7 @@ DECLARE
     v_doctor_id     INT;
     v_org_id        INT;
     v_alert_type    VARCHAR(50);
-    
-    -- Dynamic thresholds
+
     v_hr_min        SMALLINT;
     v_hr_max        SMALLINT;
     v_spo2_min      NUMERIC(5,2);
@@ -29,7 +19,7 @@ DECLARE
     v_temp_min      NUMERIC(4,1);
     v_temp_max      NUMERIC(4,1);
 BEGIN
-    -- 0. Fetch Org and Thresholds
+
     SELECT a.organization_id, a.doctor_id INTO v_org_id, v_doctor_id
     FROM admissions a WHERE a.id = NEW.admission_id;
 
@@ -37,7 +27,6 @@ BEGIN
     INTO v_hr_min, v_hr_max, v_spo2_min, v_bp_sys_min, v_bp_sys_max, v_temp_min, v_temp_max
     FROM organization_settings WHERE org_id = v_org_id;
 
-    -- Defaults if settings missing
     v_hr_min     := COALESCE(v_hr_min, 50);
     v_hr_max     := COALESCE(v_hr_max, 130);
     v_spo2_min   := COALESCE(v_spo2_min, 95.0);
@@ -46,10 +35,8 @@ BEGIN
     v_temp_min   := COALESCE(v_temp_min, 36.0);
     v_temp_max   := COALESCE(v_temp_max, 38.5);
 
-    -- 1. Calculate risk score (also writes to risk_scores table)
     v_score := calculate_risk_score(NEW.admission_id);
 
-    -- 2. Determine if we need an alert based on total score
     IF v_score >= 8 THEN
         v_severity   := 'critical';
         v_alert_type := 'CRITICAL_RISK_SCORE';
@@ -64,7 +51,6 @@ BEGIN
         v_msg        := format('MODERATE RISK: Score %s for admission #%s.', v_score, NEW.admission_id);
     END IF;
 
-    -- 3. Per-vital threshold alerts (Dynamic)
     IF NEW.heart_rate IS NOT NULL AND (NEW.heart_rate < v_hr_min OR NEW.heart_rate > v_hr_max) THEN
         INSERT INTO alerts (admission_id, alert_type, severity, message, organization_id)
         VALUES (NEW.admission_id,
@@ -100,19 +86,16 @@ BEGIN
                 v_org_id);
     END IF;
 
-    -- 4. Insert main risk-score alert if applicable
     IF v_alert_type IS NOT NULL THEN
         INSERT INTO alerts (admission_id, alert_type, severity, message, organization_id)
         VALUES (NEW.admission_id, v_alert_type, v_severity, v_msg, v_org_id)
         RETURNING id INTO v_alert_id;
 
-        -- 5. Notify the attending doctor
         IF v_doctor_id IS NOT NULL THEN
             INSERT INTO notifications (doctor_id, admission_id, alert_id, message)
             VALUES (v_doctor_id, NEW.admission_id, v_alert_id, v_msg);
         END IF;
 
-        -- 6. Auto-escalate to ICU if critical
         IF v_score >= 8 THEN
             PERFORM auto_escalate_to_icu(NEW.admission_id);
         END IF;

@@ -1,9 +1,3 @@
--- ============================================================
--- Function 001: calculate_risk_score(admission_id)
--- Scores the latest vitals reading for an admission 0-10
--- and writes the result to the risk_scores table.
--- ============================================================
-
 CREATE OR REPLACE FUNCTION calculate_risk_score(p_admission_id INT)
 RETURNS SMALLINT
 LANGUAGE plpgsql
@@ -23,16 +17,15 @@ DECLARE
     v_total         SMALLINT := 0;
     v_category      VARCHAR(20);
 BEGIN
-    -- Fetch the global clinical thresholds
+
     SELECT value INTO v_conf FROM system_configurations WHERE key = 'clinical_thresholds';
-    
+
     v_hr_max   := COALESCE((v_conf->>'hrMax')::INT, 140);
     v_hr_min   := COALESCE((v_conf->>'hrMin')::INT, 40);
     v_sys_max  := COALESCE((v_conf->>'sysMax')::INT, 180);
     v_spo2_min := COALESCE((v_conf->>'spo2Min')::INT, 85);
     v_temp_max := COALESCE((v_conf->>'tempMax')::NUMERIC, 40.0);
 
-    -- Fetch the most recent vitals for this admission
     SELECT *
     INTO v_rec
     FROM vitals
@@ -44,11 +37,6 @@ BEGIN
         RETURN 0;
     END IF;
 
-    -- ── Heart Rate Scoring ─────────────────────────────────────────
-    -- Normal: 60-100 bpm  →  0 pts
-    -- Mild:   50-59 | 101-120  →  1 pt
-    -- High:   <50 | 121-140  →  2 pts
-    -- Critical: <40 | >140  →  3 pts
     IF v_rec.heart_rate IS NOT NULL THEN
         IF v_rec.heart_rate < v_hr_min OR v_rec.heart_rate > v_hr_max THEN
             v_hr_score := 3;
@@ -61,11 +49,6 @@ BEGIN
         END IF;
     END IF;
 
-    -- ── Blood Pressure Scoring (Systolic) ──────────────────────────
-    -- Normal: 90-140  →  0 pts
-    -- Mild:   80-89 | 141-160  →  1 pt
-    -- High:   70-79 | 161-180  →  2 pts
-    -- Critical: <70 | >180  →  3 pts
     IF v_rec.systolic_bp IS NOT NULL THEN
         IF v_rec.systolic_bp < 70 OR v_rec.systolic_bp > v_sys_max THEN
             v_bp_score := 3;
@@ -78,11 +61,6 @@ BEGIN
         END IF;
     END IF;
 
-    -- ── SpO2 Scoring ───────────────────────────────────────────────
-    -- Normal: >=95%  →  0 pts
-    -- Mild:   90-94%  →  1 pt
-    -- High:   85-89%  →  2 pts
-    -- Critical: <85%  →  3 pts
     IF v_rec.spo2 IS NOT NULL THEN
         IF v_rec.spo2 < v_spo2_min THEN
             v_spo2_score := 3;
@@ -95,11 +73,6 @@ BEGIN
         END IF;
     END IF;
 
-    -- ── Temperature Scoring ────────────────────────────────────────
-    -- Normal: 36.0-38.0°C  →  0 pts
-    -- Mild:   35-35.9 | 38.1-39.0  →  1 pt
-    -- High:   34-34.9 | 39.1-40.0  →  2 pts
-    -- Critical: <34 | >40  →  3 pts
     IF v_rec.temperature IS NOT NULL THEN
         IF v_rec.temperature < 34 OR v_rec.temperature > v_temp_max THEN
             v_temp_score := 3;
@@ -112,10 +85,8 @@ BEGIN
         END IF;
     END IF;
 
-    -- ── Aggregate & Cap at 10 ──────────────────────────────────────
     v_total := LEAST(v_hr_score + v_bp_score + v_spo2_score + v_temp_score, 10);
 
-    -- ── Derive Category ───────────────────────────────────────────
     v_category := CASE
         WHEN v_total >= 8  THEN 'critical'
         WHEN v_total >= 5  THEN 'high'
@@ -123,7 +94,6 @@ BEGIN
         ELSE 'stable'
     END;
 
-    -- ── Persist to risk_scores ────────────────────────────────────
     INSERT INTO risk_scores (
         admission_id, score,
         hr_score, bp_score, spo2_score, temp_score,

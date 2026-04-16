@@ -1,10 +1,7 @@
--- ============================================================
--- Migration 008: Alerts
--- ============================================================
 CREATE TABLE IF NOT EXISTS alerts (
     id              SERIAL PRIMARY KEY,
     admission_id    INT NOT NULL REFERENCES admissions(id) ON DELETE CASCADE,
-    alert_type      VARCHAR(50) NOT NULL,  -- e.g. 'HIGH_HEART_RATE', 'LOW_SPO2', 'RISK_ESCALATION'
+    alert_type      VARCHAR(50) NOT NULL,
     severity        VARCHAR(20) NOT NULL DEFAULT 'medium'
                     CHECK (severity IN ('low', 'medium', 'high', 'critical')),
     message         TEXT NOT NULL,

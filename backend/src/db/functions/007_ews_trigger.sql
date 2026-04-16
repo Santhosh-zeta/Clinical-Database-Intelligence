@@ -1,11 +1,3 @@
--- ============================================================
--- Function 007: EWS (NEWS2) Calculation + Trigger Chain
--- calculate_ews()       → computes NEWS2 score (0-20)
--- fn_ews_alert()        → fires dedup-aware alert
--- fn_ews_after_vitals() → AFTER INSERT trigger on vitals
--- ============================================================
-
--- NEWS2 scoring function
 CREATE OR REPLACE FUNCTION calculate_ews(p_admission_id INT)
 RETURNS SMALLINT
 LANGUAGE plpgsql
@@ -23,7 +15,7 @@ DECLARE
     v_total         SMALLINT := 0;
     v_category      VARCHAR(20);
 BEGIN
-    -- Get org-level thresholds
+
     SELECT a.organization_id INTO v_org_id FROM admissions a WHERE a.id = p_admission_id;
     SELECT os.ews_high_threshold, os.ews_urgent_threshold
     INTO v_high_thresh, v_urgent_thresh
@@ -31,12 +23,10 @@ BEGIN
     v_high_thresh   := COALESCE(v_high_thresh, 5);
     v_urgent_thresh := COALESCE(v_urgent_thresh, 7);
 
-    -- Fetch latest vitals
     SELECT * INTO v_rec FROM vitals
     WHERE admission_id = p_admission_id ORDER BY recorded_at DESC LIMIT 1;
     IF NOT FOUND THEN RETURN 0; END IF;
 
-    -- Respiratory Rate (NEWS2 standard)
     IF v_rec.respiratory_rate IS NOT NULL THEN
         v_rr_score := CASE
             WHEN v_rec.respiratory_rate <= 8  THEN 3
@@ -47,7 +37,6 @@ BEGIN
         END;
     END IF;
 
-    -- SpO2 (Scale 1 — standard; Scale 2 for COPD requires separate flag)
     IF v_rec.spo2 IS NOT NULL THEN
         v_spo2_score := CASE
             WHEN v_rec.spo2 <= 91 THEN 3
@@ -57,7 +46,6 @@ BEGIN
         END;
     END IF;
 
-    -- Temperature
     IF v_rec.temperature IS NOT NULL THEN
         v_temp_score := CASE
             WHEN v_rec.temperature <= 35.0 THEN 3
@@ -68,7 +56,6 @@ BEGIN
         END;
     END IF;
 
-    -- Systolic BP (NEWS2)
     IF v_rec.systolic_bp IS NOT NULL THEN
         v_bp_score := CASE
             WHEN v_rec.systolic_bp <= 90  THEN 3
@@ -79,7 +66,6 @@ BEGIN
         END;
     END IF;
 
-    -- Heart Rate (NEWS2)
     IF v_rec.heart_rate IS NOT NULL THEN
         v_hr_score := CASE
             WHEN v_rec.heart_rate <= 40  THEN 3
@@ -100,7 +86,6 @@ BEGIN
         ELSE 'low'
     END;
 
-    -- Persist to ews_scores
     INSERT INTO ews_scores (
         admission_id, organization_id, total_score,
         rr_score, spo2_score, temp_score, bp_score, hr_score, category
@@ -113,7 +98,6 @@ BEGIN
 END;
 $$;
 
--- EWS-based alert with deduplication + org-configurable cooldown
 CREATE OR REPLACE FUNCTION fn_ews_alert(p_admission_id INT, p_ews SMALLINT, p_category VARCHAR)
 RETURNS VOID
 LANGUAGE plpgsql
@@ -146,7 +130,6 @@ BEGIN
     v_msg := format('NEWS2 EWS Score: %s (%s risk) — immediate clinical review required.',
                     p_ews, UPPER(p_category));
 
-    -- Deduplication: skip if same alert type exists within cooldown window
     IF EXISTS (
         SELECT 1 FROM alerts
         WHERE admission_id  = p_admission_id
@@ -164,7 +147,6 @@ BEGIN
          v_org_id, 'active', NOW() + (v_wait_min || ' minutes')::INTERVAL)
     RETURNING id INTO v_alert_id;
 
-    -- Notify attending doctor
     IF v_doctor_id IS NOT NULL AND v_alert_id IS NOT NULL THEN
         INSERT INTO notifications (doctor_id, admission_id, alert_id, message)
         VALUES (v_doctor_id, p_admission_id, v_alert_id, v_msg);
@@ -172,7 +154,6 @@ BEGIN
 END;
 $$;
 
--- AFTER INSERT trigger on vitals — EWS chain
 CREATE OR REPLACE FUNCTION fn_ews_after_vitals()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -193,12 +174,10 @@ BEGIN
     SELECT a.patient_id, a.organization_id INTO v_patient_id, v_org_id
     FROM admissions a WHERE a.id = NEW.admission_id;
 
-    -- Fire EWS alert for medium and above
     IF v_ews >= 3 THEN
         PERFORM fn_ews_alert(NEW.admission_id, v_ews, v_cat);
     END IF;
 
-    -- Read org-level ICU auto-assign setting + urgent threshold
     SELECT os.icu_auto_assign, os.ews_urgent_threshold
     INTO v_auto_icu, v_urgent
     FROM organization_settings os WHERE os.org_id = v_org_id;
@@ -207,7 +186,6 @@ BEGIN
         PERFORM auto_escalate_to_icu(NEW.admission_id);
     END IF;
 
-    -- Log to patient_events timeline
     INSERT INTO patient_events
         (patient_id, organization_id, event_type, reference_id, reference_table, description, metadata)
     VALUES (

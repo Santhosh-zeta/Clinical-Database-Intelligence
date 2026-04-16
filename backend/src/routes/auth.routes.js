@@ -11,7 +11,6 @@ const validate = (req, res, next) => {
     next();
 };
 
-/** POST /api/auth/login */
 router.post('/login',
     [body('email').isEmail().normalizeEmail(), body('password').notEmpty()],
     validate,

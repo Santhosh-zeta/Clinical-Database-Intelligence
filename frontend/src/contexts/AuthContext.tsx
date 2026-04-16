@@ -9,7 +9,8 @@ export interface User {
     name: string;
     role: UserRole;
     org_id?: string;
-    patientId?: string; // used if role === 'patient' to look up their own records
+    patientId?: string;
+    specialty?: string;
     permissions?: string[];
 }
 
@@ -24,7 +25,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
-
 
     useEffect(() => {
         const saved = localStorage.getItem('__intellicare_auth');
@@ -56,11 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const hasPermission = (code: string) => {
         if (!currentUser) return false;
 
-
         if (currentUser.permissions && Array.isArray(currentUser.permissions) && currentUser.permissions.length > 0) {
             return currentUser.permissions.includes(code);
         }
-
 
         const role = currentUser.role?.toLowerCase() || '';
         if (role === 'admin' || role === 'ultra_admin' || role === 'hospital_admin') return true;

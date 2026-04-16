@@ -31,6 +31,8 @@ export default function UsersManagementPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingUserId, setEditingUserId] = useState<number | null>(null);
     const [form, setForm] = useState(DEFAULT_FORM);
     const [isCreating, setIsCreating] = useState(false);
     const [createError, setCreateError] = useState('');
@@ -95,9 +97,70 @@ export default function UsersManagementPage() {
         }
     };
 
+    const handleUpdateStaff = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingUserId) return;
+        setIsCreating(true);
+        setCreateError('');
+        try {
+            const res = await fetch(`${API}/admin/staff/${editingUserId}`, {
+                method: 'PATCH',
+                headers: authHeader(),
+                body: JSON.stringify(form),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setCreateError(data.error || data.message || 'Failed to update staff member.');
+            } else {
+                setIsEditModalOpen(false);
+                setEditingUserId(null);
+                setForm(DEFAULT_FORM);
+                await fetchStaff();
+            }
+        } catch (err) {
+            setCreateError('Network error. Please try again.');
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
+    const handleDeleteStaff = async (id: number) => {
+        if (!confirm('Are you sure you want to delete this staff member? This action cannot be undone.')) return;
+        try {
+            const res = await fetch(`${API}/admin/staff/${id}`, {
+                method: 'DELETE',
+                headers: authHeader(),
+            });
+            if (res.ok) {
+                await fetchStaff();
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Failed to delete staff member.');
+            }
+        } catch (err) {
+            alert('Network error. Please try again.');
+        }
+    };
+
+    const openEditModal = (user: Doctor) => {
+        setEditingUserId(user.id);
+        setForm({
+            name: user.name,
+            email: user.email,
+            password: '', // Don't show password
+            role: user.role,
+            specialization: user.specialization || '',
+            phone: user.phone || '',
+            is_active: user.is_active
+        } as any);
+
+        setCreateError('');
+        setIsEditModalOpen(true);
+    };
+
     return (
         <div className="max-w-[1200px] mx-auto p-4 font-sans text-gray-900">
-            
+
             <div className="border-b-2 border-blue-800 pb-2 mb-6 flex justify-between items-end">
                 <h1 className="text-2xl font-bold text-blue-900 m-0">Staff & Access Management</h1>
                 <button
@@ -123,7 +186,7 @@ export default function UsersManagementPage() {
                 <div className="bg-gradient-to-b from-gray-100 to-gray-200 border-b border-gray-400 p-2 font-bold text-gray-800 text-sm">
                     Medical Staff Directory
                 </div>
-                
+
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -160,8 +223,8 @@ export default function UsersManagementPage() {
                                             {user.is_active ? <span className="text-green-700">ACTIVE</span> : <span className="text-red-700">INACTIVE</span>}
                                         </td>
                                         <td className="p-2 text-center">
-                                            <button className="text-blue-600 hover:underline mx-1 font-bold">Edit</button>
-                                            <button className="text-red-600 hover:underline mx-1 font-bold">Delete</button>
+                                            <button onClick={() => openEditModal(user)} className="text-blue-600 hover:underline mx-1 font-bold">Edit</button>
+                                            <button onClick={() => handleDeleteStaff(user.id)} className="text-red-600 hover:underline mx-1 font-bold">Delete</button>
                                         </td>
                                     </tr>
                                 ))
@@ -171,34 +234,34 @@ export default function UsersManagementPage() {
                 </div>
             </div>
 
-            {/* Legacy Style Dialog Window */}
+            { }
             {isAddModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-500 bg-opacity-75">
                     <div className="bg-white border-2 border-gray-600 shadow-xl w-full max-w-lg font-sans">
-                        
-                        {/* Fake Windows 95 / Classic Modal Header */}
+
+                        { }
                         <div className="bg-blue-800 text-white font-bold p-2 flex justify-between items-center text-sm">
                             <span>Add New Medical Staff</span>
-                            <button 
-                                onClick={() => setIsAddModalOpen(false)} 
+                            <button
+                                onClick={() => setIsAddModalOpen(false)}
                                 className="bg-gray-300 border border-gray-500 text-black px-2 hover:bg-gray-400 font-bold"
                             >
                                 X
                             </button>
                         </div>
-                        
+
                         <div className="p-4">
                             <p className="text-sm font-bold mb-4 border-b border-gray-300 pb-2">Enter the details for the new personnel below.</p>
-                            
+
                             <form onSubmit={handleCreateStaff} className="space-y-3 text-sm">
                                 <div className="flex flex-col">
                                     <label className="font-bold mb-1">Full Name *</label>
-                                    <input required type="text" className="border border-gray-400 p-1 bg-white" placeholder="Dr. John Doe" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+                                    <input required type="text" className="border border-gray-400 p-1 bg-white" placeholder="Dr. John Doe" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
                                 </div>
                                 <div className="flex gap-4">
                                     <div className="flex flex-col w-1/2">
                                         <label className="font-bold mb-1">Role *</label>
-                                        <select className="border border-gray-400 p-1 bg-white" value={form.role} onChange={e => setForm({...form, role: e.target.value})}>
+                                        <select className="border border-gray-400 p-1 bg-white" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
                                             <option value="doctor">Doctor</option>
                                             <option value="nurse">Nurse</option>
                                             <option value="admin">System Admin</option>
@@ -206,20 +269,20 @@ export default function UsersManagementPage() {
                                     </div>
                                     <div className="flex flex-col w-1/2">
                                         <label className="font-bold mb-1">Specialization</label>
-                                        <input type="text" className="border border-gray-400 p-1 bg-white" placeholder="e.g. Cardiology" value={form.specialization} onChange={e => setForm({...form, specialization: e.target.value})} />
+                                        <input type="text" className="border border-gray-400 p-1 bg-white" placeholder="e.g. Cardiology" value={form.specialization} onChange={e => setForm({ ...form, specialization: e.target.value })} />
                                     </div>
                                 </div>
                                 <div className="flex flex-col">
                                     <label className="font-bold mb-1">Email Address *</label>
-                                    <input required type="email" className="border border-gray-400 p-1 bg-white" placeholder="user@intellicare.com" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+                                    <input required type="email" className="border border-gray-400 p-1 bg-white" placeholder="user@intellicare.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
                                 </div>
                                 <div className="flex flex-col">
                                     <label className="font-bold mb-1">Temporary Password *</label>
-                                    <input required type="password" className="border border-gray-400 p-1 bg-white" value={form.password} onChange={e => setForm({...form, password: e.target.value})} />
+                                    <input required type="password" className="border border-gray-400 p-1 bg-white" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
                                 </div>
                                 <div className="flex flex-col">
                                     <label className="font-bold mb-1">Phone Number</label>
-                                    <input type="text" className="border border-gray-400 p-1 bg-white" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+                                    <input type="text" className="border border-gray-400 p-1 bg-white" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
                                 </div>
 
                                 {createError && (
@@ -229,15 +292,15 @@ export default function UsersManagementPage() {
                                 )}
 
                                 <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-300">
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setIsAddModalOpen(false)} 
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAddModalOpen(false)}
                                         className="bg-gray-200 border border-gray-400 px-4 py-1 text-sm font-bold shadow-sm hover:bg-gray-300 active:bg-gray-400 text-black"
                                     >
                                         Cancel
                                     </button>
-                                    <button 
-                                        type="submit" 
+                                    <button
+                                        type="submit"
                                         disabled={isCreating}
                                         className="bg-gray-200 border border-gray-400 px-4 py-1 text-sm font-bold shadow-sm hover:bg-gray-300 active:bg-gray-400 text-black ml-2"
                                     >
@@ -249,6 +312,87 @@ export default function UsersManagementPage() {
                     </div>
                 </div>
             )}
+
+            {isEditModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-500 bg-opacity-75">
+                    <div className="bg-white border-2 border-gray-600 shadow-xl w-full max-w-lg font-sans">
+                        <div className="bg-blue-800 text-white font-bold p-2 flex justify-between items-center text-sm">
+                            <span>Edit Medical Staff</span>
+                            <button
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="bg-gray-300 border border-gray-500 text-black px-2 hover:bg-gray-400 font-bold"
+                            >
+                                X
+                            </button>
+                        </div>
+
+                        <div className="p-4">
+                            <form onSubmit={handleUpdateStaff} className="space-y-3 text-sm">
+                                <div className="flex flex-col">
+                                    <label className="font-bold mb-1">Full Name *</label>
+                                    <input required type="text" className="border border-gray-400 p-1 bg-white" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="flex flex-col w-1/2">
+                                        <label className="font-bold mb-1">Role *</label>
+                                        <select className="border border-gray-400 p-1 bg-white" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
+                                            <option value="doctor">Doctor</option>
+                                            <option value="nurse">Nurse</option>
+                                            <option value="admin">System Admin</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex flex-col w-1/2">
+                                        <label className="font-bold mb-1">Specialization</label>
+                                        <input type="text" className="border border-gray-400 p-1 bg-white" value={form.specialization} onChange={e => setForm({ ...form, specialization: e.target.value })} />
+                                    </div>
+                                </div>
+                                <div className="flex flex-col">
+                                    <label className="font-bold mb-1">Email Address *</label>
+                                    <input required type="email" className="border border-gray-400 p-1 bg-white" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <label className="font-bold mb-1">Phone Number</label>
+                                    <input type="text" className="border border-gray-400 p-1 bg-white" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+                                </div>
+
+                                <div className="flex items-center gap-2 py-2">
+                                    <input
+                                        type="checkbox"
+                                        id="is_active"
+                                        checked={(form as any).is_active}
+                                        onChange={e => setForm({ ...form, is_active: e.target.checked } as any)}
+                                    />
+                                    <label htmlFor="is_active" className="font-bold">Account Active Status</label>
+                                </div>
+
+                                {createError && (
+                                    <div className="text-red-700 font-bold bg-red-100 border border-red-400 p-2 mt-2">
+                                        Error: {createError}
+                                    </div>
+                                )}
+
+                                <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-300">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsEditModalOpen(false)}
+                                        className="bg-gray-200 border border-gray-400 px-4 py-1 text-sm font-bold shadow-sm hover:bg-gray-300 active:bg-gray-400 text-black"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isCreating}
+                                        className="bg-gray-200 border border-gray-400 px-4 py-1 text-sm font-bold shadow-sm hover:bg-gray-300 active:bg-gray-400 text-black ml-2"
+                                    >
+                                        {isCreating ? 'Saving...' : 'Update Record'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
+
 }

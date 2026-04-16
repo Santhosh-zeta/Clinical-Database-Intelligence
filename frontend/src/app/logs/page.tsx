@@ -99,64 +99,64 @@ export default function AuditLogsPage() {
           <h1 className="text-2xl font-bold text-black m-0 tracking-widest uppercase">System Audit Logs</h1>
         </div>
         <div className="flex gap-2 items-center">
-            <button onClick={() => fetchLogs(currentPage)} disabled={loading} className="bg-gray-200 border border-black px-3 py-1 font-bold text-sm shadow-sm hover:bg-gray-300">
-               [ REFRESH ]
-            </button>
-            <button onClick={exportCSV} className="bg-gray-200 border border-black px-3 py-1 font-bold text-sm shadow-sm hover:bg-gray-300">
-               [ EXPORT CSV ]
-            </button>
+          <button onClick={() => fetchLogs(currentPage)} disabled={loading} className="bg-gray-200 border border-black px-3 py-1 font-bold text-sm shadow-sm hover:bg-gray-300">
+            [ REFRESH ]
+          </button>
+          <button onClick={exportCSV} className="bg-gray-200 border border-black px-3 py-1 font-bold text-sm shadow-sm hover:bg-gray-300">
+            [ EXPORT CSV ]
+          </button>
         </div>
       </div>
 
       <p className="mb-4 text-xs font-bold text-gray-700 uppercase">Immutable cryptographic record of all system changes. {lastRefreshed && `LAST SYNC: ${lastRefreshed.toLocaleTimeString()}`}</p>
 
-      {/* KPI status bar */}
+      { }
       <div className="flex bg-white border border-black mb-4 text-sm divide-x divide-black">
-         <div className="flex-1 p-2 bg-gray-200 flex flex-col justify-center items-center font-mono">
-            <span className="font-bold text-black text-lg">{loading ? '...' : totalCount}</span>
-            <span className="text-xs uppercase font-bold">Total Audit Events</span>
-         </div>
-         <div className="flex-1 p-2 bg-gray-200 flex flex-col justify-center items-center font-mono">
-            <span className="font-bold text-red-700 text-lg">{filtered.filter(l => l.action === 'DELETE').length}</span>
-            <span className="text-xs uppercase font-bold text-red-900">Delete Records (Page)</span>
-         </div>
-         <div className="flex-1 p-2 bg-gray-200 flex flex-col justify-center items-center font-mono">
-            <span className="font-bold text-black text-lg">{currentPage} / {totalPages || 1}</span>
-            <span className="text-xs uppercase font-bold">Current Page</span>
-         </div>
+        <div className="flex-1 p-2 bg-gray-200 flex flex-col justify-center items-center font-mono">
+          <span className="font-bold text-black text-lg">{loading ? '...' : totalCount}</span>
+          <span className="text-xs uppercase font-bold">Total Audit Events</span>
+        </div>
+        <div className="flex-1 p-2 bg-gray-200 flex flex-col justify-center items-center font-mono">
+          <span className="font-bold text-red-700 text-lg">{filtered.filter(l => l.action === 'DELETE').length}</span>
+          <span className="text-xs uppercase font-bold text-red-900">Delete Records (Page)</span>
+        </div>
+        <div className="flex-1 p-2 bg-gray-200 flex flex-col justify-center items-center font-mono">
+          <span className="font-bold text-black text-lg">{currentPage} / {totalPages || 1}</span>
+          <span className="text-xs uppercase font-bold">Current Page</span>
+        </div>
       </div>
 
       <div className="bg-white border border-black flex flex-col mb-6">
-        {/* Toolbar */}
+        { }
         <div className="bg-gray-300 border-b border-black p-2 text-sm flex flex-wrap gap-4 items-center">
-           <div className="flex items-center gap-2">
-              <span className="font-bold uppercase text-xs">Search:</span>
-              <input type="text" className="border border-black px-2 py-0.5" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-           </div>
-           <div className="flex items-center gap-2">
-              <span className="font-bold uppercase text-xs">Table:</span>
-              <select className="border border-black px-2 py-0.5 bg-white font-bold text-xs uppercase" value={filterTable} onChange={e => setFilterTable(e.target.value)}>
-                <option value="">ALL TABLES</option>
-                <option value="patients">PATIENTS</option>
-                <option value="admissions">ADMISSIONS</option>
-                <option value="vitals">VITALS</option>
-                <option value="prescriptions">PRESCRIPTIONS</option>
-                <option value="alerts">ALERTS</option>
-                <option value="doctors">DOCTORS</option>
-              </select>
-           </div>
-           <div className="flex items-center gap-2">
-              <span className="font-bold uppercase text-xs">Action:</span>
-              <select className="border border-black px-2 py-0.5 bg-white font-bold text-xs uppercase" value={filterAction} onChange={e => setFilterAction(e.target.value)}>
-                <option value="">ALL ACTIONS</option>
-                <option value="INSERT">INSERT</option>
-                <option value="UPDATE">UPDATE</option>
-                <option value="DELETE">DELETE</option>
-              </select>
-           </div>
+          <div className="flex items-center gap-2">
+            <span className="font-bold uppercase text-xs">Search:</span>
+            <input type="text" className="border border-black px-2 py-0.5" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-bold uppercase text-xs">Table:</span>
+            <select className="border border-black px-2 py-0.5 bg-white font-bold text-xs uppercase" value={filterTable} onChange={e => setFilterTable(e.target.value)}>
+              <option value="">ALL TABLES</option>
+              <option value="patients">PATIENTS</option>
+              <option value="admissions">ADMISSIONS</option>
+              <option value="vitals">VITALS</option>
+              <option value="prescriptions">PRESCRIPTIONS</option>
+              <option value="alerts">ALERTS</option>
+              <option value="doctors">DOCTORS</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-bold uppercase text-xs">Action:</span>
+            <select className="border border-black px-2 py-0.5 bg-white font-bold text-xs uppercase" value={filterAction} onChange={e => setFilterAction(e.target.value)}>
+              <option value="">ALL ACTIONS</option>
+              <option value="INSERT">INSERT</option>
+              <option value="UPDATE">UPDATE</option>
+              <option value="DELETE">DELETE</option>
+            </select>
+          </div>
         </div>
 
-        {/* Standard Data Table */}
+        { }
         <div className="overflow-x-auto min-h-[400px]">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
@@ -187,18 +187,18 @@ export default function AuditLogsPage() {
                         {new Date(log.changed_at).toLocaleString('en-GB')}
                       </td>
                       <td className="p-2 border-r border-gray-300 font-bold uppercase text-gray-800">
-                         {log.table_name}
+                        {log.table_name}
                       </td>
                       <td className="p-2 border-r border-gray-300 font-bold font-mono text-center">
                         <span className={`px-1 py-0.5 border ${actionClass} text-[10px]`}>
-                           {log.action}
+                          {log.action}
                         </span>
                       </td>
                       <td className="p-2 border-r border-gray-300 font-bold font-mono text-center">
-                         #{log.record_id}
+                        #{log.record_id}
                       </td>
                       <td className="p-2 border-r border-gray-300 font-mono text-[9px] text-gray-800 tracking-tight break-all">
-                         {JSON.stringify(log.changed_data || {})}
+                        {JSON.stringify(log.changed_data || {})}
                       </td>
                       <td className="p-2 font-bold uppercase text-gray-800">
                         {log.changed_by_name || (log.changed_by ? `USER #${log.changed_by}` : 'SYSTEM BOT')}
@@ -210,20 +210,20 @@ export default function AuditLogsPage() {
             </tbody>
           </table>
         </div>
-        
-        {/* Pagination Footer */}
+
+        { }
         {totalPages > 1 && (
-           <div className="bg-gray-300 p-2 border-t border-black flex justify-between items-center text-xs font-bold uppercase">
-              <span>RECORD {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, totalCount)} OF {totalCount}</span>
-              <div className="flex gap-2">
-                 <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="bg-white border border-black px-2 py-1 disabled:opacity-50 hover:bg-gray-200">
-                    [ &lt; PREV ]
-                 </button>
-                 <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="bg-white border border-black px-2 py-1 disabled:opacity-50 hover:bg-gray-200">
-                    [ NEXT &gt; ]
-                 </button>
-              </div>
-           </div>
+          <div className="bg-gray-300 p-2 border-t border-black flex justify-between items-center text-xs font-bold uppercase">
+            <span>RECORD {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, totalCount)} OF {totalCount}</span>
+            <div className="flex gap-2">
+              <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="bg-white border border-black px-2 py-1 disabled:opacity-50 hover:bg-gray-200">
+                [ &lt; PREV ]
+              </button>
+              <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="bg-white border border-black px-2 py-1 disabled:opacity-50 hover:bg-gray-200">
+                [ NEXT &gt; ]
+              </button>
+            </div>
+          </div>
         )}
       </div>
       <style>{`

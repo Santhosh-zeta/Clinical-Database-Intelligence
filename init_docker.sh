@@ -3,11 +3,9 @@ set -e
 
 echo "🚀 Starting Clinical Intelligence Infrastructure..."
 
-# 1. Clean up existing networking/containers
 docker-compose down -v
 docker network prune -f
 
-# 2. Start PostgreSQL/TimescaleDB & API at once to fix network issues
 echo "🔌 Starting all containers..."
 docker-compose up -d --force-recreate --build
 
@@ -18,14 +16,12 @@ until docker exec clinical-db pg_isready -U postgres -d clinical_db; do
 done
 sleep 10
 
-# 3. Run Migrations directly via psql
 echo "📦 Running database migrations..."
 for f in backend/src/db/migrations/*.sql; do
   echo "  ▶ Applying $f..."
   docker exec -i clinical-db psql -U postgres -d clinical_db < "$f"
 done
 
-# Handle functions/views
 if [ -d "backend/src/db/functions" ]; then
   for f in backend/src/db/functions/*.sql; do
     echo "  ▶ Applying function $f..."
@@ -33,7 +29,6 @@ if [ -d "backend/src/db/functions" ]; then
   done
 fi
 
-# 4. Restart API to ensure it picks up the clean DB state
 echo "🔌 Restarting Backend API..."
 docker-compose restart api
 
@@ -42,12 +37,11 @@ until curl -s http://localhost:3001/health; do
   sleep 2
 done
 
-# 5. Populate Data (Seeding)
 echo "🌱 Seeding initial clinical data..."
 docker exec -i clinical-db psql -U postgres -d clinical_db <<EOF
 -- Root Admin User (password123)
 -- Hash: '\$2b\$10\$GLDiv6uy8Pf/qTCqMBSlBOwtmvnrHi2Ebfb/qE0Z3luOPaXoWieaS'
-INSERT INTO doctors (id, name, email, password_hash, role, organization_id) 
+INSERT INTO doctors (id, name, email, password_hash, role, organization_id)
 VALUES (1, 'System Admin', 'a1@intellicare.demo', '\$2b\$10\$GLDiv6uy8Pf/qTCqMBSlBOwtmvnrHi2Ebfb/qE0Z3luOPaXoWieaS', 'admin', 1)
 ON CONFLICT (email) DO NOTHING;
 
@@ -68,18 +62,16 @@ INSERT INTO beds (bed_number, ward_id, is_icu, organization_id) VALUES
 ON CONFLICT DO NOTHING;
 EOF
 
-# Use simulated seeding for users/patients
 echo "🏥 Registering patients and staff via API..."
 cd simulator
 npm install
 node seed.js
 cd ..
 
-# 5. Add Expanded Clinical Data
 echo "🩺 Adding clinical handover, consults, and appointments..."
 docker exec -i clinical-db psql -U postgres -d clinical_db <<EOF
 -- Handover for General Ward A (Ward ID 1)
-INSERT INTO ward_handovers (ward_id, author_id, shift_name, summary, organization_id) 
+INSERT INTO ward_handovers (ward_id, author_id, shift_name, summary, organization_id)
 VALUES (1, 1, 'Morning Shift', 'Critical handover: Bed 4 stable but needs vitals check every 1h.', 1);
 
 -- Consult for Patient 1

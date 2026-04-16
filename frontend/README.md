@@ -25,29 +25,57 @@ The Next.js App Router structure where each directory maps to an active clinical
 
 ### 2. Layout & Security Components (`src/components/layout/`)
 Handles the structural application frame and controls route permission accessibility.
-* **`Shell.tsx`**: The primary structural wrapper providing the persistent navigation sidebar, top header, and spacing models defining the application's visual footprint.
-* **`AuthGuard.tsx`**: A higher-order security boundary ensuring unauthenticated sessions are immediately redirected prior to accessing sensitive medical routes inherently.
-* **`PermissionGuard.tsx`**: An RBAC (Role-Based Access Control) utility ensuring specific UI fragments (like an Admin settings button or prescription issuing component) are only rendered if the active user possesses the needed database role credentials.
+* **`Shell.tsx`**: The primary structural wrapper providing the persistent navigation sidebar, top header, and spacing models.
+* **`AuthGuard.tsx`**: A higher-order security boundary ensuring sessions are authenticated prior to accessing sensitive medical routes.
+* **`PermissionGuard.tsx`**: RBAC utility ensuring specific UI fragments are only rendered if the active user possesses the needed database role credentials.
 
-### 3. Reusable UI Components (`src/components/ui/`)
-Modular, highly reusable React components standardizing clinical data rendering.
-* **`AlertCard.tsx`**: Standardizes the rendering of critical alarms detailing urgency matrices, acknowledgment buttons, and timestamped logic elegantly.
-* **`BedStatusGrid.tsx`**: Synthesizes layout constraints converting ward structures into interactive matrix boards showing occupancy visually natively.
-* **`EWSBadge.tsx` & `RiskBadge.tsx`**: Semantic visual indicators mapping numeric scores structurally to color-coded urgency levels allowing instantaneous risk comprehension systematically.
-* **`PatientTimeline.tsx`**: Maps chronological clinical events (admissions, consults, vitals drops) interactively along a linear graphical trace organically.
-* **`VitalsChart.tsx`**: Wraps charting libraries transforming continuous TimescaleDB arrays into smooth, responsive spark-lines automatically structurally.
+### 3. Shared Components (`src/components/`)
+Modular, reusable React components standardizing clinical data rendering across the application.
+* **`dashboard/`**:
+    - `StatsHeader.tsx`: Aggregated KPI display for quick clinical oversight.
+    - `OccupancyChart.tsx`: Visual breakdown of ward and ICU utilization.
+* **`patient/`**:
+    - `PatientList.tsx`: Searchable and filterable roster of active hospital admissions.
+    - `ClinicalTimeline.tsx`: Chronological visualization of patient events, vitals drops, and medications.
+* **`ui/`**: 
+    - `AlertCard.tsx`, `EWSBadge.tsx`, `RiskBadge.tsx`: Visual indicators for urgency and alarm management.
+    - `VitalsChart.tsx`: Real-time charting for continuous telemetry vectors.
 
 ### 4. Application Contexts (`src/contexts/`)
 Centralizes state logic preventing recursive prop-drilling across deep component trees.
-* **`AuthContext.tsx`**: Maintains the global authorization session storing decoded JWT claims continuously seamlessly exposing `.login()` and `.logout()` methodologies globally.
-* **`RealtimeContext.tsx`**: Initializes the global Socket.io client bindings catching `EWS_ALERT` or `VITALS_UPDATE` pushes inherently broadcasting updates cleanly into the React virtual DOM locally.
+* **`AuthContext.tsx`**: Maintains the global authorization session and JWT claim persistence.
+* **`RealtimeContext.tsx`**: Initializes Socket.io bindings to broadcast `EWS_ALERT` or `VITALS_UPDATE` pushes into the React virtual DOM.
 
-### 5. Utilities & Schemas (`src/lib/`)
-* **`types.ts`**: Holds globally shared TypeScript structural interfaces dictating exactly how a Patient, Vital, or Alert object should be typed, guaranteeing frontend/backend parity.
-* **`mockData.ts`**: Isolated fallback data arrays simulating active database streams, heavily utilized during UI development or offline testing strictly.
-* **`utils.ts`**: Pure helper functions handling repetitive local logic inherently (e.g., date-time formatting, generic math conversions).
+### 5. Utilities & Library (`src/lib/`)
+* **`types.ts`**: Globally shared TypeScript structural interfaces for Patients, Vitals, and Alerts.
+* **`mockData.ts`**: Fallback data for offline UI development and design system testing.
+* **`utils.ts`**: Pure helper functions for formatting, math, and general transformations.
+
+---
+
+## Frontend Development Workflow
+
+### 1. Initial Setup
+1. **Environment Config**: Copy `.env.example` (if available) or create `.env.local` to configure `NEXT_PUBLIC_API_URL`.
+2. **Dependencies**: Run `npm install` in the `frontend/` directory.
+
+### 2. Running Locally
+```bash
+# Start the development server on http://localhost:3000
+npm run dev
+```
+
+### 3. Adding a New Page/Component
+1. **Define Types**: Update `src/lib/types.ts` if adding a new data structure.
+2. **Component**: Create your UI logic in `src/components/` (use `ui/` for general atoms, or feature-specific folders).
+3. **Context**: If shared state is needed, update or add a provider in `src/contexts/`.
+4. **Page**: Add a new directory in `src/app/` with a `page.tsx` file to define the new route.
+
+### 4. Style Standards
+- Use **Tailwind CSS** for all styling.
+- Follow the established design system (see `globals.css` and existing dashboard components) to maintain clinical clarity.
 
 ---
 
 ## Integration Summary
-This frontend repository is bound inherently to the `backend` environment. Any UI action generating an API request matches directly to an active controller mapping on the Node.js backend. As a real-time system, the frontend avoids aggressive polling intervals choosing instead to passively absorb asynchronous updates broadcasted via the backend's continuous PostgreSQL listen-notify mechanisms structurally correctly natively.
+This frontend repository is bound inherently to the `backend` environment. Any UI action generating an API request matches directly to an active controller mapping on the Node.js backend. As a real-time system, the frontend avoids aggressive polling intervals choosing instead to passively absorb asynchronous updates broadcasted via the backend's continuous Socket.io streams.

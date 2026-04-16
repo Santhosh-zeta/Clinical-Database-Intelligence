@@ -1,7 +1,3 @@
--- ============================================================
--- Migration 023: Clinical Consultations
--- ============================================================
-
 CREATE TABLE IF NOT EXISTS clinical_consults (
     id              SERIAL PRIMARY KEY,
     patient_id      INT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
@@ -9,7 +5,7 @@ CREATE TABLE IF NOT EXISTS clinical_consults (
     specialty       VARCHAR(100) NOT NULL,
     priority        VARCHAR(20) DEFAULT 'routine',
     reason          TEXT NOT NULL,
-    status          VARCHAR(20) DEFAULT 'pending', -- pending, scheduled, completed, cancelled
+    status          VARCHAR(20) DEFAULT 'pending',
     organization_id INT NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

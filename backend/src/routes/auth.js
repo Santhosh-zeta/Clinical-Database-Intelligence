@@ -26,7 +26,6 @@ router.post(
     async (req, res, next) => {
         try {
             const { email, password } = req.body;
-            
 
             const result = await db.query(
                 `SELECT id, name, email, password_hash, role FROM doctors WHERE email = $1`,
@@ -42,7 +41,7 @@ router.post(
 
             const doctor = result.rows[0];
             const isMatch = await bcrypt.compare(password, doctor.password_hash);
-            
+
             if (!isMatch) {
                 throw createError('Invalid credentials', 401);
             }

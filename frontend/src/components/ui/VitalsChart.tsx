@@ -18,13 +18,12 @@ export function VitalsChart({ vitals }: VitalsChartProps) {
     );
   }
 
-
   const data = vitals.map(v => ({
-    time: new Date(v.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    HR: v.heartRate,
-    SBP: v.bloodPressure?.systolic ?? 0,
-    DBP: v.bloodPressure?.diastolic ?? 0,
-    SpO2: v.oxygenLevel,
+    time: new Date(v.recorded_at || v.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    HR: v.heart_rate || v.heartRate,
+    SBP: (v.systolic_bp || v.bloodPressure?.systolic) ?? 0,
+    DBP: (v.diastolic_bp || v.bloodPressure?.diastolic) ?? 0,
+    SpO2: v.spo2 || v.oxygenLevel,
     Temp: v.temperature
   }));
 

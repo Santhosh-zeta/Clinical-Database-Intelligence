@@ -9,7 +9,10 @@ interface RealtimeContextType {
     isConnected: boolean;
 }
 
-const RealtimeContext = createContext<RealtimeContextType>({ socket: null, isConnected: false });
+const RealtimeContext = createContext<RealtimeContextType>({
+    socket: null,
+    isConnected: false
+});
 
 export const useRealtime = () => useContext(RealtimeContext);
 
@@ -34,19 +37,13 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         });
 
         newSocket.on('connect', () => {
-            console.log('[Realtime] Connected to backend');
+            console.log('[Realtime] Connected');
             setIsConnected(true);
             newSocket.emit('join-org', currentUser.org_id || 1);
         });
 
         newSocket.on('disconnect', () => {
-            console.log('[Realtime] Disconnected');
             setIsConnected(false);
-        });
-
-        newSocket.on('new-alert', (payload) => {
-            console.log('[Realtime] ALERT:', payload);
-            alert(`CRITICAL ALERT for ${payload.patient_name}: ${payload.message}`);
         });
 
         setSocket(newSocket);

@@ -12,7 +12,6 @@ const validate = (req, res, next) => {
     next();
 };
 
-
 router.post(
     '/',
     [
@@ -52,7 +51,6 @@ router.post(
     }
 );
 
-
 router.get(
     '/:patient_id',
     [
@@ -84,7 +82,6 @@ router.get(
         } catch (err) { next(err); }
     }
 );
-
 
 router.get('/:patient_id/latest', param('patient_id').isInt(), validate, async (req, res, next) => {
     try {

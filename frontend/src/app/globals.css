@@ -45,7 +45,7 @@
 
 @layer base {
   :root {
-    /* Light mode soft base variables */
+
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
@@ -87,7 +87,6 @@
   }
 }
 
-/* Custom scrollbar to keep it sleek but professional */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

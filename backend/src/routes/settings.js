@@ -12,7 +12,6 @@ const validate = (req, res, next) => {
     next();
 };
 
-
 router.get('/:key', async (req, res, next) => {
     try {
         const { key } = req.params;
@@ -20,7 +19,7 @@ router.get('/:key', async (req, res, next) => {
             `SELECT value FROM system_configurations WHERE key = $1`,
             [key]
         );
-        
+
         if (result.rowCount === 0) {
             return res.status(404).json({ message: 'Configuration key not found' });
         }
@@ -29,7 +28,6 @@ router.get('/:key', async (req, res, next) => {
         next(err);
     }
 });
-
 
 router.put(
     '/:key',
@@ -41,16 +39,16 @@ router.put(
         try {
             const { key } = req.params;
             const updatedValue = req.body;
-            
+
             const result = await db.query(
-                `INSERT INTO system_configurations (key, value, updated_at) 
-                 VALUES ($1, $2, NOW()) 
-                 ON CONFLICT (key) DO UPDATE 
-                 SET value = EXCLUDED.value, updated_at = NOW() 
+                `INSERT INTO system_configurations (key, value, updated_at)
+                 VALUES ($1, $2, NOW())
+                 ON CONFLICT (key) DO UPDATE
+                 SET value = EXCLUDED.value, updated_at = NOW()
                  RETURNING value`,
                 [key, updatedValue]
             );
-            
+
             res.json({
                 message: 'Configuration updated successfully',
                 data: result.rows[0].value

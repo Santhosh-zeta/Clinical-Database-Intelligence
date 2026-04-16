@@ -3,7 +3,6 @@
 const db = require('../config/db');
 const { createError } = require('../middleware/errorHandler');
 
-/** Get prescription suggestions based on a diagnosis keyword */
 async function getSuggestions(diagnosisText) {
     const keyword = diagnosisText.toLowerCase().trim();
 
@@ -22,7 +21,6 @@ async function getSuggestions(diagnosisText) {
     return result.rows;
 }
 
-/** Check drug-drug interactions for a list of medication IDs */
 async function checkInteractions(medicationIds) {
     if (!medicationIds || medicationIds.length < 2) return [];
     const result = await db.query(
@@ -41,14 +39,12 @@ async function checkInteractions(medicationIds) {
 async function create(body, orgId, prescribedBy) {
     const { admission_id, medication_id, dose, frequency, route, start_date, end_date, notes } = body;
 
-
     const check = await db.query(
         `SELECT a.id, a.patient_id FROM admissions a
          WHERE a.id = $1 AND a.organization_id = $2 AND a.status = 'active'`,
         [admission_id, orgId]
     );
     if (!check.rowCount) throw createError('Active admission not found in this organization', 404);
-
 
     const activeMeds = await db.query(
         `SELECT medication_id FROM prescriptions
@@ -66,7 +62,6 @@ async function create(body, orgId, prescribedBy) {
         [admission_id, orgId, prescribedBy, medication_id, dose, frequency, route,
          start_date || new Date().toISOString().split('T')[0], end_date, notes]
     );
-
 
     const { patient_id } = check.rows[0];
     await db.query(

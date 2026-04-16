@@ -1,8 +1,3 @@
--- ============================================================
--- Migration 012: Continuous Aggregates for Vitals
--- ============================================================
-
--- Create 1-minute bucket materialized view
 CREATE MATERIALIZED VIEW IF NOT EXISTS vitals_1m
 WITH (timescaledb.continuous) AS
 SELECT time_bucket('1 minute', recorded_at) AS bucket,
@@ -15,7 +10,6 @@ SELECT time_bucket('1 minute', recorded_at) AS bucket,
 FROM vitals
 GROUP BY bucket, admission_id;
 
--- Add a policy to refresh it every minute
 SELECT add_continuous_aggregate_policy('vitals_1m',
   start_offset => INTERVAL '1 day',
   end_offset => INTERVAL '1 minute',

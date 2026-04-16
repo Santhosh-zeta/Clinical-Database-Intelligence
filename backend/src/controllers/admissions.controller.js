@@ -22,4 +22,3 @@ const listSuggestions = async (req, res, next) => {
 };
 
 module.exports = { list, getById, create, discharge, dischargeReady, listSuggestions };
-

@@ -55,4 +55,38 @@ async function create(body, orgId) {
     }
 }
 
-module.exports = { list, getById, create };
+async function update(id, body, orgId) {
+    const { name, email, role, specialization, phone, is_active } = body;
+    const result = await db.query(
+        `UPDATE doctors 
+         SET name = $1, email = $2, role = $3, specialization = $4, phone = $5, is_active = $6
+         WHERE id = $7 AND organization_id = $8
+         RETURNING id, name, email, role, specialization, phone, is_active`,
+        [name, email, role, specialization, phone, is_active, id, orgId]
+    );
+    if (!result.rowCount) throw createError('Staff member not found', 404);
+
+    // Update user_roles if role changed
+    if (role) {
+        await db.query(`DELETE FROM user_roles WHERE doctor_id = $1`, [id]);
+        await db.query(
+            `INSERT INTO user_roles (doctor_id, role_id, org_id)
+             SELECT $1, r.id, $2 FROM roles r WHERE r.name = $3 ON CONFLICT DO NOTHING`,
+            [id, orgId, role]
+        );
+    }
+
+    return result.rows[0];
+}
+
+async function remove(id, orgId) {
+    const result = await db.query(
+        `DELETE FROM doctors WHERE id = $1 AND organization_id = $2 RETURNING id`,
+        [id, orgId]
+    );
+    if (!result.rowCount) throw createError('Staff member not found', 404);
+    return { message: 'Staff member removed successfully' };
+}
+
+module.exports = { list, getById, create, update, remove };
+

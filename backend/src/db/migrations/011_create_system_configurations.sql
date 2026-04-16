@@ -1,14 +1,9 @@
--- ============================================================
--- Migration 011: System Configurations
--- ============================================================
-
 CREATE TABLE IF NOT EXISTS system_configurations (
     key VARCHAR(50) PRIMARY KEY,
     value JSONB NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Seed initial thresholds for intelligence engine
 INSERT INTO system_configurations (key, value)
 VALUES (
     'clinical_thresholds',

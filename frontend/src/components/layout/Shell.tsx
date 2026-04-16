@@ -44,18 +44,40 @@ interface Notification {
   notification_type?: string;
 }
 
+import { useRealtime } from '../../contexts/RealtimeContext';
+
 export function Shell({ children }: { children: React.ReactNode }) {
   const { currentUser, logout, hasPermission } = useAuth();
+  const { socket } = useRealtime();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
-
-
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
-
   const [criticalAlertCount, setCriticalAlertCount] = useState(0);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewAlert = (payload: any) => {
+      if (payload.severity === 'critical') {
+        setCriticalAlertCount(prev => prev + 1);
+      }
+    };
+
+    const handleNewNotif = (payload: any) => {
+      setNotifications(prev => [payload, ...prev].slice(0, 20));
+    };
+
+    socket.on('new-alert', handleNewAlert);
+    socket.on('new-notification', handleNewNotif);
+
+    return () => {
+      socket.off('new-alert', handleNewAlert);
+      socket.off('new-notification', handleNewNotif);
+    };
+  }, [socket]);
 
   const fetchNotifications = useCallback(async () => {
     if (!currentUser || currentUser.role === 'patient') return;
@@ -83,13 +105,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
     setNotifLoading(false);
   }, [currentUser]);
 
-
   useEffect(() => {
     fetchNotifications();
     const id = setInterval(fetchNotifications, 5000);
     return () => clearInterval(id);
   }, [fetchNotifications]);
-
 
   useEffect(() => {
     if (isNotifOpen) fetchNotifications();
@@ -116,7 +136,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen bg-slate-50 text-slate-800 overflow-hidden font-sans selection:bg-indigo-500/20">
 
-
       <aside className="w-20 lg:w-64 bg-gray-200 border-r-2 border-black flex flex-col relative z-20">
         <Link href="/dashboard" className="h-16 flex items-center justify-center lg:justify-start lg:px-4 border-b-2 border-black bg-gray-300 hover:bg-gray-400">
           <span className="hidden lg:block font-mono font-bold text-lg uppercase tracking-widest text-black">INTELLICARE</span>
@@ -134,11 +153,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
             />
           )}
 
-
           {(['admin', 'ultra_admin', 'hospital_admin'].includes(currentUser?.role?.toLowerCase() || '')) && (
             <>
               <NavItem href="/dashboard?tab=staff" icon={<Users size={20} />} label="Staff Members" active={pathname === '/dashboard' && tabParam === 'staff'} />
-              <NavItem href="/dashboard?tab=patients" icon={<Users size={20} />} label="Patients" active={pathname === '/dashboard' && tabParam === 'patients'} />
+              <NavItem href="/dashboard?tab=patients" icon={<Users size={20} />} label="Patients" active={(pathname === '/dashboard' && tabParam === 'patients') || pathname.startsWith('/patients')} />
               <NavItem href="/dashboard?tab=appointments" icon={<Calendar size={20} />} label="Appointments" active={pathname === '/dashboard' && tabParam === 'appointments'} />
               <NavItem href="/dashboard?tab=ambulances" icon={<Ambulance size={20} />} label="Ambulances" active={pathname === '/dashboard' && tabParam === 'ambulances'} />
               <NavItem href="/dashboard?tab=labs" icon={<Database size={20} />} label="Lab Tests" active={pathname === '/dashboard' && tabParam === 'labs'} />
@@ -149,21 +167,20 @@ export function Shell({ children }: { children: React.ReactNode }) {
             </>
           )}
 
-
           {(currentUser?.role?.toLowerCase() === 'doctor' || currentUser?.role?.toLowerCase() === 'nurse') && (
             <>
               <div className="h-px bg-black mx-1 my-2" />
               <p className="px-3 text-[10px] font-mono font-bold text-gray-600 uppercase mb-1">For Staff</p>
 
-              <NavItem href="/dashboard?tab=patients" icon={<Users size={20} />} label="Patients" active={pathname === '/dashboard' && tabParam === 'patients'} />
-              <NavItem href="/dashboard?tab=appointments" icon={<Calendar size={20} />} label="Appointments" active={pathname === '/dashboard' && tabParam === 'appointments'} />
-              <NavItem href="/dashboard?tab=vitals" icon={<Activity size={20} />} label="Patient Vitals" active={pathname === '/dashboard' && tabParam === 'vitals'} />
-              <NavItem href="/dashboard?tab=labs" icon={<Database size={20} />} label="Lab Tests" active={pathname === '/dashboard' && tabParam === 'labs'} />
+              <NavItem href="/dashboard?tab=patients" icon={<Users size={20} />} label="Patients" active={(pathname === '/dashboard' && tabParam === 'patients') || pathname.startsWith('/patients')} />
+              <NavItem href="/dashboard?tab=appointments" icon={<Calendar size={20} />} label="Daily Rounds" active={pathname === '/dashboard' && tabParam === 'appointments'} />
+              <NavItem href="/dashboard?tab=vitals" icon={<Activity size={20} />} label="Vitals Monitor" active={pathname === '/dashboard' && tabParam === 'vitals'} />
+              <NavItem href="/dashboard?tab=labs" icon={<Database size={20} />} label="Lab Reports" active={pathname === '/dashboard' && tabParam === 'labs'} />
               <NavItem href="/dashboard?tab=icu" icon={<BedDouble size={20} />} label="Beds & Rooms" active={pathname === '/dashboard' && tabParam === 'icu'} />
 
               {currentUser?.role?.toLowerCase() === 'doctor' && (
                 <>
-                  <NavItem href="/dashboard?tab=consults" icon={<Stethoscope size={20} />} label="Doctor Visits" active={pathname === '/dashboard' && tabParam === 'consults'} />
+                  <NavItem href="/dashboard?tab=consults" icon={<Stethoscope size={20} />} label="Referral Hub" active={pathname === '/dashboard' && tabParam === 'consults'} />
                   <NavItem href="/dashboard?tab=discharge" icon={<HeartPulse size={20} />} label="Discharges" active={pathname === '/dashboard' && tabParam === 'discharge'} />
                 </>
               )}
@@ -179,8 +196,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <NavItem href="/dashboard?tab=alerts" icon={<AlertTriangle size={20} />} label="Alerts" active={pathname === '/dashboard' && tabParam === 'alerts'} />
             </>
           )}
-
-
 
           {currentUser?.role?.toLowerCase() === 'patient' && (
             <>
@@ -208,9 +223,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-
       <main className="flex-1 flex flex-col min-w-0 relative z-10">
-
 
         <header className="h-16 bg-gray-300 border-b-2 border-black flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-10 flex-shrink-0">
 
@@ -255,10 +268,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Content */}
+        { }
         <div className="flex-1 overflow-auto scrollbar-hide relative bg-transparent p-4 md:p-6 lg:p-8">
           {children}
-
 
           <AnimatePresence>
             {isNotifOpen && currentUser?.role !== 'patient' && (
@@ -300,7 +312,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
                       <button onClick={() => setIsNotifOpen(false)} className="font-mono text-xs text-black border border-black bg-white hover:bg-gray-300 px-2 py-1">[X]</button>
                     </div>
                   </div>
-
 
                   <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1 custom-scrollbar bg-gray-100">
                     {notifLoading && notifications.length === 0 ? (
@@ -347,8 +358,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                     )}
                   </div>
 
-
-                  {/* Critical alerts summary at the bottom */}
+                  { }
                   {criticalAlertCount > 0 && (
                     <div className="p-2 border-t-2 border-black bg-red-200">
                       <Link

@@ -12,10 +12,8 @@ const validate = (req, res, next) => {
     next();
 };
 
-/** GET /api/consults - list all consults */
 router.get('/', requirePermission('VIEW_CONSULTS'), ctrl.list);
 
-/** POST /api/consults - create new consult */
 router.post('/',
     requirePermission('CREATE_CONSULT'),
     [
@@ -28,7 +26,6 @@ router.post('/',
     ctrl.create
 );
 
-/** POST /api/consults/:id/resolve - resolve/respond to consult */
 router.post('/:id/resolve',
     requirePermission('RESOLVE_CONSULT'),
     [
@@ -37,6 +34,16 @@ router.post('/:id/resolve',
     ],
     validate,
     ctrl.resolve
+);
+
+router.post('/:id/finalize',
+    requirePermission('MANAGE_CONSULTS'),
+    [
+        body('findings').notEmpty().trim(),
+        body('recommendations').notEmpty().trim()
+    ],
+    validate,
+    ctrl.finalize
 );
 
 module.exports = router;

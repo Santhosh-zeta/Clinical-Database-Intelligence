@@ -104,8 +104,6 @@ async function updateOrgSettings(orgId, settings) {
     return result.rows[0];
 }
 
-
-/** Critical patients (risk=critical OR ews=urgent) — for the priority incidents panel */
 async function getCriticalPatients(orgId) {
     const result = await db.query(
         `SELECT DISTINCT ON (a.patient_id)
@@ -138,7 +136,6 @@ async function getCriticalPatients(orgId) {
     return result.rows;
 }
 
-/** Alert severity breakdown + escalation level distribution */
 async function getAlertsSummary(orgId) {
     const bySeverity = await db.query(
         `SELECT severity, status, COUNT(*) AS count
@@ -187,7 +184,6 @@ async function getAlertsSummary(orgId) {
     };
 }
 
-/** Real-time bed status across all wards */
 async function getBedStatus(orgId) {
     const result = await db.query(
         `SELECT w.id AS ward_id, w.name AS ward_name, w.ward_type, w.department_id,
@@ -218,7 +214,6 @@ async function getBedStatus(orgId) {
     return result.rows;
 }
 
-/** Ward-level analytics: occupancy + avg risk score per ward */
 async function getWardAnalytics(orgId) {
     const result = await db.query(
         `SELECT
@@ -246,7 +241,6 @@ async function getWardAnalytics(orgId) {
     return result.rows;
 }
 
-/** Discharge trend: daily discharge count for last 14 days */
 async function getDischargeTrends(orgId) {
     const result = await db.query(
         `SELECT
@@ -265,7 +259,6 @@ async function getDischargeTrends(orgId) {
     return result.rows;
 }
 
-/** Staff performance: admissions per doctor in last 30 days */
 async function getStaffPerformance(orgId) {
     const result = await db.query(
         `SELECT
@@ -293,4 +286,3 @@ module.exports = {
     getCriticalPatients, getAlertsSummary, getBedStatus,
     getWardAnalytics, getDischargeTrends, getStaffPerformance,
 };
-

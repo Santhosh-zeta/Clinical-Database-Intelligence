@@ -1,10 +1,5 @@
 'use strict';
 
-/**
- * index.js — Main menu for the simulator.
- * Run `node index.js` for an interactive prompt.
- */
-
 require('dotenv').config();
 const { execSync } = require('child_process');
 const readline = require('readline');
