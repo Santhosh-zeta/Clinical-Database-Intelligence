@@ -19,7 +19,7 @@ export default function SettingsPage() {
 
    React.useEffect(() => {
       const token = localStorage.getItem('__intellicare_token');
-      fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/admin/settings', { headers: { 'Authorization': `Bearer ${token}` } })
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/admin/settings`, { headers: { 'Authorization': `Bearer ${token}` } })
          .then(res => res.json())
          .then(res => {
             if (res.data) setSettings(res.data);
@@ -44,7 +44,7 @@ export default function SettingsPage() {
       setIsSaving(true);
       try {
          const token = localStorage.getItem('__intellicare_token');
-         await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/admin/settings', {
+         await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/admin/settings`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(settings)
