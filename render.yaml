@@ -14,7 +14,7 @@ services:
       - key: POSTGRES_USER
         value: postgres
       - key: POSTGRES_PASSWORD
-        generateValue: true
+        value: "SuperSecretIntelliCareDB123!"
 
   # 2. Backend API
   - type: web
@@ -28,15 +28,8 @@ services:
         value: production
       - key: ALLOWED_ORIGINS
         value: "*" # Allow the frontend to connect from anywhere
-      # The internal connection URL using Render's internal DNS resolving to the private service name
-      - key: DATABASE_URL
-        fromService:
-          type: pserv
-          name: clinical-db
-          envVarKey: POSTGRES_PASSWORD
-          property: connectionString
-          # Note: Render does not easily support building connection strings from docker env vars.
-          # We will set PGUSER, PGPASSWORD, PGHOST, PGDATABASE separately for pg-pool.
+      # Note: Render does not easily support building connection strings from docker env vars.
+      # We will set PGUSER, PGPASSWORD, PGHOST, PGDATABASE separately for pg-pool.
       - key: PGHOST
         value: clinical-db
       - key: PGDATABASE
