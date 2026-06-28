@@ -23,6 +23,13 @@ COPY backend /app/backend
 WORKDIR /app/backend
 RUN npm install
 
+# Copy simulator code
+COPY simulator /app/simulator
+
+# Install simulator dependencies
+WORKDIR /app/simulator
+RUN npm install
+
 # Copy entrypoint script
 COPY my-entrypoint.sh /my-entrypoint.sh
 RUN chmod +x /my-entrypoint.sh

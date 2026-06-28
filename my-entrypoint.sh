@@ -20,7 +20,18 @@
   
   # Start the Node.js API server
   echo "[Setup] Starting Node.js API Server on port 10000..."
-  npm start
+  npm start &
+
+  # Wait for API to be ready, then start simulator
+  echo "[Setup] Waiting for API to be ready on port 10000 for simulator..."
+  until wget -q -O - http://127.0.0.1:10000/health >/dev/null 2>&1; do
+    sleep 2
+  done
+  
+  echo "[Setup] Starting Clinical Simulator..."
+  cd /app/simulator
+  export API_URL=http://127.0.0.1:10000
+  npm run simulate &
 ) &
 
 # Execute the original TimescaleDB entrypoint in the FOREGROUND
