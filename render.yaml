@@ -4,7 +4,6 @@ services:
   - type: pserv
     name: clinical-db
     env: docker
-    dockerfilePath: ./Dockerfile.db
     disk:
       name: timescaledb-data
       mountPath: /var/lib/postgresql/data
