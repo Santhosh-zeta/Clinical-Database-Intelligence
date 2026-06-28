@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
-const API = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api`;
+const API = `https://clinical-database-intelligence.onrender.com/api`;
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
 const ah = () => ({ Authorization: `Bearer ${getToken()}` });
 

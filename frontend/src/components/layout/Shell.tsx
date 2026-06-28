@@ -31,7 +31,7 @@ import { cn } from '../../lib/utils';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 
-const API = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api`;
+const API = `https://clinical-database-intelligence.onrender.com/api`;
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
 const ah = () => ({ Authorization: `Bearer ${getToken()}` });
 

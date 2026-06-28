@@ -30,7 +30,7 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             return;
         }
 
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const API_URL = 'https://clinical-database-intelligence.onrender.com';
         const newSocket = io(API_URL, {
             withCredentials: true,
             transports: ['websocket', 'polling']

@@ -26,7 +26,7 @@ import SettingsPage from '../settings/page';
 import UsersPage from '../users/page';
 import CareOverview from '@/components/dashboard/CareOverview';
 
-const API = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api`;
+const API = `https://clinical-database-intelligence.onrender.com/api`;
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
 const ah = () => ({ Authorization: `Bearer ${getToken()}` });
 
