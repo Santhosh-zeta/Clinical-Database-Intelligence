@@ -25,6 +25,22 @@ A full-stack, real-time hospital management and clinical intelligence command ce
 
 ---
 
+## 🗄️ Database Features & Schema Architecture
+
+The platform leverages **PostgreSQL** combined with **TimescaleDB** extensions to handle both relational business logic and high-volume time-series telemetry. The extensive schema (37+ migrations) includes:
+
+* **TimescaleDB Hypertables & Continuous Aggregates**: Optimized specifically for storing, partitioning, and querying high-frequency patient vitals and biometric telemetry at IoT scale.
+* **Advanced Multi-Tenancy & RBAC**: Strict Row-Level Security (RLS) concepts and organization-based scoping ensures data isolation. Fine-grained roles dictate exact permissions for doctors, nurses, patients, and admins.
+* **Real-time Clinical Scoring (EWS)**: Automated calculation of Early Warning Scores and dynamic Risk Scores based on incoming vitals to predict patient deterioration.
+* **Automated Triggers & Alerts**: Database-level notification triggers that instantly push critical alerts (like abnormal blood pressure or SpO2 drops) to the real-time websocket layer.
+* **Hospital Digital Twin**: Comprehensive relational mapping of physical hospital assets (Wards, Beds, Ambulances) and staff hierarchies (Departments, Doctors, Nurses).
+* **Automated Billing & Invoicing**: Complex schema linking clinical events directly to billing. Automatically generates itemized invoices for ward accommodation, lab tests, prescriptions, and specialist consultations.
+* **Clinical Workflows**: Fully modeled schemas for Admissions, Discharges, Ward Handovers, Patient Appointments, Lab Orders, and Medication Administration.
+* **Regulatory Compliance**: Built-in Audit Logs for tracking critical systemic and clinical record changes to maintain accountability.
+* **Performance Indexes**: Carefully tuned database indexes designed to support rapid querying over massive historical clinical datasets.
+
+---
+
 ## 👥 Roles & Usage
 
 The platform provides dedicated modules based on the logged-in user's role:
