@@ -8,7 +8,7 @@ let io;
 function init(httpServer) {
     io = new Server(httpServer, {
         cors: {
-            origin: true,
+            origin: ['https://intellicare.dropwinggroups.com', 'http://localhost:3000'],
             methods: ['GET', 'POST']
         }
     });
