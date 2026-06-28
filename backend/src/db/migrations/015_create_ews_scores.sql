@@ -25,5 +25,5 @@ SELECT create_hypertable('ews_scores', 'calculated_at',
 
 CREATE INDEX idx_ews_admission ON ews_scores(admission_id, calculated_at DESC);
 
-COMMENT ON TABLE ews_scores IS 'NEWS2 Early Warning Score — international clinical standard (0-20 scale); populated by DB trigger after every vitals insert';
-COMMENT ON COLUMN ews_scores.consciousness_score IS 'AVPU scale: 0=Alert, 3=Voice/Pain/Unresponsive; updated by bedside nurse assessment';
+COMMENT ON TABLE ews_scores IS 'NEWS2 Early Warning Score — international clinical standard (0-20 scale), populated by DB trigger after every vitals insert';
+COMMENT ON COLUMN ews_scores.consciousness_score IS 'AVPU scale: 0=Alert, 3=Voice/Pain/Unresponsive, updated by bedside nurse assessment';

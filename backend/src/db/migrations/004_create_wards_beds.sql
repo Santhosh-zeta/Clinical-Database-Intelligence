@@ -22,4 +22,4 @@ CREATE INDEX idx_beds_ward    ON beds(ward_id);
 CREATE INDEX idx_beds_free    ON beds(is_occupied, is_icu);
 
 COMMENT ON TABLE wards IS 'Hospital wards with type classification (ICU, general, etc.)';
-COMMENT ON TABLE beds  IS 'Individual beds within a ward; is_icu flag for ICU beds';
+COMMENT ON TABLE beds  IS 'Individual beds within a ward, is_icu flag for ICU beds';

@@ -101,17 +101,17 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO drug_interactions (drug1_id, drug2_id, severity, description)
 SELECT LEAST(m1.id,m2.id), GREATEST(m1.id,m2.id),
-       'moderate', 'May potentiate hypotension; monitor BP closely'
+       'moderate', 'May potentiate hypotension, monitor BP closely'
 FROM medications m1, medications m2
 WHERE m1.name='Furosemide 40mg' AND m2.name='Amlodipine 5mg'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO drug_interactions (drug1_id, drug2_id, severity, description)
 SELECT LEAST(m1.id,m2.id), GREATEST(m1.id,m2.id),
-       'moderate', 'Corticosteroid raises blood glucose; insulin dose adjustment needed'
+       'moderate', 'Corticosteroid raises blood glucose, insulin dose adjustment needed'
 FROM medications m1, medications m2
 WHERE m1.name='Insulin Regular' AND m2.name='Dexamethasone 4mg'
 ON CONFLICT DO NOTHING;
 
 COMMENT ON TABLE disease_medication_map IS 'Rule-based prescription suggestion engine — maps diagnosis keywords to recommended medications';
-COMMENT ON TABLE drug_interactions IS 'Drug-drug interaction database; CHECK constraint prevents duplicate reverse pairs';
+COMMENT ON TABLE drug_interactions IS 'Drug-drug interaction database, CHECK constraint prevents duplicate reverse pairs';

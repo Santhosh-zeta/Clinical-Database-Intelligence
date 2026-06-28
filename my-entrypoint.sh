@@ -1,6 +1,28 @@
 #!/bin/bash
-# Run a dummy HTTP server on port 10000 to satisfy Render's HTTP health check
-sh -c "while true; do printf 'HTTP/1.1 200 OK\r\n\r\nHealthy\n' | nc -l -p 10000; done" &
 
-# Execute the original TimescaleDB entrypoint with the original arguments
+# Start a background process that waits for PostgreSQL to be ready, then starts the API
+(
+  echo "[Setup] Waiting for PostgreSQL to become ready on TCP port 5432..."
+  # Loop until pg_isready succeeds (suppress output to avoid spam during init)
+  until pg_isready -h localhost -U postgres >/dev/null 2>&1; do
+    sleep 2
+  done
+  
+  echo "[Setup] PostgreSQL is ready! Starting Node.js API..."
+  cd /app/backend
+  
+  # Export PGHOST for the Node.js backend
+  export PGHOST=127.0.0.1
+  
+  # Run migrations
+  echo "[Setup] Running database migrations..."
+  npm run migrate
+  
+  # Start the Node.js API server
+  echo "[Setup] Starting Node.js API Server on port 10000..."
+  npm start
+) &
+
+# Execute the original TimescaleDB entrypoint in the FOREGROUND
+# This ensures it runs as PID 1 and initializes properly
 exec docker-entrypoint.sh "$@"

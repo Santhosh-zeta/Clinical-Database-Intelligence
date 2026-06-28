@@ -13,4 +13,4 @@ CREATE TABLE IF NOT EXISTS risk_scores (
 
 CREATE INDEX idx_risk_admission   ON risk_scores(admission_id, calculated_at DESC);
 
-COMMENT ON TABLE risk_scores IS 'Computed composite risk scores per admission; populated by DB triggers';
+COMMENT ON TABLE risk_scores IS 'Computed composite risk scores per admission, populated by DB triggers';

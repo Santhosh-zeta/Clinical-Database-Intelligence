@@ -13,4 +13,4 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 CREATE INDEX idx_audit_table   ON audit_logs(table_name, changed_at DESC);
 CREATE INDEX idx_audit_record  ON audit_logs(table_name, record_id);
 
-COMMENT ON TABLE audit_logs IS 'Immutable audit trail for all critical data changes; populated by triggers';
+COMMENT ON TABLE audit_logs IS 'Immutable audit trail for all critical data changes, populated by triggers';

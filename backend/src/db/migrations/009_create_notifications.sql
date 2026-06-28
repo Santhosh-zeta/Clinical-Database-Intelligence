@@ -10,4 +10,4 @@ CREATE TABLE IF NOT EXISTS notifications (
 
 CREATE INDEX idx_notif_doctor  ON notifications(doctor_id, is_read, created_at DESC);
 
-COMMENT ON TABLE notifications IS 'Doctor notification inbox; populated when alerts are generated';
+COMMENT ON TABLE notifications IS 'Doctor notification inbox, populated when alerts are generated';
