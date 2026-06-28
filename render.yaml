@@ -3,9 +3,8 @@ services:
   # Uses the public TimescaleDB image directly, no Dockerfile needed.
   - type: pserv
     name: clinical-db
-    env: image
-    image:
-      url: timescale/timescaledb:latest-pg16
+    env: docker
+    dockerfilePath: ./Dockerfile.db
     disk:
       name: timescaledb-data
       mountPath: /var/lib/postgresql/data
