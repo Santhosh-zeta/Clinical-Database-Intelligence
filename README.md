@@ -25,6 +25,15 @@ A full-stack, real-time hospital management and clinical intelligence command ce
 
 ---
 
+## 💻 Technology Stack
+
+* **Frontend:** Next.js (App Router), React, Tailwind CSS, Recharts, Lucide Icons
+* **Backend:** Node.js, Express.js, Socket.io, JSON Web Tokens (JWT)
+* **Database:** PostgreSQL, TimescaleDB (for high-frequency time-series data)
+* **Infrastructure & Deployment:** Docker, Docker Compose, Render (unified container deployment)
+
+---
+
 ## 🗄️ Database Features & Schema Architecture
 
 The platform leverages **PostgreSQL** combined with **TimescaleDB** extensions to handle both relational business logic and high-volume time-series telemetry. The extensive schema (37+ migrations) includes:
