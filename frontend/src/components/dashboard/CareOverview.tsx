@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
-const API = 'http://localhost:3001/api';
+const API = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api`;
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
 const ah = () => ({ Authorization: `Bearer ${getToken()}` });
 
@@ -68,19 +68,19 @@ export default function DashboardSummary() {
   const dischargedToday = stats ? parseInt(stats.discharged_today) : 0;
 
   return (
-    <div className="max-w-[1200px] mx-auto p-4 font-sans text-gray-900">
+    <div className="max-w-[1200px] mx-auto p-4 font-sans text-slate-800">
 
-      <div className="border-b-2 border-blue-800 pb-2 mb-6 flex justify-between items-end">
+      <div className="border-b-2 border-blue-200 pb-2 mb-6 flex justify-between items-end">
         <div>
           <h1 className="text-2xl font-bold text-blue-900 m-0">
             {currentUser?.role === 'admin' ? 'System Administration Dashboard' : 'Clinical Overview Dashboard'}
           </h1>
         </div>
-        <div className="text-sm text-gray-600 font-bold">
+        <div className="text-sm text-slate-500 font-bold">
           {lastRefreshed ? `Last Updated: ${lastRefreshed.toLocaleTimeString()}` : 'Loading data...'}
           <button
             onClick={fetchDashboard}
-            className="ml-4 bg-gray-200 border border-gray-400 px-3 py-1 text-sm font-bold shadow-sm hover:bg-gray-300 active:bg-gray-400"
+            className="ml-4 bg-slate-50/80 backdrop-blur-sm border border-slate-200 px-3 py-1 text-sm font-bold shadow-sm hover:bg-white shadow-sm rounded-xl active:bg-gray-400"
           >
             Refresh Data
           </button>
@@ -100,26 +100,26 @@ export default function DashboardSummary() {
         <div className="flex-1 flex flex-col gap-6">
           <Panel title="Priority Patient Watchlist">
             {criticalPatients.length === 0 ? (
-              <div className="p-4 text-gray-500 italic">No priority patients at this time.</div>
+              <div className="p-4 text-slate-400 italic">No priority patients at this time.</div>
             ) : (
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-100 border-b border-gray-300 text-sm">
-                    <th className="p-2 border-r border-gray-300">Patient Name</th>
-                    <th className="p-2 border-r border-gray-300">Location</th>
-                    <th className="p-2 border-r border-gray-300">Diagnosis</th>
-                    <th className="p-2 border-r border-gray-300 text-center">EWS Score</th>
+                  <tr className="bg-slate-50 border-b border-slate-100 text-sm">
+                    <th className="p-2 border-r border-slate-100">Patient Name</th>
+                    <th className="p-2 border-r border-slate-100">Location</th>
+                    <th className="p-2 border-r border-slate-100">Diagnosis</th>
+                    <th className="p-2 border-r border-slate-100 text-center">EWS Score</th>
                     <th className="p-2 text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {criticalPatients.map((pt, index) => (
-                    <tr key={index} className="border-b border-gray-200 hover:bg-yellow-50 text-sm">
-                      <td className="p-2 border-r border-gray-200 font-bold text-gray-900">{pt.patient_name}</td>
-                      <td className="p-2 border-r border-gray-200">{pt.ward_name} - Bed {pt.bed_number}</td>
-                      <td className="p-2 border-r border-gray-200">{pt.diagnosis}</td>
-                      <td className="p-2 border-r border-gray-200 text-center">
-                        <span className={`font-bold ${pt.risk_category === 'critical' ? 'text-red-700' : 'text-orange-700'}`}>
+                    <tr key={index} className="border-b border-slate-100 hover:bg-yellow-50 text-sm">
+                      <td className="p-2 border-r border-slate-100 font-bold text-slate-800">{pt.patient_name}</td>
+                      <td className="p-2 border-r border-slate-100">{pt.ward_name} - Bed {pt.bed_number}</td>
+                      <td className="p-2 border-r border-slate-100">{pt.diagnosis}</td>
+                      <td className="p-2 border-r border-slate-100 text-center">
+                        <span className={`font-bold ${pt.risk_category === 'critical' ? 'text-rose-600' : 'text-orange-700'}`}>
                           {pt.ews || 'N/A'}
                         </span>
                       </td>
@@ -133,7 +133,7 @@ export default function DashboardSummary() {
                 </tbody>
               </table>
             )}
-            <div className="bg-gray-100 p-2 border-t border-gray-300 text-right">
+            <div className="bg-slate-50 p-2 border-t border-slate-100 text-right">
               <Link href="/patients" className="text-blue-700 hover:underline text-sm font-bold">Open Full Directory &raquo;</Link>
             </div>
           </Panel>
@@ -142,8 +142,8 @@ export default function DashboardSummary() {
         <div className="lg:w-1/3 flex flex-col gap-6">
           <Panel title="Recent System Alerts">
              <div className="p-4 flex flex-col gap-2">
-               <p className="font-bold text-red-700 mb-2">Total Unresolved: {activeAlerts}</p>
-               <hr className="border-gray-300 my-1" />
+               <p className="font-bold text-rose-600 mb-2">Total Unresolved: {activeAlerts}</p>
+               <hr className="border-slate-100 my-1" />
                <ul className="list-disc pl-5 text-sm space-y-1">
                  {alertsSummary?.by_escalation?.map((esc: any, i: number) => (
                    <li key={i}>
@@ -152,25 +152,25 @@ export default function DashboardSummary() {
                  ))}
                </ul>
              </div>
-             <div className="bg-gray-100 p-2 border-t border-gray-300 text-right">
+             <div className="bg-slate-50 p-2 border-t border-slate-100 text-right">
                 <Link href="/alerts" className="text-blue-700 hover:underline text-sm font-bold">Manage Alerts &raquo;</Link>
              </div>
           </Panel>
 
           <Panel title="Latest Audit Logs">
             {auditLogs.length === 0 ? (
-               <div className="p-4 text-gray-500 italic">Logs empty or loading.</div>
+               <div className="p-4 text-slate-400 italic">Logs empty or loading.</div>
              ) : (
                <ul className="text-sm divide-y divide-gray-200">
                  {auditLogs.slice(0, 5).map(log => (
                    <li key={log.id} className="p-2">
                      <div className="font-bold">{log.action} - {log.table_name}</div>
-                     <div className="text-gray-600">ID: {log.record_id} | Time: {new Date(log.changed_at).toLocaleTimeString()}</div>
+                     <div className="text-slate-500">ID: {log.record_id} | Time: {new Date(log.changed_at).toLocaleTimeString()}</div>
                    </li>
                  ))}
                </ul>
              )}
-            <div className="bg-gray-100 p-2 border-t border-gray-300 text-right">
+            <div className="bg-slate-50 p-2 border-t border-slate-100 text-right">
               <Link href="/logs" className="text-blue-700 hover:underline text-sm font-bold">View All Logs &raquo;</Link>
             </div>
           </Panel>
@@ -194,7 +194,7 @@ function PatientDashboard() {
   }, [currentUser?.patientId]);
 
   if (loading) return (
-    <div className="p-6 text-gray-600 font-bold font-sans">
+    <div className="p-6 text-slate-500 font-bold font-sans">
       Loading Medical Record...
     </div>
   );
@@ -203,10 +203,10 @@ function PatientDashboard() {
   const vitals = summary?.latest_vitals;
 
   return (
-    <div className="max-w-[900px] mx-auto p-4 font-sans text-gray-900 border border-black shadow mt-4 bg-white">
+    <div className="max-w-[900px] mx-auto p-4 font-sans text-slate-800 border border-slate-200 shadow-sm rounded-xl shadow mt-4 bg-white">
       <div className="border-b-4 border-blue-900 pb-2 mb-4">
-        <h1 className="text-3xl font-bold text-black m-0">IntelliCare Patient Portal</h1>
-        <p className="font-bold text-gray-600 m-0">Patient File: {currentUser?.name}</p>
+        <h1 className="text-3xl font-bold text-slate-800 m-0">IntelliCare Patient Portal</h1>
+        <p className="font-bold text-slate-500 m-0">Patient File: {currentUser?.name}</p>
       </div>
 
       <div className="flex gap-6 mb-6">
@@ -217,25 +217,25 @@ function PatientDashboard() {
                  <table className="w-full text-left text-sm">
                    <tbody>
                      <tr className="border-b">
-                       <th className="py-2 pr-4 text-gray-600">Condition</th>
-                       <td className="py-2 font-bold text-black">{adm.diagnosis}</td>
+                       <th className="py-2 pr-4 text-slate-500">Condition</th>
+                       <td className="py-2 font-bold text-slate-800">{adm.diagnosis}</td>
                      </tr>
                      <tr className="border-b">
-                       <th className="py-2 pr-4 text-gray-600">Admitting Physician</th>
+                       <th className="py-2 pr-4 text-slate-500">Admitting Physician</th>
                        <td className="py-2">Dr. {adm.doctor_name}</td>
                      </tr>
                      <tr className="border-b">
-                       <th className="py-2 pr-4 text-gray-600">Location</th>
+                       <th className="py-2 pr-4 text-slate-500">Location</th>
                        <td className="py-2">{adm.ward_name}, Bed {adm.bed_number}</td>
                      </tr>
                      <tr>
-                       <th className="py-2 pr-4 text-gray-600">Admission Date</th>
+                       <th className="py-2 pr-4 text-slate-500">Admission Date</th>
                        <td className="py-2">{new Date(adm.admitted_at).toLocaleDateString()}</td>
                      </tr>
                    </tbody>
                  </table>
                ) : (
-                 <p className="italic text-gray-600">No active admission found.</p>
+                 <p className="italic text-slate-500">No active admission found.</p>
                )}
              </div>
            </Panel>
@@ -244,34 +244,34 @@ function PatientDashboard() {
            <Panel title="Recent Vitals">
              <div className="p-4">
                {vitals ? (
-                 <table className="w-full text-left text-sm border border-gray-300">
+                 <table className="w-full text-left text-sm border border-slate-100">
                     <thead>
-                      <tr className="bg-gray-200">
-                        <th className="border border-gray-300 p-2">Measurement</th>
-                        <th className="border border-gray-300 p-2">Result</th>
+                      <tr className="bg-slate-50/80 backdrop-blur-sm">
+                        <th className="border border-slate-100 p-2">Measurement</th>
+                        <th className="border border-slate-100 p-2">Result</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td className="border border-gray-300 p-2">Heart Rate</td>
-                        <td className="border border-gray-300 p-2 font-bold">{vitals.heart_rate} BPM</td>
+                        <td className="border border-slate-100 p-2">Heart Rate</td>
+                        <td className="border border-slate-100 p-2 font-bold">{vitals.heart_rate} BPM</td>
                       </tr>
                       <tr>
-                        <td className="border border-gray-300 p-2">Blood Pressure</td>
-                        <td className="border border-gray-300 p-2 font-bold">{vitals.systolic_bp} / {vitals.diastolic_bp}</td>
+                        <td className="border border-slate-100 p-2">Blood Pressure</td>
+                        <td className="border border-slate-100 p-2 font-bold">{vitals.systolic_bp} / {vitals.diastolic_bp}</td>
                       </tr>
                       <tr>
-                        <td className="border border-gray-300 p-2">Oxygen (SpO2)</td>
-                        <td className="border border-gray-300 p-2 font-bold">{vitals.spo2} %</td>
+                        <td className="border border-slate-100 p-2">Oxygen (SpO2)</td>
+                        <td className="border border-slate-100 p-2 font-bold">{vitals.spo2} %</td>
                       </tr>
                       <tr>
-                        <td className="border border-gray-300 p-2">Temperature</td>
-                        <td className="border border-gray-300 p-2 font-bold">{vitals.temperature} °C</td>
+                        <td className="border border-slate-100 p-2">Temperature</td>
+                        <td className="border border-slate-100 p-2 font-bold">{vitals.temperature} °C</td>
                       </tr>
                     </tbody>
                  </table>
                ) : (
-                 <p className="italic text-gray-600">No recent vitals measurements.</p>
+                 <p className="italic text-slate-500">No recent vitals measurements.</p>
                )}
              </div>
            </Panel>
@@ -281,26 +281,26 @@ function PatientDashboard() {
       <Panel title="Medical History Log">
          <div className="p-4">
             {summary?.recent_activity?.length > 0 ? (
-              <table className="w-full text-left border-collapse border border-gray-300 text-sm">
+              <table className="w-full text-left border-collapse border border-slate-100 text-sm">
                 <thead>
-                  <tr className="bg-gray-200">
-                    <th className="border border-gray-300 p-2">Date</th>
-                    <th className="border border-gray-300 p-2">Record Type</th>
-                    <th className="border border-gray-300 p-2">Description</th>
+                  <tr className="bg-slate-50/80 backdrop-blur-sm">
+                    <th className="border border-slate-100 p-2">Date</th>
+                    <th className="border border-slate-100 p-2">Record Type</th>
+                    <th className="border border-slate-100 p-2">Description</th>
                   </tr>
                 </thead>
                 <tbody>
                   {summary.recent_activity.map((act: any, i: number) => (
                     <tr key={i} className="hover:bg-yellow-50">
-                      <td className="border border-gray-300 p-2 whitespace-nowrap">{new Date(act.date).toLocaleDateString()}</td>
-                      <td className="border border-gray-300 p-2 uppercase object-contain max-w-[100px]">{act.type}</td>
-                      <td className="border border-gray-300 p-2 font-bold">{act.name} {act.value ? `(${act.value})` : ''}</td>
+                      <td className="border border-slate-100 p-2 whitespace-nowrap">{new Date(act.date).toLocaleDateString()}</td>
+                      <td className="border border-slate-100 p-2 uppercase object-contain max-w-[100px]">{act.type}</td>
+                      <td className="border border-slate-100 p-2 font-bold">{act.name} {act.value ? `(${act.value})` : ''}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             ) : (
-              <p className="italic text-gray-600">No medical history entries found.</p>
+              <p className="italic text-slate-500">No medical history entries found.</p>
             )}
          </div>
       </Panel>
@@ -310,8 +310,8 @@ function PatientDashboard() {
 
 function Panel({ title, children }: any) {
   return (
-    <div className="bg-white border border-gray-400 shadow-sm">
-      <div className="bg-gradient-to-b from-gray-100 to-gray-200 border-b border-gray-400 p-2 font-bold text-gray-800 text-sm">
+    <div className="bg-white border border-slate-200 shadow-sm">
+      <div className="bg-gradient-to-b from-gray-100 to-gray-200 border-b border-slate-200 p-2 font-bold text-slate-700 text-sm">
         {title}
       </div>
       <div>
@@ -323,10 +323,10 @@ function Panel({ title, children }: any) {
 
 function StatBox({ label, value, subtext, isAlert }: any) {
   return (
-    <div className={`flex-1 border p-3 flex flex-col justify-center items-center shadow-sm ${isAlert ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'}`}>
-      <span className="text-3xl font-bold mb-1 text-black">{value}</span>
-      <span className="text-xs uppercase text-gray-700 font-bold text-center">{label}</span>
-      {subtext && <span className="text-xs text-gray-500 mt-1">{subtext}</span>}
+    <div className={`flex-1 border p-3 flex flex-col justify-center items-center shadow-sm ${isAlert ? 'border-red-500 bg-red-50' : 'border-slate-100 bg-white'}`}>
+      <span className="text-3xl font-bold mb-1 text-slate-800">{value}</span>
+      <span className="text-xs uppercase text-slate-600 font-bold text-center">{label}</span>
+      {subtext && <span className="text-xs text-slate-400 mt-1">{subtext}</span>}
     </div>
   );
 }

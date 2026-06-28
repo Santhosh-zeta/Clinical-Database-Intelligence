@@ -262,6 +262,23 @@ async function getPatientProfile(admissionId, orgId) {
     };
 }
 
+async function getProposedCarePlan(patientId, orgId) {
+    const result = await db.query(
+        `SELECT 
+            c.id, 
+            c.specialty, 
+            c.findings, 
+            c.proposed_plan, 
+            d.name as doctor_name
+         FROM clinical_consults c
+         LEFT JOIN doctors d ON d.id = c.responding_dr_id
+         WHERE c.patient_id = $1 AND c.organization_id = $2 AND c.status = 'under_review'
+         ORDER BY c.updated_at DESC`,
+        [patientId, orgId]
+    );
+    return result.rows;
+}
+
 module.exports = {
     list,
     getById,

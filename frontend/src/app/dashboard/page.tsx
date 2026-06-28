@@ -26,7 +26,7 @@ import SettingsPage from '../settings/page';
 import UsersPage from '../users/page';
 import CareOverview from '@/components/dashboard/CareOverview';
 
-const API = 'http://localhost:3001/api';
+const API = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api`;
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
 const ah = () => ({ Authorization: `Bearer ${getToken()}` });
 
@@ -85,30 +85,30 @@ function DoctorDischargeTab({ admissionId, patients }: { admissionId: number | n
   const isSuggested = (id: number) => suggestions.some(s => s.id === id);
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4 font-sans text-gray-900">
-      <div className="border-b-2 border-blue-800 pb-2 mb-6 flex justify-between items-end">
+    <div className="max-w-[1400px] mx-auto p-4 font-sans text-slate-800">
+      <div className="border-b-2 border-blue-200 pb-2 mb-6 flex justify-between items-end">
         <div>
           <h1 className="text-2xl font-bold text-blue-900 m-0">Discharge Authorization</h1>
-          <p className="text-sm font-bold text-gray-700 mt-1">Review and authorize patient departures.</p>
+          <p className="text-sm font-bold text-slate-600 mt-1">Review and authorize patient departures.</p>
         </div>
-        <div className="bg-white border border-gray-400 px-3 py-1 font-bold text-sm text-gray-800">
+        <div className="bg-white border border-slate-200 px-3 py-1 font-bold text-sm text-slate-700">
           Suggested Status: {suggestions.length} Patients
         </div>
       </div>
 
       {loading ? (
-        <div className="p-10 text-center font-bold text-gray-600 bg-white border border-gray-400">
+        <div className="p-10 text-center font-bold text-slate-500 bg-white border border-slate-200">
           Loading remote feed...
         </div>
       ) : allActive.length === 0 ? (
-        <div className="p-10 text-center font-bold text-gray-600 bg-white border border-gray-400">
+        <div className="p-10 text-center font-bold text-slate-500 bg-white border border-slate-200">
           No active admissions.
         </div>
       ) : (
         <div className="flex flex-col gap-6">
           { }
           {suggestions.length > 0 && (
-            <div className="bg-blue-50 border border-blue-800 p-4">
+            <div className="bg-blue-50 border border-blue-200 p-4">
               <div className="font-bold text-blue-900 mb-4 border-b border-blue-300 pb-2">
                 System Recommended Discharges
               </div>
@@ -129,8 +129,8 @@ function DoctorDischargeTab({ admissionId, patients }: { admissionId: number | n
           )}
 
           { }
-          <div className="bg-gray-100 border border-gray-400 p-4">
-            <div className="font-bold text-gray-800 mb-4 border-b border-gray-300 pb-2">
+          <div className="bg-slate-50 border border-slate-200 p-4">
+            <div className="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">
               Other Active Admissions
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -157,26 +157,26 @@ function DischargeCard({ admission, suggested, note, setNote, onDischarge, loadi
   return (
     <div className={cn(
       "bg-white border p-4 flex flex-col justify-between shadow-sm",
-      suggested ? "border-blue-500 border-2" : "border-gray-400"
+      suggested ? "border-blue-500 border-2" : "border-slate-200"
     )}>
-      <div className="flex justify-between items-start mb-4 border-b border-gray-200 pb-2">
+      <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-2">
         <div>
-          <h3 className="text-lg font-bold text-gray-900">{admission.patient_name}</h3>
+          <h3 className="text-lg font-bold text-slate-800">{admission.patient_name}</h3>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs font-bold text-gray-700 bg-gray-200 px-2 py-0.5 border border-gray-400">{admission.ward_name} · Bed {admission.bed_number}</span>
-            <span className="text-xs font-bold text-gray-700">{admission.diagnosis}</span>
+            <span className="text-xs font-bold text-slate-600 bg-slate-50/80 backdrop-blur-sm px-2 py-0.5 border border-slate-200">{admission.ward_name} · Bed {admission.bed_number}</span>
+            <span className="text-xs font-bold text-slate-600">{admission.diagnosis}</span>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-4">
-          <div className="bg-gray-100 border border-gray-400 px-2 flex flex-col items-center">
-            <div className="text-[10px] font-bold text-gray-500 uppercase mt-1">Risk</div>
-            <div className={cn("text-base font-bold", admission.risk_category === 'low' ? 'text-green-700' : admission.risk_category === 'medium' ? 'text-yellow-700' : 'text-red-700')}>
+          <div className="bg-slate-50 border border-slate-200 px-2 flex flex-col items-center">
+            <div className="text-[10px] font-bold text-slate-400 uppercase mt-1">Risk</div>
+            <div className={cn("text-base font-bold", admission.risk_category === 'low' ? 'text-green-700' : admission.risk_category === 'medium' ? 'text-yellow-700' : 'text-rose-600')}>
               {admission.risk_score?.toFixed(1) || '0.0'}
             </div>
           </div>
-          <div className="bg-gray-100 border border-gray-400 px-2 flex flex-col items-center">
-            <div className="text-[10px] font-bold text-gray-500 uppercase mt-1">EWS</div>
-            <div className={cn("text-base font-bold", admission.ews_category === 'low' ? 'text-green-700' : 'text-red-700')}>
+          <div className="bg-slate-50 border border-slate-200 px-2 flex flex-col items-center">
+            <div className="text-[10px] font-bold text-slate-400 uppercase mt-1">EWS</div>
+            <div className={cn("text-base font-bold", admission.ews_category === 'low' ? 'text-green-700' : 'text-rose-600')}>
               {admission.ews || '0'}
             </div>
           </div>
@@ -185,12 +185,12 @@ function DischargeCard({ admission, suggested, note, setNote, onDischarge, loadi
 
       <div className="flex flex-col gap-3">
         <div>
-          <label className="text-xs font-bold text-gray-700 mb-1 block">Clinical Authorization Summary</label>
+          <label className="text-xs font-bold text-slate-600 mb-1 block">Clinical Authorization Summary</label>
           <textarea
             placeholder="Final notes..."
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="w-full bg-white border border-gray-400 p-2 text-sm outline-none resize-none"
+            className="w-full bg-white border border-slate-200 p-2 text-sm outline-none resize-none"
             rows={2}
           />
         </div>
@@ -200,8 +200,8 @@ function DischargeCard({ admission, suggested, note, setNote, onDischarge, loadi
           className={cn(
             "w-full py-2 px-4 shadow-sm font-bold text-sm",
             suggested
-              ? "bg-blue-800 hover:bg-blue-900 text-white border border-blue-900"
-              : "bg-gray-200 hover:bg-gray-300 border border-gray-400 text-gray-800"
+              ? "bg-blue-600 rounded-xl shadow-sm hover:bg-blue-700 text-white border border-blue-900"
+              : "bg-slate-50/80 backdrop-blur-sm hover:bg-white shadow-sm rounded-xl border border-slate-200 text-slate-700"
           )}
         >
           {loading ? 'PROCESSING...' : 'AUTHORIZE DEPARTURE'}
@@ -276,11 +276,11 @@ function NurseMedicationRoundTab({ admissionId }: { admissionId?: number | null 
     <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Medication Rounds</h1>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Medication Rounds</h1>
           <p className="text-slate-500 font-medium">Verified administration tracking for active clinical prescriptions.</p>
         </div>
         <div className="flex items-center gap-3">
-          <label className="text-[10px] font-black uppercase text-slate-500">Filter Ward:</label>
+          <label className="text-[10px] font-bold uppercase text-slate-500">Filter Ward:</label>
           <select
             value={selectedWard}
             onChange={e => setSelectedWard(e.target.value)}
@@ -308,7 +308,7 @@ function NurseMedicationRoundTab({ admissionId }: { admissionId?: number | null 
             <div key={item.prescription_id} className="bg-white border border-slate-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all group border-l-4 border-l-indigo-500">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-indigo-500 mb-1">{item.ward_name} · Bed {item.bed_number}</div>
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 mb-1">{item.ward_name} · Bed {item.bed_number}</div>
                   <h3 className="text-lg font-bold text-slate-800">{item.patient_name}</h3>
                 </div>
                 <div className="p-2 bg-slate-50 rounded-xl text-slate-500 group-hover:text-indigo-500 transition-colors">
@@ -317,7 +317,7 @@ function NurseMedicationRoundTab({ admissionId }: { admissionId?: number | null 
               </div>
 
               <div className="bg-slate-50 rounded-lg p-4 mb-6">
-                <p className="text-sm font-black text-slate-900">{item.medication_name}</p>
+                <p className="text-sm font-bold text-slate-900">{item.medication_name}</p>
                 <div className="flex items-center gap-3 mt-1">
                   <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full uppercase">{item.dose}</span>
                   <span className="text-[10px] font-bold text-slate-500 uppercase">{item.route} · {item.frequency}</span>
@@ -456,7 +456,7 @@ function NurseHandoverTab({ admissionId, patients: allPatients }: { admissionId?
     <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Shift Handover</h1>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Shift Handover</h1>
           <p className="text-slate-500 font-medium">Coordinate clinical care continuity between nursing shifts.</p>
         </div>
         <div className="flex items-center gap-3">
@@ -479,7 +479,7 @@ function NurseHandoverTab({ admissionId, patients: allPatients }: { admissionId?
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         { }
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 px-2">Handover History</h3>
+          <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 px-2">Handover History</h3>
           {loading ? (
             <div className="p-20 text-center bg-white rounded-xl border border-dashed"><Loader2 className="animate-spin inline-block text-indigo-500" /></div>
           ) : handovers.length === 0 ? (
@@ -489,7 +489,7 @@ function NurseHandoverTab({ admissionId, patients: allPatients }: { admissionId?
               <div key={h.id} className="bg-white border border-slate-100 rounded-xl p-6 shadow-sm">
                 <div className="flex justify-between items-center mb-4">
                   <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100">{h.shift_name} Shift</span>
+                    <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-bold uppercase tracking-widest border border-indigo-100">{h.shift_name} Shift</span>
                     <span className="text-xs font-bold text-slate-800">By {h.author_name}</span>
                   </div>
                   <span className="text-[10px] font-medium text-slate-500">{new Date(h.created_at).toLocaleString()}</span>
@@ -515,7 +515,7 @@ function NurseHandoverTab({ admissionId, patients: allPatients }: { admissionId?
 
         { }
         <div className="flex flex-col gap-6">
-          <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 px-2">Active Patients</h3>
+          <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 px-2">Active Patients</h3>
           <div className="flex flex-col gap-3">
             {patients.map(p => (
               <div key={p.id} className="bg-white border border-slate-50 p-4 rounded-lg flex items-center justify-between group hover:border-indigo-100 transition-all">
@@ -527,7 +527,7 @@ function NurseHandoverTab({ admissionId, patients: allPatients }: { admissionId?
                   </div>
                 </div>
                 <div className={cn(
-                  "px-2 py-0.5 rounded-full text-[8px] font-black uppercase",
+                  "px-2 py-0.5 rounded-full text-[8px] font-bold uppercase",
                   p.risk_category === 'low' ? 'bg-emerald-50 text-emerald-600' : p.risk_category === 'medium' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
                 )}>
                   {p.risk_category}
@@ -545,7 +545,7 @@ function NurseHandoverTab({ admissionId, patients: allPatients }: { admissionId?
           <div className="bg-white rounded-xl w-full max-w-2xl relative shadow-md overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-8 border-b border-slate-100 flex justify-between items-center">
               <div>
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Shift Handover Record</h3>
+                <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Shift Handover Record</h3>
                 <p className="text-slate-500 text-sm font-medium">Record ward-level summaries and specific patient observations.</p>
               </div>
               <button onClick={() => setIsCreating(false)} className="bg-slate-50 p-2 rounded-xl text-slate-500">✕</button>
@@ -553,7 +553,7 @@ function NurseHandoverTab({ admissionId, patients: allPatients }: { admissionId?
             <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Shift</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">Shift</label>
                   <select
                     value={formData.shift_name}
                     onChange={e => setFormData({ ...formData, shift_name: e.target.value })}
@@ -571,7 +571,7 @@ function NurseHandoverTab({ admissionId, patients: allPatients }: { admissionId?
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">General Ward Summary</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">General Ward Summary</label>
                 <textarea
                   required
                   placeholder="E.g. Ward is stable, 2 pending admissions, code blue earlier at 04:00..."
@@ -582,7 +582,7 @@ function NurseHandoverTab({ admissionId, patients: allPatients }: { admissionId?
               </div>
 
               <div className="flex flex-col gap-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Critical Patient Updates</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block">Critical Patient Updates</label>
                 {patients.map(p => (
                   <div key={p.id} className="flex gap-4 items-start bg-slate-50/50 p-4 rounded-lg border border-slate-100/50">
                     <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">{p.bed_number}</div>
@@ -604,7 +604,7 @@ function NurseHandoverTab({ admissionId, patients: allPatients }: { admissionId?
 
               <button
                 type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-lg font-black shadow-md shadow-indigo-100 transition-all active:scale-[0.98] mt-4"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-lg font-bold shadow-md shadow-indigo-100 transition-all active:scale-[0.98] mt-4"
               >
                 Submit Clinical Handover
               </button>
@@ -645,88 +645,88 @@ function PatientHistoryTab({ admissionId, patients }: { admissionId: number | nu
   }, [currentUser?.patientId, admissionId, patients]);
 
   if (loading) return (
-    <div className="p-10 border border-gray-400 bg-white text-center font-bold text-gray-600 shadow-sm uppercase">
+    <div className="p-10 border border-slate-200 bg-white text-center font-bold text-slate-500 shadow-sm uppercase">
       Reconstructing Medical Timeline...
     </div>
   );
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4 font-sans text-gray-900 flex flex-col gap-6">
-      <div className="bg-white border border-gray-400 p-4 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="max-w-[1400px] mx-auto p-4 font-sans text-slate-800 flex flex-col gap-6">
+      <div className="bg-white border border-slate-200 p-4 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 m-0 uppercase flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-gray-700" />
+          <h1 className="text-2xl font-bold text-slate-800 m-0 uppercase flex items-center gap-2">
+            <BookOpen className="w-6 h-6 text-slate-600" />
             Comprehensive Timeline
           </h1>
-          <p className="text-sm font-bold text-gray-700 mt-1">Immutable longitudinal history of your medical journey.</p>
+          <p className="text-sm font-bold text-slate-600 mt-1">Immutable longitudinal history of your medical journey.</p>
         </div>
         {summary && (
           <div className="flex gap-2">
-            <div className="bg-gray-100 border border-gray-400 p-2 text-center shadow-sm">
-              <div className="text-xs font-bold text-gray-600 uppercase">Admissions</div>
-              <div className="text-lg font-bold text-gray-900 font-mono">{summary.total_admissions}</div>
+            <div className="bg-slate-50 border border-slate-200 p-2 text-center shadow-sm">
+              <div className="text-xs font-bold text-slate-500 uppercase">Admissions</div>
+              <div className="text-lg font-bold text-slate-800 font-sans">{summary.total_admissions}</div>
             </div>
-            <div className="bg-gray-100 border border-gray-400 p-2 text-center shadow-sm">
-              <div className="text-xs font-bold text-gray-600 uppercase">Treatments</div>
-              <div className="text-lg font-bold text-gray-900 font-mono">{summary.total_prescriptions}</div>
+            <div className="bg-slate-50 border border-slate-200 p-2 text-center shadow-sm">
+              <div className="text-xs font-bold text-slate-500 uppercase">Treatments</div>
+              <div className="text-lg font-bold text-slate-800 font-sans">{summary.total_prescriptions}</div>
             </div>
           </div>
         )}
       </div>
 
       {timeline.length === 0 ? (
-        <div className="p-10 border border-gray-400 bg-white text-center font-bold text-gray-600 shadow-sm uppercase">
+        <div className="p-10 border border-slate-200 bg-white text-center font-bold text-slate-500 shadow-sm uppercase">
           No History Recorded
         </div>
       ) : (
         <div className="flex flex-col gap-4">
           {timeline.map((ev, idx) => (
-            <div key={ev.id} className="bg-white border border-gray-400 shadow-sm flex flex-col md:flex-row">
+            <div key={ev.id} className="bg-white border border-slate-200 shadow-sm flex flex-col md:flex-row">
               <div className={cn(
-                "w-full md:w-48 p-4 border-b md:border-b-0 md:border-r border-gray-300 flex flex-col justify-center items-center text-center",
+                "w-full md:w-48 p-4 border-b md:border-b-0 md:border-r border-slate-100 flex flex-col justify-center items-center text-center",
                 ev.event_type === 'admission' ? 'bg-blue-100 text-blue-900' :
-                  ev.event_type === 'alert' ? 'bg-red-100 text-red-900' :
+                  ev.event_type === 'alert' ? 'bg-rose-50 text-rose-700' :
                     ev.event_type === 'prescription' ? 'bg-green-100 text-green-900' :
-                      'bg-gray-200 text-gray-900'
+                      'bg-slate-50/80 backdrop-blur-sm text-slate-800'
               )}>
                 <div className="font-bold uppercase tracking-widest text-xs mb-1">{ev.event_type}</div>
-                <div className="font-black text-sm uppercase">
+                <div className="font-bold text-sm uppercase">
                   {new Date(ev.created_at).toLocaleDateString([], { month: 'short', day: '2-digit', year: 'numeric' })}
                 </div>
-                <div className="text-xs font-bold font-mono mt-1">
+                <div className="text-xs font-bold font-sans mt-1">
                   {new Date(ev.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
 
               <div className="p-4 flex-1 flex flex-col justify-center">
-                <div className="flex justify-between items-start mb-2 border-b border-gray-300 pb-2 flex-wrap gap-2">
-                  <h4 className="text-lg font-bold text-gray-900 tracking-tight uppercase m-0 leading-none">{ev.event_type} Recorded</h4>
-                  {ev.created_by_name && <span className="bg-gray-200 border border-gray-400 px-2 py-0.5 text-[10px] font-bold text-gray-800 uppercase tracking-widest block shadow-sm">Authorized By {ev.created_by_name}</span>}
+                <div className="flex justify-between items-start mb-2 border-b border-slate-100 pb-2 flex-wrap gap-2">
+                  <h4 className="text-lg font-bold text-slate-800 tracking-tight uppercase m-0 leading-none">{ev.event_type} Recorded</h4>
+                  {ev.created_by_name && <span className="bg-slate-50/80 backdrop-blur-sm border border-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700 uppercase tracking-widest block shadow-sm">Authorized By {ev.created_by_name}</span>}
                 </div>
-                <p className="text-sm font-bold text-gray-700 leading-relaxed mb-4">
+                <p className="text-sm font-bold text-slate-600 leading-relaxed mb-4">
                   {ev.description}
                 </p>
 
                 {ev.detail && ev.event_type === 'admission' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-300 pt-4">
-                    <div className="bg-gray-50 border border-gray-400 p-2 shadow-sm flex flex-col gap-1">
-                      <span className="text-[10px] font-bold uppercase text-gray-600 block">Attending Unit</span>
-                      <span className="text-sm font-bold text-gray-900">{ev.detail.ward_name} &bull; Bed {ev.detail.bed_number}</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                    <div className="bg-gray-50 border border-slate-200 p-2 shadow-sm flex flex-col gap-1">
+                      <span className="text-[10px] font-bold uppercase text-slate-500 block">Attending Unit</span>
+                      <span className="text-sm font-bold text-slate-800">{ev.detail.ward_name} &bull; Bed {ev.detail.bed_number}</span>
                     </div>
-                    <div className="bg-gray-50 border border-gray-400 p-2 shadow-sm flex flex-col gap-1">
-                      <span className="text-[10px] font-bold uppercase text-gray-600 block">Initial Diagnosis</span>
-                      <span className="text-sm font-bold text-gray-900">{ev.detail.diagnosis}</span>
+                    <div className="bg-gray-50 border border-slate-200 p-2 shadow-sm flex flex-col gap-1">
+                      <span className="text-[10px] font-bold uppercase text-slate-500 block">Initial Diagnosis</span>
+                      <span className="text-sm font-bold text-slate-800">{ev.detail.diagnosis}</span>
                     </div>
                   </div>
                 )}
 
                 {ev.detail && ev.event_type === 'prescription' && (
-                  <div className="border-t border-gray-300 pt-4 mt-auto">
+                  <div className="border-t border-slate-100 pt-4 mt-auto">
                     <div className="flex flex-col md:flex-row md:items-center gap-4 bg-green-50 p-2 border border-green-300 shadow-sm">
                       <div className="bg-white text-green-900 border border-green-400 px-2 py-1 text-sm font-bold uppercase shadow-sm whitespace-nowrap">
                         {ev.detail.medication_name} {ev.detail.dose}
                       </div>
-                      <span className="text-xs font-bold text-gray-600 uppercase">
+                      <span className="text-xs font-bold text-slate-500 uppercase">
                         {ev.detail.frequency} &bull; {ev.detail.route}
                       </span>
                     </div>
@@ -824,21 +824,21 @@ function UnifiedAppointmentsTab({ admissionId }: { admissionId?: number | null }
   const today = new Date().toISOString().split('T')[0];
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4 font-sans text-gray-900 border border-gray-100 bg-gray-50/30 min-h-screen">
-      <div className="bg-white border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="max-w-[1400px] mx-auto p-4 font-sans text-slate-800 border border-gray-100 bg-gray-50/30 min-h-screen">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 m-0 uppercase tracking-tighter flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-slate-800 m-0 uppercase tracking-tighter flex items-center gap-3">
             <Calendar className="w-8 h-8 text-blue-800" />
             {role === 'doctor' ? 'Daily Rounds Schedule' : 'Clinical Visit Matrix'}
           </h1>
-          <p className="text-[10px] font-bold text-gray-500 mt-1 uppercase tracking-widest italic tracking-tight">Synchronized with Hospital Master Registry</p>
+          <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest italic tracking-tight">Synchronized with Hospital Master Registry</p>
         </div>
         <div className="flex gap-2">
-          <div className="bg-slate-900 text-white border-2 border-black px-3 py-1 text-[10px] font-black uppercase shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
+          <div className="bg-slate-900 text-white border border-slate-200 shadow-sm rounded-2xl px-3 py-1 text-[10px] font-bold uppercase shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
             ACTIVE VISITS: {data.filter(a => a.status === 'scheduled').length}
           </div>
           {role === 'patient' && (
-            <button onClick={() => setIsBooking(true)} className="bg-blue-800 text-white border-2 border-black px-4 py-1 text-xs font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform">
+            <button onClick={() => setIsBooking(true)} className="bg-blue-600 rounded-xl shadow-sm text-white border border-slate-200 shadow-sm rounded-2xl px-4 py-1 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform">
               + BOOK VISIT
             </button>
           )}
@@ -847,12 +847,12 @@ function UnifiedAppointmentsTab({ admissionId }: { admissionId?: number | null }
 
       <div className="grid grid-cols-1 gap-4">
         {loading ? (
-          <div className="p-20 text-center bg-white border-2 border-black border-dashed">
-            <div className="animate-spin inline-block w-8 h-8 border-4 border-blue-800 border-t-transparent rounded-full mb-4" />
-            <p className="font-bold text-gray-600 uppercase text-[10px] tracking-[0.2em]">Querying Schedule Telemetry...</p>
+          <div className="p-20 text-center bg-white border border-slate-200 shadow-sm rounded-2xl border-dashed">
+            <div className="animate-spin inline-block w-8 h-8 border-4 border-blue-200 border-t-transparent rounded-full mb-4" />
+            <p className="font-bold text-slate-500 uppercase text-[10px] tracking-[0.2em]">Querying Schedule Telemetry...</p>
           </div>
         ) : filteredData.length === 0 ? (
-          <div className="p-20 text-center bg-white border-2 border-black border-dashed">
+          <div className="p-20 text-center bg-white border border-slate-200 shadow-sm rounded-2xl border-dashed">
             <p className="font-bold text-gray-400 uppercase text-[10px] tracking-[0.2em] italic">Queue Empty</p>
           </div>
         ) : (
@@ -865,32 +865,32 @@ function UnifiedAppointmentsTab({ admissionId }: { admissionId?: number | null }
 
               return (
                 <div key={a.id} className={cn(
-                  "bg-white border-2 border-black p-4 flex flex-col md:flex-row items-center gap-6 transition-all hover:bg-yellow-50/30 group",
+                  "bg-white border border-slate-200 shadow-sm rounded-2xl p-4 flex flex-col md:flex-row items-center gap-6 transition-all hover:bg-yellow-50/30 group",
                   isToday ? "border-l-[12px] border-l-blue-800" : "opacity-80 grayscale-[20%]",
-                  isComp ? "bg-emerald-50/20 border-gray-300 opacity-60" : ""
+                  isComp ? "bg-emerald-50/20 border-slate-100 opacity-60" : ""
                 )}>
                   <div className="flex flex-col items-center justify-center min-w-[110px] border-r-2 border-gray-100 pr-6 text-center">
-                    <span className="text-2xl font-black text-gray-900 tracking-tighter">{apptDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
-                    <span className="text-[9px] font-black text-blue-800 uppercase tracking-widest">{apptDate.toLocaleDateString([], { month: 'short', day: '2-digit' })}</span>
+                    <span className="text-2xl font-bold text-slate-800 tracking-tighter">{apptDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+                    <span className="text-[9px] font-bold text-blue-800 uppercase tracking-widest">{apptDate.toLocaleDateString([], { month: 'short', day: '2-digit' })}</span>
                   </div>
 
                   <div className="flex-1 flex flex-col md:flex-row gap-4 justify-between w-full">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-black bg-gray-100 border border-black px-1.5 py-0.5 uppercase">ID: #{a.id}</span>
-                        {isToday && <span className="text-[9px] bg-red-600 text-white px-2 py-0.5 rounded-sm font-black animate-pulse">LIVE ROUND</span>}
+                        <span className="text-[10px] font-bold bg-slate-50 border border-slate-200 shadow-sm rounded-xl px-1.5 py-0.5 uppercase">ID: #{a.id}</span>
+                        {isToday && <span className="text-[9px] bg-rose-500 rounded-xl shadow-sm text-white px-2 py-0.5 rounded-sm font-bold animate-pulse">LIVE ROUND</span>}
                       </div>
-                      <h3 className="text-xl font-black text-gray-900 m-0 uppercase tracking-tighter">
+                      <h3 className="text-xl font-bold text-slate-800 m-0 uppercase tracking-tighter">
                         {role === 'patient' ? `Dr. ${a.doctor_name}` : a.patient_name}
                       </h3>
-                      <p className="text-xs font-bold text-gray-700 mt-2 bg-white/50 border border-dashed border-gray-300 p-2 italic leading-tight rounded">
+                      <p className="text-xs font-bold text-slate-600 mt-2 bg-white/50 border border-dashed border-slate-100 p-2 italic leading-tight rounded">
                         "{a.reason}"
                       </p>
                     </div>
 
                     <div className="flex items-center gap-4 flex-wrap self-end md:self-center">
                       <div className={cn(
-                        "px-4 py-2 text-[10px] font-black uppercase border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]",
+                        "px-4 py-2 text-[10px] font-bold uppercase border border-slate-200 shadow-sm rounded-2xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]",
                         a.status === 'scheduled' ? "bg-blue-100 text-blue-900" :
                           isComp ? "bg-emerald-100 text-emerald-900" : "bg-rose-100 text-rose-900"
                       )}>
@@ -899,14 +899,14 @@ function UnifiedAppointmentsTab({ admissionId }: { admissionId?: number | null }
 
                       <div className="flex gap-2">
                         {role !== 'patient' && a.admission_id && (
-                          <Link href={`/patients/${a.admission_id}`} className="bg-black text-white px-4 py-2 text-[10px] font-black hover:bg-gray-800 uppercase flex items-center gap-2 group-hover:scale-105 transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,0.2)]">
+                          <Link href={`/patients/${a.admission_id}`} className="bg-slate-800 text-white px-4 py-2 text-[10px] font-bold hover:bg-gray-800 uppercase flex items-center gap-2 group-hover:scale-105 transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,0.2)]">
                             <User size={14} /> Open Chart
                           </Link>
                         )}
                         {a.status === 'scheduled' && (
                           <>
-                            <button onClick={() => handleStatusUpdate(a.id, 'completed')} className="bg-white border-2 border-black px-4 py-2 text-[10px] font-black text-emerald-700 hover:bg-emerald-50 transition-all uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">Verify Visit</button>
-                            <button onClick={() => handleStatusUpdate(a.id, 'cancelled')} className="bg-white border-2 border-black px-4 py-2 text-[10px] font-black text-rose-700 hover:bg-rose-50 transition-all uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">Abort</button>
+                            <button onClick={() => handleStatusUpdate(a.id, 'completed')} className="bg-white border border-slate-200 shadow-sm rounded-2xl px-4 py-2 text-[10px] font-bold text-emerald-700 hover:bg-emerald-50 transition-all uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">Verify Visit</button>
+                            <button onClick={() => handleStatusUpdate(a.id, 'cancelled')} className="bg-white border border-slate-200 shadow-sm rounded-2xl px-4 py-2 text-[10px] font-bold text-rose-700 hover:bg-rose-50 transition-all uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">Abort</button>
                           </>
                         )}
                       </div>
@@ -921,30 +921,30 @@ function UnifiedAppointmentsTab({ admissionId }: { admissionId?: number | null }
 
       {isBooking && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-md">
-          <div className="bg-white border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] w-full max-w-xl p-10">
-            <div className="flex justify-between items-center mb-8 border-b-4 border-black pb-4">
-              <h3 className="text-3xl font-black uppercase tracking-tighter italic">Initialize Clinical Encounter</h3>
-              <button onClick={() => setIsBooking(false)} className="bg-rose-600 text-white border-4 border-black px-4 py-1 text-xl font-black hover:bg-rose-700 active:translate-y-1 transition-all">X</button>
+          <div className="bg-white border-4 border-slate-200 rounded-xl shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] w-full max-w-xl p-10">
+            <div className="flex justify-between items-center mb-8 border-b-4 border-slate-200 rounded-xl pb-4">
+              <h3 className="text-3xl font-bold uppercase tracking-tighter italic">Initialize Clinical Encounter</h3>
+              <button onClick={() => setIsBooking(false)} className="bg-rose-600 text-white border-4 border-slate-200 rounded-xl px-4 py-1 text-xl font-bold hover:bg-rose-700 active:translate-y-1 transition-all">X</button>
             </div>
             <form onSubmit={handleBook} className="space-y-8">
               <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-black uppercase text-gray-700 bg-gray-200 border-2 border-black px-3 py-1 w-fit">Assigned Specialist</label>
-                <select required className="w-full border-4 border-black p-3 font-black text-sm bg-white outline-none focus:bg-blue-50 transition-colors" value={newAppt.doctor_id} onChange={e => setNewAppt({ ...newAppt, doctor_id: e.target.value })}>
+                <label className="text-[10px] font-bold uppercase text-slate-600 bg-slate-50/80 backdrop-blur-sm border border-slate-200 shadow-sm rounded-2xl px-3 py-1 w-fit">Assigned Specialist</label>
+                <select required className="w-full border-4 border-slate-200 rounded-xl p-3 font-bold text-sm bg-white outline-none focus:bg-blue-50 transition-colors" value={newAppt.doctor_id} onChange={e => setNewAppt({ ...newAppt, doctor_id: e.target.value })}>
                   <option value="">-- SELECT ENTITY --</option>
                   {docs.map((d: any) => <option key={d.id} value={d.id}>DR. {d.name.toUpperCase()} ({d.specialty.toUpperCase()})</option>)}
                 </select>
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-black uppercase text-gray-700 bg-gray-200 border-2 border-black px-3 py-1 w-fit">Temporal Point (Date/Time)</label>
-                <input type="datetime-local" required className="w-full border-4 border-black p-3 font-black text-sm bg-white outline-none focus:bg-blue-50 transition-colors" value={newAppt.appointment_at} onChange={e => setNewAppt({ ...newAppt, appointment_at: e.target.value })} />
+                <label className="text-[10px] font-bold uppercase text-slate-600 bg-slate-50/80 backdrop-blur-sm border border-slate-200 shadow-sm rounded-2xl px-3 py-1 w-fit">Temporal Point (Date/Time)</label>
+                <input type="datetime-local" required className="w-full border-4 border-slate-200 rounded-xl p-3 font-bold text-sm bg-white outline-none focus:bg-blue-50 transition-colors" value={newAppt.appointment_at} onChange={e => setNewAppt({ ...newAppt, appointment_at: e.target.value })} />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-black uppercase text-gray-700 bg-gray-200 border-2 border-black px-3 py-1 w-fit">Encounter Objective</label>
-                <textarea placeholder="Describe clinical symptoms or reason for referral..." required className="w-full border-4 border-black p-3 font-black text-sm bg-white h-32 resize-none outline-none focus:bg-blue-50 transition-colors" value={newAppt.reason} onChange={e => setNewAppt({ ...newAppt, reason: e.target.value })} />
+                <label className="text-[10px] font-bold uppercase text-slate-600 bg-slate-50/80 backdrop-blur-sm border border-slate-200 shadow-sm rounded-2xl px-3 py-1 w-fit">Encounter Objective</label>
+                <textarea placeholder="Describe clinical symptoms or reason for referral..." required className="w-full border-4 border-slate-200 rounded-xl p-3 font-bold text-sm bg-white h-32 resize-none outline-none focus:bg-blue-50 transition-colors" value={newAppt.reason} onChange={e => setNewAppt({ ...newAppt, reason: e.target.value })} />
               </div>
               <div className="flex gap-4 pt-6">
-                <button type="button" onClick={() => setIsBooking(false)} className="flex-1 bg-gray-200 border-4 border-black font-black uppercase py-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">Abort</button>
-                <button type="submit" className="flex-[2] bg-blue-800 text-white border-4 border-black font-black uppercase py-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">Commit Encounter</button>
+                <button type="button" onClick={() => setIsBooking(false)} className="flex-1 bg-slate-50/80 backdrop-blur-sm border-4 border-slate-200 rounded-xl font-bold uppercase py-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">Abort</button>
+                <button type="submit" className="flex-[2] bg-blue-600 rounded-xl shadow-sm text-white border-4 border-slate-200 rounded-xl font-bold uppercase py-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">Commit Encounter</button>
               </div>
             </form>
           </div>
@@ -1032,25 +1032,25 @@ function DoctorConsultsTab() {
   const filteredItems = consults.filter(c => c.status === viewMode);
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4 font-sans text-gray-900 border border-gray-100 bg-gray-50/20 min-h-screen">
+    <div className="max-w-[1400px] mx-auto p-4 font-sans text-slate-800 border border-gray-100 bg-gray-50/20 min-h-screen">
       <div className="border-b-4 border-slate-900 pb-2 mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-white p-4 shadow-sm">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 m-0 uppercase tracking-tighter flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-slate-900 m-0 uppercase tracking-tighter flex items-center gap-3">
             <Stethoscope className="w-8 h-8 text-indigo-700" />
             Clinical Consultations Hub
           </h1>
-          <p className="text-[10px] font-black text-slate-500 mt-1 uppercase tracking-widest italic tracking-tight underline decoration-indigo-300 decoration-2">Inter-departmental Referrals & Specialized Encounters</p>
+          <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest italic tracking-tight underline decoration-indigo-300 decoration-2">Inter-departmental Referrals & Specialized Encounters</p>
         </div>
         <div className="flex bg-slate-100 border-2 border-slate-900 p-1">
           <button
             onClick={() => { setViewMode('pending'); setSelectedConsult(null); }}
-            className={cn("px-4 py-1 text-[10px] font-black uppercase transition-all", viewMode === 'pending' ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-200")}
+            className={cn("px-4 py-1 text-[10px] font-bold uppercase transition-all", viewMode === 'pending' ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-200")}
           >
             Action Required ({consults.filter(c => c.status === 'pending').length})
           </button>
           <button
             onClick={() => { setViewMode('resolved'); setSelectedConsult(null); }}
-            className={cn("px-4 py-1 text-[10px] font-black uppercase transition-all", viewMode === 'resolved' ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-200")}
+            className={cn("px-4 py-1 text-[10px] font-bold uppercase transition-all", viewMode === 'resolved' ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-200")}
           >
             History Archive ({consults.filter(c => c.status === 'resolved').length})
           </button>
@@ -1060,12 +1060,12 @@ function DoctorConsultsTab() {
       <div className="flex flex-col lg:flex-row gap-8 items-start">
         { }
         <div className="lg:flex-[1.2] w-full flex flex-col gap-4">
-          <div className="bg-slate-900 text-white border border-slate-900 p-2 font-black text-[10px] shadow-md flex justify-between uppercase tracking-widest">
+          <div className="bg-slate-900 text-white border border-slate-900 p-2 font-bold text-[10px] shadow-md flex justify-between uppercase tracking-widest">
             <span>{viewMode} Encounters Feed</span>
             <span>Sector: {currentUser?.specialty || 'General'}</span>
           </div>
           {loading ? (
-            <div className="p-20 text-center bg-white border-2 border-black border-dashed">
+            <div className="p-20 text-center bg-white border border-slate-200 shadow-sm rounded-2xl border-dashed">
               <div className="animate-spin inline-block w-6 h-6 border-4 border-indigo-700 border-t-transparent rounded-full mb-2" />
               <p className="font-bold text-slate-500 uppercase text-[9px] tracking-widest">Syncing with medical records...</p>
             </div>
@@ -1086,29 +1086,29 @@ function DoctorConsultsTab() {
                 >
                   <div className="flex items-center gap-5">
                     <div className={cn(
-                      "w-12 h-12 flex flex-col items-center justify-center border-2 font-black text-[10px] uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
-                      c.priority === 'urgent' ? 'bg-orange-100 text-orange-900 border-orange-400' : c.priority === 'stat' ? 'bg-rose-600 text-white border-black animate-pulse' : 'bg-blue-100 text-blue-900 border-blue-400'
+                      "w-12 h-12 flex flex-col items-center justify-center border-2 font-bold text-[10px] uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
+                      c.priority === 'urgent' ? 'bg-orange-100 text-orange-900 border-orange-400' : c.priority === 'stat' ? 'bg-rose-600 text-white border-slate-200 rounded-xl animate-pulse' : 'bg-blue-100 text-blue-900 border-blue-400'
                     )}>
                       {c.priority}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-black text-slate-400">ENCTR_#{c.id}</span>
-                        {c.specialty && <span className="text-[10px] font-black bg-indigo-100 text-indigo-800 px-1 border border-indigo-200">DEPT_{c.specialty.toUpperCase()}</span>}
+                        <span className="text-[10px] font-bold text-slate-400">ENCTR_#{c.id}</span>
+                        {c.specialty && <span className="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-1 border border-indigo-200">DEPT_{c.specialty.toUpperCase()}</span>}
                       </div>
-                      <h4 className="font-black text-slate-900 text-lg m-0 uppercase tracking-tighter">{c.patient_name}</h4>
+                      <h4 className="font-bold text-slate-900 text-lg m-0 uppercase tracking-tighter">{c.patient_name}</h4>
                       <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">Requesting Physician: DR. {c.requesting_dr_name?.toUpperCase()}</p>
                       <p className="text-xs text-slate-700 mt-2 bg-white/60 border border-dashed border-slate-200 p-2 italic rounded line-clamp-2">"{c.reason}"</p>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-3 shrink-0 ml-4">
                     {c.resolved_at ? (
-                      <span className="text-[9px] font-black text-emerald-700 bg-emerald-50 px-2 py-1 border border-emerald-300 uppercase">Resolved: {new Date(c.resolved_at).toLocaleDateString()}</span>
+                      <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 border border-emerald-300 uppercase">Resolved: {new Date(c.resolved_at).toLocaleDateString()}</span>
                     ) : (
-                      <span className="text-[9px] font-black text-amber-700 bg-amber-50 px-2 py-1 border border-amber-300 uppercase animate-pulse">Pending Auth</span>
+                      <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-2 py-1 border border-amber-300 uppercase animate-pulse">Pending Auth</span>
                     )}
                     {c.status === 'pending' && c.id !== selectedConsult?.id && (
-                      <span className="text-xs font-black text-indigo-700 underline underline-offset-4 tracking-tighter uppercase group-hover:translate-x-1 transition-transform flex items-center gap-1">Select <Check size={12} /></span>
+                      <span className="text-xs font-bold text-indigo-700 underline underline-offset-4 tracking-tighter uppercase group-hover:translate-x-1 transition-transform flex items-center gap-1">Select <Check size={12} /></span>
                     )}
                   </div>
                 </div>
@@ -1118,38 +1118,38 @@ function DoctorConsultsTab() {
         </div>
 
         { }
-        <div className="lg:flex-1 w-full bg-white border border-gray-400 shadow-sm flex flex-col min-h-[400px]">
-          <div className="bg-gray-200 border-b border-gray-400 p-2 font-bold text-sm shadow-sm flex justify-between">
+        <div className="lg:flex-1 w-full bg-white border border-slate-200 shadow-sm flex flex-col min-h-[400px]">
+          <div className="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200 p-2 font-bold text-sm shadow-sm flex justify-between">
             <span>Resolution Plan</span>
-            {selectedConsult && <span className="text-gray-600">ID: #{selectedConsult.id}</span>}
+            {selectedConsult && <span className="text-slate-500">ID: #{selectedConsult.id}</span>}
           </div>
 
           <div className="p-4 flex-col gap-4 flex bg-gray-50 h-full overflow-y-auto max-h-[85vh]">
             {selectedConsult ? (
               <>
-                <div className="bg-white border border-gray-400 p-3 shadow-sm">
-                  <label className="font-bold text-sm text-gray-800 block mb-1">Clinical Findings <span className="text-red-600">*</span></label>
+                <div className="bg-white border border-slate-200 p-3 shadow-sm">
+                  <label className="font-bold text-sm text-slate-700 block mb-1">Clinical Findings <span className="text-red-600">*</span></label>
                   <textarea
                     value={resolution.findings}
                     onChange={e => setResolution(prev => ({ ...prev, findings: e.target.value }))}
-                    className="w-full border border-gray-300 p-2 text-sm outline-none bg-white min-h-[80px]"
+                    className="w-full border border-slate-100 p-2 text-sm outline-none bg-white min-h-[80px]"
                     placeholder="Enter key diagnostic observations..."
                   />
                 </div>
 
-                <div className="bg-white border border-gray-400 p-3 shadow-sm">
-                  <label className="font-bold text-sm text-gray-800 block mb-1">Recommendations <span className="text-red-600">*</span></label>
+                <div className="bg-white border border-slate-200 p-3 shadow-sm">
+                  <label className="font-bold text-sm text-slate-700 block mb-1">Recommendations <span className="text-red-600">*</span></label>
                   <textarea
                     value={resolution.recommendations}
                     onChange={e => setResolution(prev => ({ ...prev, recommendations: e.target.value }))}
-                    className="w-full border border-gray-300 p-2 text-sm outline-none bg-white min-h-[80px]"
+                    className="w-full border border-slate-100 p-2 text-sm outline-none bg-white min-h-[80px]"
                     placeholder="Advised treatment / next steps..."
                   />
                 </div>
 
-                <div className="bg-white border border-gray-400 p-3 shadow-sm">
-                  <label className="font-bold text-sm text-gray-800 block mb-2">Presenting Symptoms (Tagging)</label>
-                  <div className="flex flex-wrap gap-1 border border-gray-300 bg-gray-50 p-2">
+                <div className="bg-white border border-slate-200 p-3 shadow-sm">
+                  <label className="font-bold text-sm text-slate-700 block mb-2">Presenting Symptoms (Tagging)</label>
+                  <div className="flex flex-wrap gap-1 border border-slate-100 bg-gray-50 p-2">
                     {allSymptoms.map(sym => (
                       <button
                         key={sym.id}
@@ -1157,8 +1157,8 @@ function DoctorConsultsTab() {
                         className={cn(
                           "px-2 py-1 text-xs font-bold border transition-colors",
                           selectedSymptomIds.includes(sym.id)
-                            ? "bg-blue-600 text-white border-blue-800"
-                            : "bg-white text-gray-700 border-gray-400 hover:bg-gray-200"
+                            ? "bg-blue-600 text-white border-blue-200"
+                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50/80 backdrop-blur-sm"
                         )}
                       >
                         {sym.name}
@@ -1167,30 +1167,30 @@ function DoctorConsultsTab() {
                   </div>
                 </div>
 
-                <div className="bg-white border border-gray-400 p-3 shadow-sm">
+                <div className="bg-white border border-slate-200 p-3 shadow-sm">
                   <div className="flex justify-between items-center mb-2">
-                    <label className="font-bold text-sm text-gray-800">Prescriptions</label>
+                    <label className="font-bold text-sm text-slate-700">Prescriptions</label>
                     <button
                       onClick={addPrescriptionLine}
-                      className="text-xs font-bold bg-gray-200 border border-gray-400 px-3 py-1 shadow-sm hover:bg-gray-300"
+                      className="text-xs font-bold bg-slate-50/80 backdrop-blur-sm border border-slate-200 px-3 py-1 shadow-sm hover:bg-white shadow-sm rounded-xl"
                     >
                       + Add Single Drug
                     </button>
                   </div>
                   {prescriptions.length === 0 ? (
-                    <div className="text-sm italic text-gray-500 py-2">No prescriptions mapped.</div>
+                    <div className="text-sm italic text-slate-400 py-2">No prescriptions mapped.</div>
                   ) : (
-                    <div className="flex flex-col gap-2 border-t border-gray-300 pt-2 relative">
+                    <div className="flex flex-col gap-2 border-t border-slate-100 pt-2 relative">
                       {prescriptions.map((rx, idx) => (
-                        <div key={idx} className="bg-gray-100 border border-gray-300 p-2 flex flex-col gap-2">
+                        <div key={idx} className="bg-slate-50 border border-slate-100 p-2 flex flex-col gap-2">
                           <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-gray-700">Line #{idx + 1}</span>
-                            <button onClick={() => removeRx(idx)} className="text-red-700 font-bold text-xs underline hover:text-red-900">Remove</button>
+                            <span className="text-xs font-bold text-slate-600">Line #{idx + 1}</span>
+                            <button onClick={() => removeRx(idx)} className="text-rose-600 font-bold text-xs underline hover:text-rose-700">Remove</button>
                           </div>
                           <select
                             value={rx.medication_id}
                             onChange={e => updateRx(idx, 'medication_id', Number(e.target.value))}
-                            className="bg-white border border-gray-400 p-1 text-sm outline-none w-full"
+                            className="bg-white border border-slate-200 p-1 text-sm outline-none w-full"
                           >
                             {allMedications.map(m => (
                               <option key={m.id} value={m.id}>{m.name} ({m.category})</option>
@@ -1202,19 +1202,19 @@ function DoctorConsultsTab() {
                               placeholder="Dose (e.g. 500mg)"
                               value={rx.dose}
                               onChange={e => updateRx(idx, 'dose', e.target.value)}
-                              className="bg-white border border-gray-400 p-1 text-sm outline-none flex-1"
+                              className="bg-white border border-slate-200 p-1 text-sm outline-none flex-1"
                             />
                             <select
                               value={rx.frequency}
                               onChange={e => updateRx(idx, 'frequency', e.target.value)}
-                              className="bg-white border border-gray-400 p-1 text-sm outline-none"
+                              className="bg-white border border-slate-200 p-1 text-sm outline-none"
                             >
                               {['OD', 'BID', 'TID', 'QID', 'PRN', 'STAT', 'AC', 'HS'].map(f => <option key={f}>{f}</option>)}
                             </select>
                             <select
                               value={rx.route}
                               onChange={e => updateRx(idx, 'route', e.target.value)}
-                              className="bg-white border border-gray-400 p-1 text-sm outline-none w-24"
+                              className="bg-white border border-slate-200 p-1 text-sm outline-none w-24"
                             >
                               {['oral', 'IV', 'IM', 'SQ', 'topical', 'inhaled', 'sublingual'].map(r => <option key={r}>{r}</option>)}
                             </select>
@@ -1225,24 +1225,24 @@ function DoctorConsultsTab() {
                   )}
                 </div>
 
-                <div className="mt-4 flex gap-4 pt-4 border-t border-gray-400 pb-4">
+                <div className="mt-4 flex gap-4 pt-4 border-t border-slate-200 pb-4">
                   <button
                     onClick={handleResolve}
                     disabled={submitting || !resolution.findings || !resolution.recommendations}
-                    className="flex-1 bg-blue-800 hover:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2 font-bold shadow-sm"
+                    className="flex-1 bg-blue-600 rounded-xl shadow-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2 font-bold shadow-sm"
                   >
                     {submitting ? 'PROCESSING...' : 'SUBMIT RESOLUTION'}
                   </button>
                   <button
                     onClick={() => setSelectedConsult(null)}
-                    className="px-4 bg-gray-200 border border-gray-400 text-gray-800 font-bold hover:bg-gray-300 shadow-sm"
+                    className="px-4 bg-slate-50/80 backdrop-blur-sm border border-slate-200 text-slate-700 font-bold hover:bg-white shadow-sm rounded-xl shadow-sm"
                   >
                     CANCEL
                   </button>
                 </div>
               </>
             ) : (
-              <div className="h-full flex items-center justify-center font-bold text-gray-500 italic p-10 text-center border-2 border-dashed border-gray-300 bg-white min-h-[300px]">
+              <div className="h-full flex items-center justify-center font-bold text-slate-400 italic p-10 text-center border-2 border-dashed border-slate-100 bg-white min-h-[300px]">
                 PLEASE SELECT A SPECIALIST CONSULT TO REVIEW
               </div>
             )}
@@ -1289,54 +1289,54 @@ function PatientPrescriptionsTab({ admissionId, patients }: { admissionId: numbe
   }, [currentUser?.patientId, admissionId, patients]);
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4 font-sans text-gray-900 flex flex-col gap-8">
+    <div className="max-w-[1400px] mx-auto p-4 font-sans text-slate-800 flex flex-col gap-8">
 
       { }
       <div className="flex flex-col gap-4">
-        <div className="bg-white border-l-4 border-blue-800 p-4 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="bg-white border-l-4 border-blue-200 p-4 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 m-0 uppercase flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-slate-800 m-0 uppercase flex items-center gap-2">
               <ClipboardList className="w-6 h-6 text-blue-900" />
               Active Care Plan
             </h1>
-            <p className="text-sm font-bold text-gray-700 mt-1">Confirmed medication regimens and authorized medical orders.</p>
+            <p className="text-sm font-bold text-slate-600 mt-1">Confirmed medication regimens and authorized medical orders.</p>
           </div>
           <div className="bg-blue-50 border border-blue-200 px-4 py-2 text-center shadow-sm">
             <div className="text-xs font-bold text-blue-800 uppercase">Confirmed Items</div>
-            <div className="text-lg font-bold text-blue-900 font-mono">{data.length}</div>
+            <div className="text-lg font-bold text-blue-900 font-sans">{data.length}</div>
           </div>
         </div>
 
         {loading ? (
-          <div className="p-10 border border-gray-400 bg-white text-center font-bold text-gray-600 shadow-sm uppercase">
+          <div className="p-10 border border-slate-200 bg-white text-center font-bold text-slate-500 shadow-sm uppercase">
             Fetching Active Records...
           </div>
         ) : data.length === 0 ? (
-          <div className="p-8 border border-dashed border-gray-400 text-center font-bold text-gray-500 uppercase">
+          <div className="p-8 border border-dashed border-slate-200 text-center font-bold text-slate-400 uppercase">
             No active prescriptions on file.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {data.map(rx => (
-              <div key={rx.id} className="bg-white border-2 border-black p-4 shadow-[4px_4px_0px_#000] flex flex-col">
-                <div className="flex justify-between items-start mb-4 border-b border-gray-200 pb-2">
-                  <div className="bg-gray-100 p-1 border border-black text-black">
+              <div key={rx.id} className="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 shadow-[4px_4px_0px_#000] flex flex-col">
+                <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-2">
+                  <div className="bg-slate-50 p-1 border border-slate-200 shadow-sm rounded-xl text-slate-800">
                     <CheckCircle size={24} />
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className="text-[10px] font-bold uppercase text-white bg-blue-800 px-2 border border-black shadow-sm tracking-tighter">AUTHORIZED</span>
-                    <span className="text-[10px] font-bold text-black uppercase bg-gray-200 px-2 border border-black shadow-sm">{rx.route}</span>
+                    <span className="text-[10px] font-bold uppercase text-white bg-blue-600 rounded-xl shadow-sm px-2 border border-slate-200 shadow-sm rounded-xl shadow-sm tracking-tighter">AUTHORIZED</span>
+                    <span className="text-[10px] font-bold text-slate-800 uppercase bg-slate-50/80 backdrop-blur-sm px-2 border border-slate-200 shadow-sm rounded-xl shadow-sm">{rx.route}</span>
                   </div>
                 </div>
                 <div className="mb-4">
-                  <h3 className="text-lg font-black text-black uppercase mb-2 leading-none">{rx.medication_name}</h3>
+                  <h3 className="text-lg font-bold text-slate-800 uppercase mb-2 leading-none">{rx.medication_name}</h3>
                   <div className="flex flex-wrap items-center gap-2">
-                    <div className="bg-black text-white px-2 py-0.5 text-xs font-bold shadow-sm uppercase">{rx.dose}</div>
-                    <div className="text-xs font-bold text-gray-800 uppercase">{rx.frequency}</div>
+                    <div className="bg-slate-800 text-white px-2 py-0.5 text-xs font-bold shadow-sm uppercase">{rx.dose}</div>
+                    <div className="text-xs font-bold text-slate-700 uppercase">{rx.frequency}</div>
                   </div>
                 </div>
                 <div className="mt-auto pt-3 border-t border-gray-100 flex items-center gap-2 opacity-70">
-                  <p className="text-[10px] font-bold text-gray-600 uppercase">Physician: Dr. {rx.prescribed_by_name}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Physician: Dr. {rx.prescribed_by_name}</p>
                 </div>
               </div>
             ))}
@@ -1417,17 +1417,17 @@ function OrderLabModal({ isOpen, onClose, admissionId, onOrder }: { isOpen: bool
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-center justify-center p-4">
-      <div className="bg-white border-4 border-black shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] w-full max-w-md p-8 animate-in zoom-in duration-200">
-        <h3 className="text-3xl font-black uppercase tracking-tighter italic mb-2">Request Analysis</h3>
-        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-8 border-b-2 border-slate-100 pb-2">Select investigation from clinical catalog</p>
+      <div className="bg-white border-4 border-slate-200 rounded-xl shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] w-full max-w-md p-8 animate-in zoom-in duration-200">
+        <h3 className="text-3xl font-bold uppercase tracking-tighter italic mb-2">Request Analysis</h3>
+        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-8 border-b-2 border-slate-100 pb-2">Select investigation from clinical catalog</p>
 
         <div className="space-y-6">
           <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase text-slate-400">Investigation Type</label>
+            <label className="text-[10px] font-bold uppercase text-slate-400">Investigation Type</label>
             <select
               value={selectedTest}
               onChange={e => setSelectedTest(Number(e.target.value))}
-              className="w-full bg-white border-2 border-black p-3 font-black text-xs uppercase outline-none focus:bg-slate-50"
+              className="w-full bg-white border border-slate-200 shadow-sm rounded-2xl p-3 font-bold text-xs uppercase outline-none focus:bg-slate-50"
             >
               <option value="">-- CHOOSE ANALYSIS --</option>
               {tests.map(t => <option key={t.id} value={t.id}>{t.name} ({t.category})</option>)}
@@ -1435,14 +1435,14 @@ function OrderLabModal({ isOpen, onClose, admissionId, onOrder }: { isOpen: bool
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase text-slate-400">Priority Level</label>
+            <label className="text-[10px] font-bold uppercase text-slate-400">Priority Level</label>
             <div className="grid grid-cols-3 gap-3">
               {['routine', 'urgent', 'stat'].map(p => (
                 <button
                   key={p}
                   onClick={() => setPriority(p)}
                   className={cn(
-                    "py-3 border-2 border-black text-[10px] font-black uppercase transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none",
+                    "py-3 border border-slate-200 shadow-sm rounded-2xl text-[10px] font-bold uppercase transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none",
                     priority === p ? "bg-slate-900 text-white translate-x-0.5 translate-y-0.5 shadow-none" : "bg-white text-slate-500"
                   )}
                 >
@@ -1453,7 +1453,7 @@ function OrderLabModal({ isOpen, onClose, admissionId, onOrder }: { isOpen: bool
           </div>
 
           <div className="flex gap-4 pt-4">
-            <button onClick={onClose} className="flex-1 bg-slate-100 border-2 border-black font-black uppercase py-4 text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">Cancel</button>
+            <button onClick={onClose} className="flex-1 bg-slate-100 border border-slate-200 shadow-sm rounded-2xl font-bold uppercase py-4 text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">Cancel</button>
             <button
               disabled={ordering || !selectedTest}
               onClick={async () => {
@@ -1468,7 +1468,7 @@ function OrderLabModal({ isOpen, onClose, admissionId, onOrder }: { isOpen: bool
                 } catch (e) { }
                 setOrdering(false);
               }}
-              className="flex-1 bg-indigo-600 text-white border-2 border-black font-black uppercase py-4 text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
+              className="flex-1 bg-indigo-600 text-white border border-slate-200 shadow-sm rounded-2xl font-bold uppercase py-4 text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
             >
               {ordering ? 'TRANSMITTING...' : 'CONFIRM ORDER'}
             </button>
@@ -1487,24 +1487,24 @@ function RecordResultsModal({ isOpen, onClose, order, onComplete }: { isOpen: bo
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-center justify-center p-4">
-      <div className="bg-white border-4 border-black shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] w-full max-w-xl p-8 animate-in zoom-in duration-200">
+      <div className="bg-white border-4 border-slate-200 rounded-xl shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] w-full max-w-xl p-8 animate-in zoom-in duration-200">
         <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-slate-100">
           <div>
-            <h3 className="text-3xl font-black uppercase tracking-tighter italic">Diagnostic Ledger</h3>
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{order.test_name} · CASE ID #{order.id}</p>
+            <h3 className="text-3xl font-bold uppercase tracking-tighter italic">Diagnostic Ledger</h3>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">{order.test_name} · CASE ID #{order.id}</p>
           </div>
           {order.priority === 'stat' && (
-            <div className="bg-rose-600 text-white px-3 py-1 text-[10px] font-black uppercase animate-pulse border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+            <div className="bg-rose-600 text-white px-3 py-1 text-[10px] font-bold uppercase animate-pulse border border-slate-200 shadow-sm rounded-2xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
               CRITICAL: STAT
             </div>
           )}
         </div>
 
-        <div className="bg-slate-50 p-6 border-2 border-black mb-6">
+        <div className="bg-slate-50 p-6 border border-slate-200 shadow-sm rounded-2xl mb-6">
           <div className="grid grid-cols-12 gap-4 mb-3 px-2">
-            <span className="col-span-7 text-[10px] font-black uppercase text-slate-400">Parameter / Analyte</span>
-            <span className="col-span-3 text-[10px] font-black uppercase text-slate-400">Result Value</span>
-            <span className="col-span-2 text-[10px] font-black uppercase text-slate-400 text-center">Pathology</span>
+            <span className="col-span-7 text-[10px] font-bold uppercase text-slate-400">Parameter / Analyte</span>
+            <span className="col-span-3 text-[10px] font-bold uppercase text-slate-400">Result Value</span>
+            <span className="col-span-2 text-[10px] font-bold uppercase text-slate-400 text-center">Pathology</span>
           </div>
 
           <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
@@ -1513,7 +1513,7 @@ function RecordResultsModal({ isOpen, onClose, order, onComplete }: { isOpen: bo
                 <div className="col-span-7 relative">
                   <input
                     placeholder="E.G. HEMOGLOBIN (HGB)"
-                    className="w-full bg-white border-2 border-black p-2 font-black text-xs uppercase outline-none focus:bg-yellow-50"
+                    className="w-full bg-white border border-slate-200 shadow-sm rounded-2xl p-2 font-bold text-xs uppercase outline-none focus:bg-yellow-50"
                     value={p.name}
                     onChange={e => {
                       const n = [...params];
@@ -1533,7 +1533,7 @@ function RecordResultsModal({ isOpen, onClose, order, onComplete }: { isOpen: bo
                 <div className="col-span-3">
                   <input
                     placeholder="VALUE"
-                    className="w-full bg-white border-2 border-black p-2 font-black text-xs uppercase outline-none text-right focus:bg-yellow-50"
+                    className="w-full bg-white border border-slate-200 shadow-sm rounded-2xl p-2 font-bold text-xs uppercase outline-none text-right focus:bg-yellow-50"
                     value={p.value}
                     onChange={e => {
                       const n = [...params];
@@ -1550,7 +1550,7 @@ function RecordResultsModal({ isOpen, onClose, order, onComplete }: { isOpen: bo
                       setParams(n);
                     }}
                     className={cn(
-                      "w-10 h-10 border-2 border-black flex items-center justify-center transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
+                      "w-10 h-10 border border-slate-200 shadow-sm rounded-2xl flex items-center justify-center transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
                       p.abnormal ? "bg-rose-600 text-white translate-x-0.5 translate-y-0.5 shadow-none" : "bg-white text-slate-300"
                     )}
                   >
@@ -1563,14 +1563,14 @@ function RecordResultsModal({ isOpen, onClose, order, onComplete }: { isOpen: bo
 
           <button
             onClick={() => setParams([...params, { name: '', value: '', abnormal: false }])}
-            className="w-full py-2 mt-6 border-2 border-black border-dashed font-black uppercase text-[10px] text-slate-500 hover:bg-slate-100 transition-all"
+            className="w-full py-2 mt-6 border border-slate-200 shadow-sm rounded-2xl border-dashed font-bold uppercase text-[10px] text-slate-500 hover:bg-slate-100 transition-all"
           >
             + APPEND PARAMETER FIELD
           </button>
         </div>
 
         <div className="flex gap-4">
-          <button onClick={onClose} className="flex-1 bg-slate-100 border-2 border-black font-black uppercase py-4 text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">Cancel</button>
+          <button onClick={onClose} className="flex-1 bg-slate-100 border border-slate-200 shadow-sm rounded-2xl font-bold uppercase py-4 text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">Cancel</button>
           <button
             disabled={submitting || params.some(p => !p.name || !p.value)}
             onClick={async () => {
@@ -1585,7 +1585,7 @@ function RecordResultsModal({ isOpen, onClose, order, onComplete }: { isOpen: bo
               } catch (e) { }
               setSubmitting(false);
             }}
-            className="flex-1 bg-slate-900 text-white border-2 border-black font-black uppercase py-4 text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
+            className="flex-1 bg-slate-900 text-white border border-slate-200 shadow-sm rounded-2xl font-bold uppercase py-4 text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
           >
             {submitting ? 'COMMITTING...' : 'RELEASE VALIDATED REPORT'}
           </button>
@@ -1621,24 +1621,24 @@ function LabReportTab({ admissionId, setAdmissionId, patients }: { admissionId: 
   }, [fetchLabs]);
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4 font-sans text-gray-900 bg-gray-50/20 min-h-screen">
+    <div className="max-w-[1400px] mx-auto p-4 font-sans text-slate-800 bg-gray-50/20 min-h-screen">
       { }
-      <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 m-0 uppercase tracking-tighter flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-slate-900 m-0 uppercase tracking-tighter flex items-center gap-3">
             <FlaskConical className="w-8 h-8 text-indigo-700" />
             Diagnostic Reports
           </h1>
-          <p className="text-[10px] font-black text-slate-500 mt-1 uppercase tracking-widest italic tracking-tight">Pathological Investigations · Verified Findings</p>
+          <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest italic tracking-tight">Pathological Investigations · Verified Findings</p>
         </div>
         <div className="flex gap-4 items-center flex-wrap">
           {currentUser?.role !== 'patient' && (
-            <div className="flex items-center gap-2 bg-slate-100 border border-black px-3 py-1.5 rounded-sm">
-              <span className="text-[10px] font-black uppercase text-slate-600">Active Case:</span>
+            <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 shadow-sm rounded-xl px-3 py-1.5 rounded-sm">
+              <span className="text-[10px] font-bold uppercase text-slate-600">Active Case:</span>
               <select
                 value={admissionId || ''}
                 onChange={e => setAdmissionId(Number(e.target.value))}
-                className="bg-transparent border-none font-black text-xs outline-none uppercase"
+                className="bg-transparent border-none font-bold text-xs outline-none uppercase"
               >
                 {patients.map(p => <option key={p.id} value={p.id}>{p.patient_name}</option>)}
               </select>
@@ -1647,7 +1647,7 @@ function LabReportTab({ admissionId, setAdmissionId, patients }: { admissionId: 
           {currentUser?.role === 'doctor' && admissionId && (
             <button
               onClick={() => setIsOrderModalOpen(true)}
-              className="bg-indigo-600 text-white border-2 border-black px-4 py-2 font-black text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+              className="bg-indigo-600 text-white border border-slate-200 shadow-sm rounded-2xl px-4 py-2 font-bold text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
             >
               + Request Analysis
             </button>
@@ -1658,48 +1658,48 @@ function LabReportTab({ admissionId, setAdmissionId, patients }: { admissionId: 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         { }
         <div className="xl:col-span-8">
-          <div className="bg-white border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-            <div className="bg-slate-900 text-white p-3 font-black text-[10px] uppercase tracking-widest flex justify-between items-center">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+            <div className="bg-slate-900 text-white p-3 font-bold text-[10px] uppercase tracking-widest flex justify-between items-center">
               <span>Verified Results Archive</span>
               <BookOpen size={14} className="text-indigo-400" />
             </div>
 
             {loading ? (
-              <div className="p-20 text-center font-black text-slate-400 uppercase tracking-widest animate-pulse italic">Querying Laboratory Database...</div>
+              <div className="p-20 text-center font-bold text-slate-400 uppercase tracking-widest animate-pulse italic">Querying Laboratory Database...</div>
             ) : labData.results.length === 0 ? (
-              <div className="p-20 text-center border-2 border-dashed border-slate-100 m-6 font-black text-slate-300 uppercase italic text-xs tracking-widest">
+              <div className="p-20 text-center border-2 border-dashed border-slate-100 m-6 font-bold text-slate-300 uppercase italic text-xs tracking-widest">
                 No diagnostic findings logged for this case.
               </div>
             ) : (
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="bg-slate-50 border-b-2 border-black">
-                    <th className="p-4 border-r border-slate-200 font-black text-[10px] uppercase tracking-widest">Parameter / Analyte</th>
-                    <th className="p-4 border-r border-slate-200 font-black text-[10px] uppercase tracking-widest">Recorded Value</th>
-                    <th className="p-4 border-r border-slate-200 font-black text-[10px] uppercase tracking-widest">Investigation</th>
-                    <th className="p-4 font-black text-[10px] uppercase tracking-widest">Verification Status</th>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    <th className="p-4 border-r border-slate-200 font-bold text-[10px] uppercase tracking-widest">Parameter / Analyte</th>
+                    <th className="p-4 border-r border-slate-200 font-bold text-[10px] uppercase tracking-widest">Recorded Value</th>
+                    <th className="p-4 border-r border-slate-200 font-bold text-[10px] uppercase tracking-widest">Investigation</th>
+                    <th className="p-4 font-bold text-[10px] uppercase tracking-widest">Verification Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {labData.results.map(r => (
                     <tr key={r.id} className="border-b border-slate-100 hover:bg-yellow-50/50 transition-colors">
-                      <td className="p-4 border-r border-slate-100 font-black text-slate-800 uppercase">{r.parameter_name}</td>
+                      <td className="p-4 border-r border-slate-100 font-bold text-slate-800 uppercase">{r.parameter_name}</td>
                       <td className="p-4 border-r border-slate-100">
                         <span className={cn(
-                          "px-2 py-1 border-2 border-black font-mono font-black text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] inline-block",
+                          "px-2 py-1 border border-slate-200 shadow-sm rounded-2xl font-sans font-bold text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] inline-block",
                           r.is_abnormal ? "bg-rose-100 text-rose-900" : "bg-emerald-50 text-emerald-900"
                         )}>
                           {r.result_value}
                         </span>
-                        {r.is_abnormal && <span className="ml-2 text-[8px] font-black text-rose-600 uppercase italic">(!) Pathology Detected</span>}
+                        {r.is_abnormal && <span className="ml-2 text-[8px] font-bold text-rose-600 uppercase italic">(!) Pathology Detected</span>}
                       </td>
                       <td className="p-4 border-r border-slate-100">
-                        <p className="text-[10px] font-black text-slate-500 uppercase">{r.test_name}</p>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase">{r.test_name}</p>
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                          <p className="text-[10px] font-black uppercase text-slate-900">Verified by {r.technician_name}</p>
+                          <p className="text-[10px] font-bold uppercase text-slate-900">Verified by {r.technician_name}</p>
                         </div>
                         <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase italic">{new Date(r.verified_at).toLocaleString()}</p>
                       </td>
@@ -1713,30 +1713,30 @@ function LabReportTab({ admissionId, setAdmissionId, patients }: { admissionId: 
 
         { }
         <div className="xl:col-span-4">
-          <div className="bg-white border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden h-fit">
-            <div className="bg-indigo-700 text-white p-3 font-black text-[10px] uppercase tracking-widest flex justify-between items-center">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden h-fit">
+            <div className="bg-indigo-700 text-white p-3 font-bold text-[10px] uppercase tracking-widest flex justify-between items-center">
               <span>Pending Worklist</span>
               <Activity size={14} className="text-white animate-pulse" />
             </div>
 
             <div className="p-4 space-y-4">
               {labData.orders.filter(o => o.status !== 'completed').length === 0 ? (
-                <div className="p-8 text-center text-slate-300 font-black uppercase text-[10px] italic">Queue empty. No pending analysis.</div>
+                <div className="p-8 text-center text-slate-300 font-bold uppercase text-[10px] italic">Queue empty. No pending analysis.</div>
               ) : (
                 labData.orders.filter(o => o.status !== 'completed').map(o => (
-                  <div key={o.id} className="bg-slate-50 border-2 border-black p-4 flex justify-between items-center group hover:bg-white transition-all hover:-translate-y-1">
+                  <div key={o.id} className="bg-slate-50 border border-slate-200 shadow-sm rounded-2xl p-4 flex justify-between items-center group hover:bg-white transition-all hover:-translate-y-1">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className={cn(
                           "w-2 h-2 rounded-full",
                           o.priority === 'stat' ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)] animate-pulse" : "bg-indigo-500"
                         )} />
-                        <h4 className="text-xs font-black text-slate-900 uppercase">{o.test_name}</h4>
+                        <h4 className="text-xs font-bold text-slate-900 uppercase">{o.test_name}</h4>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-[9px] font-black text-slate-400 uppercase italic">Requested At: {new Date(o.ordered_at).toLocaleTimeString()}</span>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase italic">Requested At: {new Date(o.ordered_at).toLocaleTimeString()}</span>
                         <span className={cn(
-                          "text-[8px] font-black px-1 uppercase",
+                          "text-[8px] font-bold px-1 uppercase",
                           o.priority === 'stat' ? "bg-rose-600 text-white" : "bg-slate-200 text-slate-600"
                         )}>{o.priority}</span>
                       </div>
@@ -1744,14 +1744,14 @@ function LabReportTab({ admissionId, setAdmissionId, patients }: { admissionId: 
                       {currentUser?.role === 'admin' && (
                         <button
                           onClick={() => setSelectedOrderToVerify(o)}
-                          className="mt-4 px-3 py-1 bg-slate-900 text-white border-2 border-black text-[9px] font-black uppercase shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:bg-indigo-600 transition-all"
+                          className="mt-4 px-3 py-1 bg-slate-900 text-white border border-slate-200 shadow-sm rounded-2xl text-[9px] font-bold uppercase shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:bg-indigo-600 transition-all"
                         >
                           Manual Result Entry &rarr;
                         </button>
                       )}
                     </div>
                     <div className="text-right">
-                      <span className="text-[10px] font-black text-indigo-700 uppercase tracking-tighter italic">{o.status}</span>
+                      <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-tighter italic">{o.status}</span>
                     </div>
                   </div>
                 ))
@@ -1788,17 +1788,17 @@ function ManualItemModal({ isOpen, onClose, onAdd, invoiceId }: { isOpen: boolea
 
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-      <div className="bg-white border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] w-full max-w-md p-8">
-        <h3 className="text-2xl font-black uppercase tracking-tighter mb-2 italic">Manual Charge Entry</h3>
-        <p className="text-[10px] font-black text-slate-500 uppercase mb-6 tracking-widest border-b-2 border-slate-100 pb-2">Manual override for ad-hoc clinical services</p>
+      <div className="bg-white border-4 border-slate-200 rounded-xl shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] w-full max-w-md p-8">
+        <h3 className="text-2xl font-bold uppercase tracking-tighter mb-2 italic">Manual Charge Entry</h3>
+        <p className="text-[10px] font-bold text-slate-500 uppercase mb-6 tracking-widest border-b-2 border-slate-100 pb-2">Manual override for ad-hoc clinical services</p>
 
         <div className="space-y-4">
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-black uppercase text-slate-400">Category</label>
+            <label className="text-[10px] font-bold uppercase text-slate-400">Category</label>
             <select
               value={form.item_type}
               onChange={e => setForm({ ...form, item_type: e.target.value })}
-              className="w-full border-2 border-black p-2 font-black text-xs uppercase outline-none focus:bg-slate-50"
+              className="w-full border border-slate-200 shadow-sm rounded-2xl p-2 font-bold text-xs uppercase outline-none focus:bg-slate-50"
             >
               <option value="procedure">Clinical Procedure</option>
               <option value="equipment">Specialized Equipment</option>
@@ -1807,30 +1807,30 @@ function ManualItemModal({ isOpen, onClose, onAdd, invoiceId }: { isOpen: boolea
             </select>
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-black uppercase text-slate-400">Service Description</label>
+            <label className="text-[10px] font-bold uppercase text-slate-400">Service Description</label>
             <input
               type="text"
               placeholder="E.G. BEDSIDE ULTRASOUND"
-              className="w-full border-2 border-black p-2 font-black text-xs uppercase outline-none focus:bg-slate-50"
+              className="w-full border border-slate-200 shadow-sm rounded-2xl p-2 font-bold text-xs uppercase outline-none focus:bg-slate-50"
               value={form.item_name}
               onChange={e => setForm({ ...form, item_name: e.target.value })}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-black uppercase text-slate-400">Unit Rate ($)</label>
+              <label className="text-[10px] font-bold uppercase text-slate-400">Unit Rate ($)</label>
               <input
                 type="number"
-                className="w-full border-2 border-black p-2 font-black text-xs outline-none focus:bg-slate-50"
+                className="w-full border border-slate-200 shadow-sm rounded-2xl p-2 font-bold text-xs outline-none focus:bg-slate-50"
                 value={form.unit_price}
                 onChange={e => setForm({ ...form, unit_price: e.target.value })}
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-black uppercase text-slate-400">Quantity</label>
+              <label className="text-[10px] font-bold uppercase text-slate-400">Quantity</label>
               <input
                 type="number"
-                className="w-full border-2 border-black p-2 font-black text-xs outline-none focus:bg-slate-50"
+                className="w-full border border-slate-200 shadow-sm rounded-2xl p-2 font-bold text-xs outline-none focus:bg-slate-50"
                 value={form.quantity}
                 onChange={e => setForm({ ...form, quantity: e.target.value })}
               />
@@ -1839,7 +1839,7 @@ function ManualItemModal({ isOpen, onClose, onAdd, invoiceId }: { isOpen: boolea
         </div>
 
         <div className="flex gap-4 mt-8">
-          <button onClick={onClose} className="flex-1 bg-slate-100 border-2 border-black font-black uppercase py-3 text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">Cancel</button>
+          <button onClick={onClose} className="flex-1 bg-slate-100 border border-slate-200 shadow-sm rounded-2xl font-bold uppercase py-3 text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">Cancel</button>
           <button
             disabled={adding || !form.item_name || !form.unit_price}
             onClick={async () => {
@@ -1860,7 +1860,7 @@ function ManualItemModal({ isOpen, onClose, onAdd, invoiceId }: { isOpen: boolea
               } catch (_) { }
               setAdding(false);
             }}
-            className="flex-1 bg-slate-900 text-white border-2 border-black font-black uppercase py-3 text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+            className="flex-1 bg-slate-900 text-white border border-slate-200 shadow-sm rounded-2xl font-bold uppercase py-3 text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
           >
             {adding ? '...' : 'Commit Charge'}
           </button>
@@ -1924,41 +1924,41 @@ function BillingHubTab({ admissionId, setAdmissionId, patients }: { admissionId:
     setCommitting(null);
   };
 
-  if (!invoice && !loading) return <div className="p-20 text-center font-black text-slate-400 uppercase tracking-[0.2em] italic bg-white border-2 border-dashed border-slate-100 m-8">Initializing Fiscal Engine...</div>;
+  if (!invoice && !loading) return <div className="p-20 text-center font-bold text-slate-400 uppercase tracking-[0.2em] italic bg-white border-2 border-dashed border-slate-100 m-8">Initializing Fiscal Engine...</div>;
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4 font-sans text-gray-900 bg-gray-50/20 min-h-screen">
-      <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+    <div className="max-w-[1400px] mx-auto p-4 font-sans text-slate-800 bg-gray-50/20 min-h-screen">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 m-0 uppercase tracking-tighter flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-slate-900 m-0 uppercase tracking-tighter flex items-center gap-3">
             <Database className="w-8 h-8 text-emerald-700" />
             Revenue Management Hub
           </h1>
-          <p className="text-[10px] font-black text-slate-500 mt-1 uppercase tracking-widest italic tracking-tight">Financial Records · Settlement Registry</p>
+          <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest italic tracking-tight">Financial Records · Settlement Registry</p>
         </div>
         <div className="flex gap-4 items-center flex-wrap">
           {(currentUser?.role?.toLowerCase() === 'doctor' || currentUser?.role?.toLowerCase() === 'admin') && invoice && (
             <button
               onClick={() => setIsManualModalOpen(true)}
-              className="px-4 py-2 bg-slate-900 text-white border-2 border-black font-black text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+              className="px-4 py-2 bg-slate-900 text-white border border-slate-200 shadow-sm rounded-2xl font-bold text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
             >
               + Manual Charge
             </button>
           )}
           {currentUser?.role !== 'patient' && (
-            <div className="flex items-center gap-2 bg-slate-100 border border-black px-3 py-1.5 rounded-sm">
-              <span className="text-[10px] font-black uppercase text-slate-600">Active Case:</span>
+            <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 shadow-sm rounded-xl px-3 py-1.5 rounded-sm">
+              <span className="text-[10px] font-bold uppercase text-slate-600">Active Case:</span>
               <select
                 value={admissionId || ''}
                 onChange={e => setAdmissionId(Number(e.target.value))}
-                className="bg-transparent border-none font-black text-xs outline-none uppercase"
+                className="bg-transparent border-none font-bold text-xs outline-none uppercase"
               >
                 {patients.map(p => <option key={p.id} value={p.id}>{p.patient_name}</option>)}
               </select>
             </div>
           )}
           <div className={cn(
-            "px-4 py-2 border-2 border-black font-black text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]",
+            "px-4 py-2 border border-slate-200 shadow-sm rounded-2xl font-bold text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]",
             invoice?.status === 'paid' ? 'bg-emerald-100 text-emerald-900 border-emerald-900' : 'bg-amber-100 text-amber-900 border-amber-900'
           )}>
             STATUS: {invoice?.status || 'DRAFT'}
@@ -1970,8 +1970,8 @@ function BillingHubTab({ admissionId, setAdmissionId, patients }: { admissionId:
         { }
         {currentUser?.role !== 'patient' && (
           <div className="xl:col-span-4 flex flex-col gap-6">
-            <div className="bg-white border-2 border-black flex flex-col shadow-md overflow-hidden">
-              <div className="bg-slate-900 text-white p-3 font-black text-[10px] uppercase tracking-widest flex justify-between items-center">
+            <div className="bg-white border border-slate-200 shadow-sm rounded-2xl flex flex-col shadow-md overflow-hidden">
+              <div className="bg-slate-900 text-white p-3 font-bold text-[10px] uppercase tracking-widest flex justify-between items-center">
                 <span>Pending Clinical Verification</span>
                 <AlertTriangle size={14} className="text-amber-400" />
               </div>
@@ -1979,21 +1979,21 @@ function BillingHubTab({ admissionId, setAdmissionId, patients }: { admissionId:
               <div className="p-4 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
                 { }
                 <div>
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase mb-3 border-b-2 border-slate-100 pb-1">Unbilled Consultations</h4>
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase mb-3 border-b-2 border-slate-100 pb-1">Unbilled Consultations</h4>
                   {unbilled.consults.length === 0 ? (
                     <p className="text-xs italic text-slate-400">No pending consult charges.</p>
                   ) : (
                     <div className="space-y-2">
                       {unbilled.consults.map(c => (
-                        <div key={c.id} className="bg-slate-50 border border-slate-200 p-3 flex justify-between items-center group hover:border-black transition-colors">
+                        <div key={c.id} className="bg-slate-50 border border-slate-200 p-3 flex justify-between items-center group hover:border-slate-200 rounded-xl transition-colors">
                           <div>
-                            <p className="text-xs font-black text-slate-900 uppercase">Consult: {c.item_name}</p>
+                            <p className="text-xs font-bold text-slate-900 uppercase">Consult: {c.item_name}</p>
                             <p className="text-[9px] font-bold text-slate-500">{new Date(c.date).toLocaleDateString()}</p>
                           </div>
                           <button
                             disabled={!!committing}
                             onClick={() => handleBillItem('consultation', c)}
-                            className="bg-white border border-slate-300 px-2 py-1 text-[9px] font-black uppercase hover:bg-slate-900 hover:text-white hover:border-black transition-all"
+                            className="bg-white border border-slate-300 px-2 py-1 text-[9px] font-bold uppercase hover:bg-slate-900 hover:text-white hover:border-slate-200 rounded-xl transition-all"
                           >
                             {committing === c.id ? '...' : '+ BILL $150'}
                           </button>
@@ -2005,21 +2005,21 @@ function BillingHubTab({ admissionId, setAdmissionId, patients }: { admissionId:
 
                 { }
                 <div>
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase mb-3 border-b-2 border-slate-100 pb-1">Unbilled Lab Reports</h4>
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase mb-3 border-b-2 border-slate-100 pb-1">Unbilled Lab Reports</h4>
                   {unbilled.labs.length === 0 ? (
                     <p className="text-xs italic text-slate-400">No pending lab charges.</p>
                   ) : (
                     <div className="space-y-2">
                       {unbilled.labs.map(l => (
-                        <div key={l.id} className="bg-slate-50 border border-slate-200 p-3 flex justify-between items-center group hover:border-black transition-colors">
+                        <div key={l.id} className="bg-slate-50 border border-slate-200 p-3 flex justify-between items-center group hover:border-slate-200 rounded-xl transition-colors">
                           <div>
-                            <p className="text-xs font-black text-slate-900 uppercase">{l.item_name}</p>
+                            <p className="text-xs font-bold text-slate-900 uppercase">{l.item_name}</p>
                             <p className="text-[9px] font-bold text-slate-500">{new Date(l.date).toLocaleDateString()}</p>
                           </div>
                           <button
                             disabled={!!committing}
                             onClick={() => handleBillItem('laboratory', l)}
-                            className="bg-white border border-slate-300 px-2 py-1 text-[9px] font-black uppercase hover:bg-slate-900 hover:text-white hover:border-black transition-all"
+                            className="bg-white border border-slate-300 px-2 py-1 text-[9px] font-bold uppercase hover:bg-slate-900 hover:text-white hover:border-slate-200 rounded-xl transition-all"
                           >
                             {committing === l.id ? '...' : `+ BILL $${l.unit_price}`}
                           </button>
@@ -2035,41 +2035,41 @@ function BillingHubTab({ admissionId, setAdmissionId, patients }: { admissionId:
 
         { }
         <div className={cn("flex flex-col gap-6", currentUser?.role === 'patient' ? "xl:col-span-8" : "xl:col-span-5")}>
-          <div className="bg-white border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-            <div className="bg-slate-100 border-b-2 border-black p-3 font-black text-[10px] text-slate-900 uppercase flex justify-between items-center tracking-widest">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+            <div className="bg-slate-100 border-b border-slate-200 p-3 font-bold text-[10px] text-slate-900 uppercase flex justify-between items-center tracking-widest">
               <span>Itemized Settlement Ledger</span>
               <span>{invoice?.items?.length || 0} DEBITS</span>
             </div>
 
             <table className="w-full text-left border-collapse text-sm">
               <thead>
-                <tr className="bg-slate-50 border-b-2 border-black">
-                  <th className="p-3 border-r border-slate-200 font-black text-[10px] uppercase tracking-widest w-24">Category</th>
-                  <th className="p-3 border-r border-slate-200 font-black text-[10px] uppercase tracking-widest">Description</th>
-                  <th className="p-3 font-black text-[10px] uppercase tracking-widest text-right w-28">Total Price</th>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  <th className="p-3 border-r border-slate-200 font-bold text-[10px] uppercase tracking-widest w-24">Category</th>
+                  <th className="p-3 border-r border-slate-200 font-bold text-[10px] uppercase tracking-widest">Description</th>
+                  <th className="p-3 font-bold text-[10px] uppercase tracking-widest text-right w-28">Total Price</th>
                 </tr>
               </thead>
               <tbody>
                 {invoice?.items?.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="p-16 text-center text-slate-400 font-black uppercase text-[10px] tracking-[0.2em] italic">No services attributed to this account</td>
+                    <td colSpan={3} className="p-16 text-center text-slate-400 font-bold uppercase text-[10px] tracking-[0.2em] italic">No services attributed to this account</td>
                   </tr>
                 ) : (
                   invoice?.items.map((item: any) => (
                     <tr key={item.id} className="border-b border-slate-100 hover:bg-yellow-50/50 transition-colors">
                       <td className="p-3 border-r border-slate-100 flex flex-col">
-                        <span className="text-[10px] font-black uppercase text-indigo-600">{item.item_type}</span>
-                        {item.consult_id && <span className="text-[8px] font-black bg-emerald-100 text-emerald-800 px-1 w-fit rounded-sm mt-1">REFR_#{item.consult_id}</span>}
-                        {item.lab_order_id && <span className="text-[8px] font-black bg-blue-100 text-blue-800 px-1 w-fit rounded-sm mt-1">LAB_#{item.lab_order_id}</span>}
+                        <span className="text-[10px] font-bold uppercase text-indigo-600">{item.item_type}</span>
+                        {item.consult_id && <span className="text-[8px] font-bold bg-emerald-100 text-emerald-800 px-1 w-fit rounded-sm mt-1">REFR_#{item.consult_id}</span>}
+                        {item.lab_order_id && <span className="text-[8px] font-bold bg-blue-100 text-blue-800 px-1 w-fit rounded-sm mt-1">LAB_#{item.lab_order_id}</span>}
                       </td>
                       <td className="p-3 border-r border-slate-100">
-                        <p className="font-black text-slate-900 text-xs uppercase">{item.item_name}</p>
+                        <p className="font-bold text-slate-900 text-xs uppercase">{item.item_name}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter italic">REC AT {new Date(item.recorded_at).toLocaleTimeString()}</span>
-                          <span className="text-[9px] font-black text-slate-600">UNIT: ${item.unit_price} x {item.quantity}</span>
+                          <span className="text-[9px] font-bold text-slate-600">UNIT: ${item.unit_price} x {item.quantity}</span>
                         </div>
                       </td>
-                      <td className="p-3 text-right font-black text-slate-900 text-sm whitespace-nowrap tracking-tighter">${item.total_price}</td>
+                      <td className="p-3 text-right font-bold text-slate-900 text-sm whitespace-nowrap tracking-tighter">${item.total_price}</td>
                     </tr>
                   ))
                 )}
@@ -2080,11 +2080,11 @@ function BillingHubTab({ admissionId, setAdmissionId, patients }: { admissionId:
 
         { }
         <div className="xl:col-span-3">
-          <div className="bg-slate-900 text-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] p-6 font-mono sticky top-24">
+          <div className="bg-slate-900 text-white border-4 border-slate-200 rounded-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] p-6 font-sans sticky top-24">
             <div className="flex flex-col gap-6">
               <div className="text-center border-b-2 border-white/20 pb-4 mb-2">
-                <h4 className="font-black text-sm tracking-[0.3em] uppercase opacity-60 mb-2">Institutional Invoice</h4>
-                <p className="text-2xl font-black tracking-tighter">#INV-{invoice?.id ? String(invoice.id).padStart(5, '0') : '-----'}</p>
+                <h4 className="font-bold text-sm tracking-[0.3em] uppercase opacity-60 mb-2">Institutional Invoice</h4>
+                <p className="text-2xl font-bold tracking-tighter">#INV-{invoice?.id ? String(invoice.id).padStart(5, '0') : '-----'}</p>
               </div>
 
               <div className="space-y-4">
@@ -2097,19 +2097,19 @@ function BillingHubTab({ admissionId, setAdmissionId, patients }: { admissionId:
                   <span>-$0.00</span>
                 </div>
                 <div className="border-t border-white/20 pt-4 flex justify-between items-center">
-                  <span className="font-black text-xs uppercase tracking-widest">Final Net Balance</span>
-                  <span className="text-3xl font-black tracking-tighter text-amber-400">${invoice?.total_amount || '0.00'}</span>
+                  <span className="font-bold text-xs uppercase tracking-widest">Final Net Balance</span>
+                  <span className="text-3xl font-bold tracking-tighter text-amber-400">${invoice?.total_amount || '0.00'}</span>
                 </div>
               </div>
 
               <div className="bg-white/5 border border-white/10 p-4 space-y-2 text-[10px] mt-4">
                 <div className="flex justify-between">
                   <span className="opacity-50">PATIENT ID:</span>
-                  <span className="font-black">#ADM-{invoice?.admission_id || '---'}</span>
+                  <span className="font-bold">#ADM-{invoice?.admission_id || '---'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="opacity-50">ISSUED ON:</span>
-                  <span className="font-black">{invoice?.issued_at ? new Date(invoice.issued_at).toLocaleDateString() : 'DRAFT'}</span>
+                  <span className="font-bold">{invoice?.issued_at ? new Date(invoice.issued_at).toLocaleDateString() : 'DRAFT'}</span>
                 </div>
               </div>
 
@@ -2123,19 +2123,19 @@ function BillingHubTab({ admissionId, setAdmissionId, patients }: { admissionId:
                       if (res.ok) fetchData();
                     } catch (_) { }
                   }}
-                  className="mt-6 bg-amber-400 text-black border-4 border-black py-4 font-black text-sm uppercase hover:bg-amber-300 transition-all shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] active:translate-x-1 active:translate-y-1 active:shadow-none"
+                  className="mt-6 bg-amber-400 text-slate-800 border-4 border-slate-200 rounded-xl py-4 font-bold text-sm uppercase hover:bg-amber-300 transition-all shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] active:translate-x-1 active:translate-y-1 active:shadow-none"
                 >
                   Confirm Settlement &rarr;
                 </button>
               ) : currentUser?.role?.toLowerCase() === 'nurse' ? (
                 <div className="mt-6 bg-slate-100 border-2 border-dashed border-slate-400 p-6 text-center">
                   <ShieldCheck className="w-8 h-8 text-slate-400 mx-auto mb-2 opacity-50" />
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-800">Nurse Audit Active</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-800">Nurse Audit Active</p>
                   <p className="text-[9px] font-bold text-slate-500 mt-2 uppercase">Financial commitment restricted to billing officers.</p>
                 </div>
               ) : (
                 <div className="mt-6 bg-slate-100 border-2 border-dashed border-slate-200 p-6 text-center">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Restricted View</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Restricted View</p>
                 </div>
               )}
             </div>
@@ -2185,7 +2185,7 @@ function PatientVitalsTab({ admissionId, patients }: { admissionId: number | nul
   }, [fetchVitals]);
 
   if (loading) return (
-    <div className="p-10 border border-gray-400 bg-white text-center font-bold text-gray-600 shadow-sm">
+    <div className="p-10 border border-slate-200 bg-white text-center font-bold text-slate-500 shadow-sm">
       LOADING HEALTH TELEMETRY...
     </div>
   );
@@ -2193,19 +2193,19 @@ function PatientVitalsTab({ admissionId, patients }: { admissionId: number | nul
   const latest = history[history.length - 1];
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4 font-sans text-gray-900 flex flex-col gap-6">
-      <div className="bg-white border border-gray-400 p-4 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="max-w-[1400px] mx-auto p-4 font-sans text-slate-800 flex flex-col gap-6">
+      <div className="bg-white border border-slate-200 p-4 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 m-0 uppercase flex items-center gap-2">
-            <Activity className="w-6 h-6 text-gray-700" />
+          <h1 className="text-2xl font-bold text-slate-800 m-0 uppercase flex items-center gap-2">
+            <Activity className="w-6 h-6 text-slate-600" />
             Health Telemetry
           </h1>
-          <p className="text-sm font-bold text-gray-700 mt-1">Real-time physiological insights from clinical ICU sensors.</p>
+          <p className="text-sm font-bold text-slate-600 mt-1">Real-time physiological insights from clinical ICU sensors.</p>
         </div>
         {latest && (
-          <div className="border border-gray-400 bg-gray-100 p-2 text-center shadow-sm flex flex-col items-center">
-            <div className="text-xs font-bold text-gray-600 uppercase">Live Sync</div>
-            <div className="text-sm font-bold text-gray-900">
+          <div className="border border-slate-200 bg-slate-50 p-2 text-center shadow-sm flex flex-col items-center">
+            <div className="text-xs font-bold text-slate-500 uppercase">Live Sync</div>
+            <div className="text-sm font-bold text-slate-800">
               {new Date(latest.recorded_at).toLocaleTimeString()}
             </div>
           </div>
@@ -2219,8 +2219,8 @@ function PatientVitalsTab({ admissionId, patients }: { admissionId: number | nul
         <VitalCard label="Temperature" value={latest?.temperature || '--'} unit="°C" icon={<Thermometer size={24} />} data={history.map(v => ({ val: v.temperature }))} />
       </div>
 
-      <div className="bg-white border border-gray-400 shadow-sm p-4 relative flex flex-col h-[500px]">
-        <h3 className="font-bold text-gray-900 text-lg border-b border-gray-300 pb-2 mb-4 flex items-center gap-2 uppercase">
+      <div className="bg-white border border-slate-200 shadow-sm p-4 relative flex flex-col h-[500px]">
+        <h3 className="font-bold text-slate-800 text-lg border-b border-slate-100 pb-2 mb-4 flex items-center gap-2 uppercase">
           <Activity size={20} />
           Cardiovascular Trends
         </h3>
@@ -2246,16 +2246,16 @@ function PatientVitalsTab({ admissionId, patients }: { admissionId: number | nul
 
 function VitalCard({ label, value, unit, icon, data }: any) {
   return (
-    <div className="bg-white border border-gray-400 p-4 shadow-sm flex flex-col relative h-32">
-      <div className="flex justify-between items-start mb-2 border-b border-gray-300 pb-2">
+    <div className="bg-white border border-slate-200 p-4 shadow-sm flex flex-col relative h-32">
+      <div className="flex justify-between items-start mb-2 border-b border-slate-100 pb-2">
         <div className="flex items-center gap-2">
-          <div className="p-1 border border-gray-400 bg-gray-100 flex items-center justify-center text-gray-700">
+          <div className="p-1 border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-600">
             {icon}
           </div>
-          <span className="text-xs font-bold uppercase text-gray-800">{label}</span>
+          <span className="text-xs font-bold uppercase text-slate-700">{label}</span>
         </div>
-        <div className="text-2xl font-bold text-gray-900 flex items-baseline gap-1 relative z-10">
-          {value} <span className="text-xs font-bold text-gray-600 uppercase">{unit}</span>
+        <div className="text-2xl font-bold text-slate-800 flex items-baseline gap-1 relative z-10">
+          {value} <span className="text-xs font-bold text-slate-500 uppercase">{unit}</span>
         </div>
       </div>
 
@@ -2319,63 +2319,63 @@ function PatientApptsTab() {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4 font-sans text-gray-900 flex flex-col gap-6">
-      <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+    <div className="max-w-[1400px] mx-auto p-4 font-sans text-slate-800 flex flex-col gap-6">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 m-0 uppercase flex items-center gap-2 tracking-tighter">
+          <h1 className="text-2xl font-bold text-slate-900 m-0 uppercase flex items-center gap-2 tracking-tighter">
             <Calendar className="w-8 h-8 text-indigo-700" />
             My Appointments
           </h1>
-          <p className="text-[10px] font-black text-slate-500 mt-1 uppercase tracking-widest italic tracking-tight">Manage your upcoming clinic visits · Verified Schedule</p>
+          <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest italic tracking-tight">Manage your upcoming clinic visits · Verified Schedule</p>
         </div>
         <button
           onClick={() => setIsBooking(true)}
-          className="bg-indigo-600 text-white border-2 border-black px-6 py-3 font-black text-xs uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2"
+          className="bg-indigo-600 text-white border border-slate-200 shadow-sm rounded-2xl px-6 py-3 font-bold text-xs uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2"
         >
           <Calendar size={16} /> Schedule New
         </button>
       </div>
 
       {loading ? (
-        <div className="p-10 border-2 border-black bg-white text-center font-black text-slate-400 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] uppercase italic tracking-widest">
+        <div className="p-10 border border-slate-200 shadow-sm rounded-2xl bg-white text-center font-bold text-slate-400 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] uppercase italic tracking-widest">
           Loading Schedule...
         </div>
       ) : data.length === 0 ? (
-        <div className="p-10 border-2 border-dashed border-black bg-white text-center font-black text-slate-400 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] uppercase tracking-tighter">
+        <div className="p-10 border-2 border-dashed border-slate-200 rounded-xl bg-white text-center font-bold text-slate-400 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] uppercase tracking-tighter">
           No Appointments On File
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data.map(a => (
-            <div key={a.id} className="bg-white border border-gray-400 p-4 shadow-sm flex flex-col gap-4">
-              <div className="flex justify-between items-start border-b border-gray-300 pb-2">
-                <div className="bg-gray-100 p-1 border border-gray-400 text-gray-700">
+            <div key={a.id} className="bg-white border border-slate-200 p-4 shadow-sm flex flex-col gap-4">
+              <div className="flex justify-between items-start border-b border-slate-100 pb-2">
+                <div className="bg-slate-50 p-1 border border-slate-200 text-slate-600">
                   <UserCircle2 size={24} />
                 </div>
                 <div className={cn(
                   "px-2 py-0.5 text-[10px] font-bold uppercase border shadow-sm",
                   a.status === 'scheduled' ? "bg-blue-100 text-blue-800 border-blue-400" :
                     a.status === 'completed' ? "bg-green-100 text-green-800 border-green-400" :
-                      "bg-red-100 text-red-800 border-red-400"
+                      "bg-rose-50 text-red-800 border-red-400"
                 )}>
                   {a.status}
                 </div>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase text-gray-600 mb-1">Consultation With</p>
-                <h3 className="text-lg font-bold text-gray-900 m-0">Dr. {a.doctor_name}</h3>
+                <p className="text-[10px] font-bold uppercase text-slate-500 mb-1">Consultation With</p>
+                <h3 className="text-lg font-bold text-slate-800 m-0">Dr. {a.doctor_name}</h3>
               </div>
-              <div className="bg-gray-100 p-2 border border-gray-300 flex flex-col gap-2">
+              <div className="bg-slate-50 p-2 border border-slate-100 flex flex-col gap-2">
                 <div className="flex items-center gap-2">
-                  <Calendar size={14} className="text-gray-700" />
-                  <span className="text-xs font-bold text-gray-800">{new Date(a.appointment_at).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  <Calendar size={14} className="text-slate-600" />
+                  <span className="text-xs font-bold text-slate-700">{new Date(a.appointment_at).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock size={14} className="text-gray-700" />
-                  <span className="text-xs font-bold text-gray-800">{new Date(a.appointment_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <Clock size={14} className="text-slate-600" />
+                  <span className="text-xs font-bold text-slate-700">{new Date(a.appointment_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
               </div>
-              <p className="text-gray-700 font-bold text-xs italic line-clamp-2">"{a.reason}"</p>
+              <p className="text-slate-600 font-bold text-xs italic line-clamp-2">"{a.reason}"</p>
             </div>
           ))}
         </div>
@@ -2383,17 +2383,17 @@ function PatientApptsTab() {
 
       {isBooking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-none">
-          <div className="bg-white w-full max-w-lg border-2 border-black shadow-lg p-6 flex flex-col">
-            <div className="flex justify-between items-center mb-6 border-b border-gray-400 pb-2">
-              <h3 className="text-xl font-bold text-gray-900 m-0 uppercase">Request Setup</h3>
-              <button onClick={() => setIsBooking(false)} className="text-red-800 font-bold hover:bg-gray-200 px-2 border border-transparent hover:border-gray-400">[X]</button>
+          <div className="bg-white w-full max-w-lg border border-slate-200 shadow-sm rounded-2xl shadow-lg p-6 flex flex-col">
+            <div className="flex justify-between items-center mb-6 border-b border-slate-200 pb-2">
+              <h3 className="text-xl font-bold text-slate-800 m-0 uppercase">Request Setup</h3>
+              <button onClick={() => setIsBooking(false)} className="text-red-800 font-bold hover:bg-slate-50/80 backdrop-blur-sm px-2 border border-transparent hover:border-slate-200">[X]</button>
             </div>
             <form onSubmit={handleBook} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold uppercase text-gray-700 bg-gray-200 border border-gray-400 px-2 py-0.5 w-fit">Available Specialists</label>
+                <label className="text-xs font-bold uppercase text-slate-600 bg-slate-50/80 backdrop-blur-sm border border-slate-200 px-2 py-0.5 w-fit">Available Specialists</label>
                 <select
                   required
-                  className="w-full bg-white border border-gray-400 px-2 py-1 text-sm font-bold text-gray-800 outline-none"
+                  className="w-full bg-white border border-slate-200 px-2 py-1 text-sm font-bold text-slate-700 outline-none"
                   value={newAppt.doctor_id}
                   onChange={e => setNewAppt({ ...newAppt, doctor_id: e.target.value })}
                 >
@@ -2402,28 +2402,28 @@ function PatientApptsTab() {
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold uppercase text-gray-700 bg-gray-200 border border-gray-400 px-2 py-0.5 w-fit">Date & Time</label>
+                <label className="text-xs font-bold uppercase text-slate-600 bg-slate-50/80 backdrop-blur-sm border border-slate-200 px-2 py-0.5 w-fit">Date & Time</label>
                 <input
                   type="datetime-local"
                   required
-                  className="w-full bg-white border border-gray-400 px-2 py-1 text-sm font-bold text-gray-800 outline-none"
+                  className="w-full bg-white border border-slate-200 px-2 py-1 text-sm font-bold text-slate-700 outline-none"
                   value={newAppt.appointment_at}
                   onChange={e => setNewAppt({ ...newAppt, appointment_at: e.target.value })}
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold uppercase text-gray-700 bg-gray-200 border border-gray-400 px-2 py-0.5 w-fit">Reason for Visit</label>
+                <label className="text-xs font-bold uppercase text-slate-600 bg-slate-50/80 backdrop-blur-sm border border-slate-200 px-2 py-0.5 w-fit">Reason for Visit</label>
                 <textarea
                   placeholder="Describe your symptoms or reason..."
                   required
-                  className="w-full bg-white border border-gray-400 px-2 py-1 text-sm font-bold text-gray-800 outline-none h-24 resize-none"
+                  className="w-full bg-white border border-slate-200 px-2 py-1 text-sm font-bold text-slate-700 outline-none h-24 resize-none"
                   value={newAppt.reason}
                   onChange={e => setNewAppt({ ...newAppt, reason: e.target.value })}
                 />
               </div>
               <div className="flex gap-4 mt-4">
-                <button type="button" onClick={() => setIsBooking(false)} className="flex-1 bg-gray-200 border border-gray-400 text-gray-800 font-bold py-2 shadow-sm hover:bg-gray-300">ABORT</button>
-                <button type="submit" className="flex-[2] bg-blue-800 border border-blue-900 text-white font-bold py-2 shadow-sm uppercase hover:bg-blue-900">Confirm Appointment</button>
+                <button type="button" onClick={() => setIsBooking(false)} className="flex-1 bg-slate-50/80 backdrop-blur-sm border border-slate-200 text-slate-700 font-bold py-2 shadow-sm hover:bg-white shadow-sm rounded-xl">ABORT</button>
+                <button type="submit" className="flex-[2] bg-blue-600 rounded-xl shadow-sm border border-blue-900 text-white font-bold py-2 shadow-sm uppercase hover:bg-blue-700">Confirm Appointment</button>
               </div>
             </form>
           </div>
@@ -2465,59 +2465,59 @@ function PatientLabsTab() {
   }, [currentUser?.patientId]);
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4 font-sans text-gray-900 flex flex-col gap-6">
+    <div className="max-w-[1400px] mx-auto p-4 font-sans text-slate-800 flex flex-col gap-6">
 
       { }
-      <div className="bg-white border border-gray-400 p-4 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-white border border-slate-200 p-4 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 m-0 uppercase flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-800 m-0 uppercase flex items-center gap-2">
             <Database className="w-6 h-6 text-blue-900" />
             My Lab Results
           </h1>
-          <p className="text-sm font-bold text-gray-700 mt-1">Pathology reports and diagnostic imaging parameters.</p>
+          <p className="text-sm font-bold text-slate-600 mt-1">Pathology reports and diagnostic imaging parameters.</p>
         </div>
-        <div className="border border-gray-400 bg-gray-100 p-2 text-center shadow-sm">
-          <div className="text-xs font-bold text-gray-600 uppercase">Verified Results</div>
+        <div className="border border-slate-200 bg-slate-50 p-2 text-center shadow-sm">
+          <div className="text-xs font-bold text-slate-500 uppercase">Verified Results</div>
           <div className="text-lg font-bold text-blue-900">{labData.results.length}</div>
         </div>
       </div>
 
       {loading ? (
-        <div className="p-10 border border-gray-400 bg-white text-center font-bold text-gray-600 shadow-sm uppercase">
+        <div className="p-10 border border-slate-200 bg-white text-center font-bold text-slate-500 shadow-sm uppercase">
           Fetching Diagnostics...
         </div>
       ) : labData.results.length === 0 && labData.orders.length === 0 ? (
-        <div className="p-10 border border-gray-400 bg-white text-center font-bold text-gray-600 shadow-sm uppercase">
+        <div className="p-10 border border-slate-200 bg-white text-center font-bold text-slate-500 shadow-sm uppercase">
           No Reports Available
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 flex flex-col gap-4">
-            <h3 className="font-bold text-gray-900 text-lg border-b border-gray-300 pb-1 uppercase">Verified Clinical Parameters</h3>
+            <h3 className="font-bold text-slate-800 text-lg border-b border-slate-100 pb-1 uppercase">Verified Clinical Parameters</h3>
             {labData.results.length === 0 ? (
-              <div className="p-6 border border-gray-300 bg-gray-50 text-center text-gray-500 font-bold uppercase shadow-sm">
+              <div className="p-6 border border-slate-100 bg-gray-50 text-center text-slate-400 font-bold uppercase shadow-sm">
                 Results are pending analysis...
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {labData.results.map(r => (
-                  <div key={r.id} className="bg-white border border-gray-400 p-4 shadow-sm flex flex-col">
-                    <div className="flex justify-between items-start mb-4 border-b border-gray-300 pb-2">
-                      <h4 className="font-bold text-gray-900 text-sm uppercase">{r.parameter_name}</h4>
+                  <div key={r.id} className="bg-white border border-slate-200 p-4 shadow-sm flex flex-col">
+                    <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-2">
+                      <h4 className="font-bold text-slate-800 text-sm uppercase">{r.parameter_name}</h4>
                       {r.is_abnormal && (
-                        <span className="text-[10px] font-bold bg-red-100 text-red-800 border border-red-400 px-2 py-0.5 uppercase shadow-sm">
+                        <span className="text-[10px] font-bold bg-rose-50 text-red-800 border border-red-400 px-2 py-0.5 uppercase shadow-sm">
                           Abnormal
                         </span>
                       )}
                     </div>
                     <div className="flex items-baseline gap-2 mb-4">
-                      <span className={cn("text-3xl font-bold", r.is_abnormal ? "text-red-700" : "text-green-700")}>
+                      <span className={cn("text-3xl font-bold", r.is_abnormal ? "text-rose-600" : "text-green-700")}>
                         {r.result_value}
                       </span>
                     </div>
-                    <div className="bg-gray-100 p-2 border border-gray-300 flex flex-col gap-1 mt-auto">
-                      <span className="text-[10px] font-bold uppercase text-gray-800">{r.test_name}</span>
-                      <span className="text-xs font-bold text-gray-600">By {r.technician_name}</span>
+                    <div className="bg-slate-50 p-2 border border-slate-100 flex flex-col gap-1 mt-auto">
+                      <span className="text-[10px] font-bold uppercase text-slate-700">{r.test_name}</span>
+                      <span className="text-xs font-bold text-slate-500">By {r.technician_name}</span>
                     </div>
                   </div>
                 ))}
@@ -2525,21 +2525,21 @@ function PatientLabsTab() {
             )}
           </div>
           <div className="flex flex-col gap-4">
-            <h3 className="font-bold text-gray-900 text-lg border-b border-gray-300 pb-1 uppercase">Pending Orders</h3>
+            <h3 className="font-bold text-slate-800 text-lg border-b border-slate-100 pb-1 uppercase">Pending Orders</h3>
             <div className="flex flex-col gap-2">
               {labData.orders.filter(o => o.status !== 'completed').map(o => (
-                <div key={o.id} className="bg-white border border-gray-400 p-3 shadow-sm flex flex-col gap-2">
-                  <p className="text-sm font-bold text-gray-900 uppercase">{o.test_name}</p>
-                  <div className="flex items-center justify-between border-t border-gray-300 pt-2">
-                    <span className="text-xs font-bold text-gray-600">{new Date(o.ordered_at).toLocaleDateString()}</span>
-                    <span className="text-[10px] font-bold bg-gray-200 text-gray-800 border border-gray-400 px-2 py-0.5 uppercase shadow-sm">
+                <div key={o.id} className="bg-white border border-slate-200 p-3 shadow-sm flex flex-col gap-2">
+                  <p className="text-sm font-bold text-slate-800 uppercase">{o.test_name}</p>
+                  <div className="flex items-center justify-between border-t border-slate-100 pt-2">
+                    <span className="text-xs font-bold text-slate-500">{new Date(o.ordered_at).toLocaleDateString()}</span>
+                    <span className="text-[10px] font-bold bg-slate-50/80 backdrop-blur-sm text-slate-700 border border-slate-200 px-2 py-0.5 uppercase shadow-sm">
                       {o.status}
                     </span>
                   </div>
                 </div>
               ))}
               {labData.orders.filter(o => o.status !== 'completed').length === 0 && (
-                <div className="p-4 border border-gray-300 bg-gray-50 text-center font-bold text-gray-500 text-xs uppercase shadow-sm">
+                <div className="p-4 border border-slate-100 bg-gray-50 text-center font-bold text-slate-400 text-xs uppercase shadow-sm">
                   No Pending Orders
                 </div>
               )}
@@ -2570,27 +2570,27 @@ function PatientBillingTab({ admissionId }: { admissionId: number | null }) {
   }, [admissionId]);
 
   if (loading) return (
-    <div className="p-10 border border-gray-400 bg-white text-center font-bold text-gray-600 shadow-sm uppercase">
+    <div className="p-10 border border-slate-200 bg-white text-center font-bold text-slate-500 shadow-sm uppercase">
       Locating Invoice...
     </div>
   );
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4 font-sans text-gray-900 flex flex-col gap-6">
+    <div className="max-w-[1400px] mx-auto p-4 font-sans text-slate-800 flex flex-col gap-6">
 
       { }
-      <div className="bg-white border border-gray-400 p-4 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-white border border-slate-200 p-4 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 m-0 uppercase flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-gray-700" />
+          <h1 className="text-2xl font-bold text-slate-800 m-0 uppercase flex items-center gap-2">
+            <BookOpen className="w-6 h-6 text-slate-600" />
             My Billing
           </h1>
-          <p className="text-sm font-bold text-gray-700 mt-1">Review and settle clinical care charges.</p>
+          <p className="text-sm font-bold text-slate-600 mt-1">Review and settle clinical care charges.</p>
         </div>
         {invoice && (
           <div className={cn(
             "border p-2 text-center shadow-sm text-sm font-bold uppercase",
-            invoice.status === 'paid' ? "bg-green-100 text-green-900 border-green-700" : "bg-red-100 text-red-900 border-red-700"
+            invoice.status === 'paid' ? "bg-green-100 text-green-900 border-green-700" : "bg-rose-50 text-rose-700 border-red-700"
           )}>
             <div className="flex items-center gap-2">
               <ShieldAlert size={16} /> {invoice.status === 'paid' ? 'Settled' : 'Payment Required'}
@@ -2600,38 +2600,38 @@ function PatientBillingTab({ admissionId }: { admissionId: number | null }) {
       </div>
 
       {!invoice ? (
-        <div className="p-10 border border-gray-400 bg-white text-center font-bold text-gray-600 shadow-sm uppercase">
+        <div className="p-10 border border-slate-200 bg-white text-center font-bold text-slate-500 shadow-sm uppercase">
           No Active Invoices
         </div>
       ) : (
         <div className="flex flex-col lg:flex-row gap-6">
-          <div className="flex-[2] bg-white border border-gray-400 p-4 shadow-sm">
-            <h3 className="font-bold text-gray-900 text-lg border-b border-gray-300 pb-2 mb-4 uppercase">Itemized Charges</h3>
+          <div className="flex-[2] bg-white border border-slate-200 p-4 shadow-sm">
+            <h3 className="font-bold text-slate-800 text-lg border-b border-slate-100 pb-2 mb-4 uppercase">Itemized Charges</h3>
             {invoice.items?.length === 0 ? (
-              <p className="text-center text-gray-500 py-10 font-bold uppercase text-sm">No services recorded in this invoice.</p>
+              <p className="text-center text-slate-400 py-10 font-bold uppercase text-sm">No services recorded in this invoice.</p>
             ) : (
               <table className="w-full text-left text-sm border-collapse">
-                <thead className="bg-gray-200 border-b border-gray-400 font-bold text-gray-800">
+                <thead className="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200 font-bold text-slate-700">
                   <tr>
-                    <th className="p-2 border-r border-gray-300">Type</th>
-                    <th className="p-2 border-r border-gray-300">Description</th>
-                    <th className="p-2 border-r border-gray-300 text-right">Qty &times; Unit</th>
+                    <th className="p-2 border-r border-slate-100">Type</th>
+                    <th className="p-2 border-r border-slate-100">Description</th>
+                    <th className="p-2 border-r border-slate-100 text-right">Qty &times; Unit</th>
                     <th className="p-2 text-right">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {invoice.items.map((item: any) => (
-                    <tr key={item.id} className="border-b border-gray-200 bg-white hover:bg-gray-50">
-                      <td className="p-2 border-r border-gray-200 font-bold uppercase text-xs text-gray-600">
+                    <tr key={item.id} className="border-b border-slate-100 bg-white hover:bg-gray-50">
+                      <td className="p-2 border-r border-slate-100 font-bold uppercase text-xs text-slate-500">
                         {item.item_type}
                       </td>
-                      <td className="p-2 border-r border-gray-200 font-bold text-gray-900">
+                      <td className="p-2 border-r border-slate-100 font-bold text-slate-800">
                         {item.item_name}
                       </td>
-                      <td className="p-2 border-r border-gray-200 text-right text-gray-700 font-mono">
+                      <td className="p-2 border-r border-slate-100 text-right text-slate-600 font-sans">
                         {item.quantity} &times; ${item.unit_price}
                       </td>
-                      <td className="p-2 text-right font-bold text-gray-900 font-mono">
+                      <td className="p-2 text-right font-bold text-slate-800 font-sans">
                         ${item.total_price}
                       </td>
                     </tr>
@@ -2641,22 +2641,22 @@ function PatientBillingTab({ admissionId }: { admissionId: number | null }) {
             )}
           </div>
 
-          <div className="flex-1 bg-white border border-gray-400 shadow-sm p-4 h-fit sticky top-4">
-            <h4 className="font-bold text-gray-900 text-lg border-b border-gray-300 pb-2 mb-4 uppercase">Amount Due</h4>
+          <div className="flex-1 bg-white border border-slate-200 shadow-sm p-4 h-fit sticky top-4">
+            <h4 className="font-bold text-slate-800 text-lg border-b border-slate-100 pb-2 mb-4 uppercase">Amount Due</h4>
 
-            <div className="flex flex-col gap-2 mb-6 text-sm font-bold text-gray-800">
+            <div className="flex flex-col gap-2 mb-6 text-sm font-bold text-slate-700">
               <div className="flex justify-between">
                 <span>Services Total</span>
-                <span className="font-mono">${invoice.total_amount}</span>
+                <span className="font-sans">${invoice.total_amount}</span>
               </div>
               <div className="flex justify-between">
                 <span>Discount applied</span>
-                <span className="text-green-700 font-mono">-$0.00</span>
+                <span className="text-green-700 font-sans">-$0.00</span>
               </div>
               <div className="h-px w-full bg-gray-400 my-2" />
               <div className="flex justify-between items-end border-b-2 border-gray-900 pb-2">
-                <span className="text-lg font-bold uppercase text-gray-900">Total</span>
-                <span className="text-2xl font-black font-mono">${invoice.total_amount}</span>
+                <span className="text-lg font-bold uppercase text-slate-800">Total</span>
+                <span className="text-2xl font-bold font-sans">${invoice.total_amount}</span>
               </div>
             </div>
 
@@ -2665,7 +2665,7 @@ function PatientBillingTab({ admissionId }: { admissionId: number | null }) {
                 Paid in Full
               </div>
             ) : (
-              <button className="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 shadow-sm uppercase shadow-sm">
+              <button className="w-full bg-blue-600 rounded-xl shadow-sm hover:bg-blue-700 text-white font-bold py-3 shadow-sm uppercase shadow-sm">
                 Process Payment
               </button>
             )}
@@ -2707,35 +2707,35 @@ function AmbulanceMonitorTab() {
   const center = useMemo(() => ({ lat: 12.9716, lng: 77.5946 }), []);
 
   if (loading && ambulances.length === 0) return (
-    <div className="p-4 font-sans text-gray-900 border border-gray-400 text-center font-bold bg-white m-4 flex flex-col items-center justify-center min-h-[400px]">
-      <div className="animate-spin mb-4 text-black"><RefreshCw size={32} /></div>
+    <div className="p-4 font-sans text-slate-800 border border-slate-200 text-center font-bold bg-white m-4 flex flex-col items-center justify-center min-h-[400px]">
+      <div className="animate-spin mb-4 text-slate-800"><RefreshCw size={32} /></div>
       LOADING FLEET TELEMETRY SYSTEM...
     </div>
   );
 
   return (
-    <div className="max-w-[1200px] mx-auto p-4 font-sans text-gray-900 font-mono">
+    <div className="max-w-[1200px] mx-auto p-4 font-sans text-slate-800 font-sans">
       <div className="border-b-2 border-red-800 pb-2 mb-4 flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold text-red-900 m-0 uppercase flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-rose-700 m-0 uppercase flex items-center gap-2">
             <Ambulance className="w-8 h-8" />
             Fleet Command Operations
           </h1>
         </div>
-        <div className="bg-red-800 text-white font-bold px-3 py-1 flex items-center gap-2 shadow-sm border border-red-900 text-[10px]">
+        <div className="bg-rose-700 text-white font-bold px-3 py-1 flex items-center gap-2 shadow-sm border border-red-900 text-[10px]">
           <Radio className="w-3 h-3 animate-pulse" /> GPS ACTIVE
         </div>
       </div>
 
-      <p className="mb-4 text-[10px] font-bold text-gray-600 uppercase tracking-widest">Live asset telemetry, hospital ETAs, and emergency routing protocols.</p>
+      <p className="mb-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Live asset telemetry, hospital ETAs, and emergency routing protocols.</p>
 
       <div className="flex flex-col lg:flex-row gap-6 mb-6">
-        <div className="lg:w-2/3 bg-white border border-gray-400 shadow-sm flex flex-col overflow-hidden relative">
-          <div className="bg-gradient-to-b from-gray-100 to-gray-200 border-b border-gray-400 p-2 font-bold text-gray-800 text-[10px] uppercase flex justify-between items-center">
+        <div className="lg:w-2/3 bg-white border border-slate-200 shadow-sm flex flex-col overflow-hidden relative">
+          <div className="bg-gradient-to-b from-gray-100 to-gray-200 border-b border-slate-200 p-2 font-bold text-slate-700 text-[10px] uppercase flex justify-between items-center">
             <span>Live GPS Monitoring Interface</span>
-            <span className="text-red-700 flex items-center gap-1"><MapPin size={10} /> SAT-LINK: ACTIVE</span>
+            <span className="text-rose-600 flex items-center gap-1"><MapPin size={10} /> SAT-LINK: ACTIVE</span>
           </div>
-          <div className="relative w-full h-[500px] bg-gray-200 overflow-hidden border-t-0">
+          <div className="relative w-full h-[500px] bg-slate-50/80 backdrop-blur-sm overflow-hidden border-t-0">
             {isLoaded ? (
               <GoogleMap
                 mapContainerStyle={containerStyle}
@@ -2775,16 +2775,16 @@ function AmbulanceMonitorTab() {
                     position={{ lat: Number(selected.lat), lng: Number(selected.lng) }}
                     onCloseClick={() => setSelected(null)}
                   >
-                    <div className="p-2 min-w-[150px] font-mono text-[10px]">
-                      <div className="font-bold border-b border-gray-300 pb-1 mb-1 text-red-800 flex justify-between">
+                    <div className="p-2 min-w-[150px] font-sans text-[10px]">
+                      <div className="font-bold border-b border-slate-100 pb-1 mb-1 text-red-800 flex justify-between">
                         <span>{selected.id}</span>
                         <span>{selected.status}</span>
                       </div>
-                      <div className="flex flex-col gap-0.5 text-gray-800">
+                      <div className="flex flex-col gap-0.5 text-slate-700">
                         <div>ETA: {selected.eta}</div>
                         <div>DIST: {selected.dist}</div>
                         <div>PATIENT: {selected.patient}</div>
-                        <div className="mt-1 bg-gray-100 p-1 border border-gray-300 text-center font-bold">
+                        <div className="mt-1 bg-slate-50 p-1 border border-slate-100 text-center font-bold">
                           SPEED: {selected.speed}
                         </div>
                       </div>
@@ -2793,14 +2793,14 @@ function AmbulanceMonitorTab() {
                 )}
               </GoogleMap>
             ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 font-bold text-gray-500 gap-2 border-2 border-dashed border-gray-300 m-4">
-                <div className="animate-pulse font-mono text-sm tracking-tighter">SYNCHRONIZING WITH GLOBAL POSITIONING CONSTELLATION...</div>
-                <div className="text-[10px] text-gray-400 font-mono">RECVING: NMEA-0183 DATAGRAMS</div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 font-bold text-slate-400 gap-2 border-2 border-dashed border-slate-100 m-4">
+                <div className="animate-pulse font-sans text-sm tracking-tighter">SYNCHRONIZING WITH GLOBAL POSITIONING CONSTELLATION...</div>
+                <div className="text-[10px] text-gray-400 font-sans">RECVING: NMEA-0183 DATAGRAMS</div>
               </div>
             )}
 
             <div className="absolute bottom-4 left-4 pointer-events-none z-10">
-              <div className="bg-black/80 text-white p-2 border border-white/20 font-mono text-[10px] space-y-1 backdrop-blur-sm">
+              <div className="bg-slate-800/80 text-white p-2 border border-white/20 font-sans text-[10px] space-y-1 backdrop-blur-sm">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                   <span>CRITICAL ASSET TRACKING</span>
@@ -2810,23 +2810,23 @@ function AmbulanceMonitorTab() {
               </div>
             </div>
 
-            <div className="absolute bottom-4 right-4 bg-white/90 border border-black p-1 font-mono text-[9px] text-black shadow-lg z-10">
+            <div className="absolute bottom-4 right-4 bg-white/90 border border-slate-200 shadow-sm rounded-xl p-1 font-sans text-[9px] text-slate-800 shadow-lg z-10">
               SCALE: 1:25000 | GRID: WGS-84
             </div>
           </div>
         </div>
 
         <div className="lg:w-1/3 flex flex-col gap-4">
-          <div className="bg-white border border-gray-400 shadow-sm overflow-hidden flex-1 flex flex-col">
-            <div className="bg-gradient-to-b from-gray-100 to-gray-200 border-b border-gray-400 p-2 font-bold text-gray-800 text-[10px] uppercase flex items-center gap-2">
+          <div className="bg-white border border-slate-200 shadow-sm overflow-hidden flex-1 flex flex-col">
+            <div className="bg-gradient-to-b from-gray-100 to-gray-200 border-b border-slate-200 p-2 font-bold text-slate-700 text-[10px] uppercase flex items-center gap-2">
               <Navigation size={12} /> Fleet Status Matrix
             </div>
             <div className="flex-1 overflow-y-auto">
               <table className="w-full text-left border-collapse text-[11px]">
                 <thead>
-                  <tr className="bg-gray-200 border-b border-gray-400 font-bold uppercase text-gray-600">
-                    <th className="p-2 border-r border-gray-300">Unit</th>
-                    <th className="p-2 border-r border-gray-300 text-center">Status</th>
+                  <tr className="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200 font-bold uppercase text-slate-500">
+                    <th className="p-2 border-r border-slate-100">Unit</th>
+                    <th className="p-2 border-r border-slate-100 text-center">Status</th>
                     <th className="p-2">Data</th>
                   </tr>
                 </thead>
@@ -2835,21 +2835,21 @@ function AmbulanceMonitorTab() {
                     <tr key={a.id}
                       onClick={() => setSelected(a)}
                       className={cn(
-                        "border-b border-gray-200 hover:bg-black hover:text-white cursor-pointer transition-all",
-                        selected?.id === a.id ? "bg-black text-white" : ""
+                        "border-b border-slate-100 hover:bg-slate-800 hover:text-white cursor-pointer transition-all",
+                        selected?.id === a.id ? "bg-slate-800 text-white" : ""
                       )}>
-                      <td className="p-2 border-r border-gray-200 font-mono font-bold">{a.id}</td>
-                      <td className="p-2 border-r border-gray-200 text-center">
+                      <td className="p-2 border-r border-slate-100 font-sans font-bold">{a.id}</td>
+                      <td className="p-2 border-r border-slate-100 text-center">
                         <span className={cn(
                           "px-1 py-0.5 border text-[9px] uppercase font-bold",
-                          a.status === 'Inbound' ? 'bg-red-100 text-red-700 border-red-300 blink_me' :
+                          a.status === 'Inbound' ? 'bg-rose-50 text-rose-600 border-red-300 blink_me' :
                             a.status === 'Available' ? 'bg-green-100 text-green-700 border-green-300' :
                               'bg-blue-100 text-blue-700 border-blue-300'
                         )}>
                           {a.status}
                         </span>
                       </td>
-                      <td className="p-2 font-mono text-[9px] opacity-70">
+                      <td className="p-2 font-sans text-[9px] opacity-70">
                         {a.eta !== '--' ? `ETA ${a.eta}` : 'STATIC'}
                       </td>
                     </tr>
@@ -2859,7 +2859,7 @@ function AmbulanceMonitorTab() {
             </div>
           </div>
 
-          <div className="bg-black border border-gray-400 p-4 font-mono text-[10px] text-green-500 shadow-inner flex-1 flex flex-col relative overflow-hidden min-h-[150px]">
+          <div className="bg-slate-800 border border-slate-200 p-4 font-sans text-[10px] text-green-500 shadow-inner flex-1 flex flex-col relative overflow-hidden min-h-[150px]">
             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle,rgba(0,255,0,0.05)_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none"></div>
             <div className="text-green-800 border-b border-green-900 mb-2 pb-1 font-bold">COMM-LINK ESTABLISHED</div>
             <div className="space-y-0.5">

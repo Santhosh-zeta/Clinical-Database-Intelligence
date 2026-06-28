@@ -8,7 +8,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
-const API = 'http://localhost:3001/api';
+const API = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api`;
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
 const ah = () => ({ Authorization: `Bearer ${getToken()}` });
 
@@ -119,17 +119,17 @@ export default function VitalsMonitor({ admissionId }: { admissionId?: number | 
   const latestVitals = selectedPatient ? vitalsHistory[selectedPatient.id]?.slice(-1)[0] : null;
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4 font-sans text-gray-900 h-[calc(100vh-64px)] flex flex-col">
-      <div className="border-b-2 border-blue-800 pb-2 mb-4 flex justify-between items-end shrink-0">
+    <div className="max-w-[1400px] mx-auto p-4 font-sans text-slate-800 h-[calc(100vh-64px)] flex flex-col">
+      <div className="border-b-2 border-blue-200 pb-2 mb-4 flex justify-between items-end shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-blue-900 m-0">Patient Monitor List</h1>
         </div>
         <div className="flex gap-4 items-center">
-          <div className="flex items-center gap-2 bg-gray-100 border border-gray-400 px-2 py-1">
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-2 py-1">
             <span className="font-bold text-sm">Search:</span>
             <input
               type="text"
-              className="border border-gray-400 px-2 py-1 text-sm w-48 bg-white outline-none"
+              className="border border-slate-200 px-2 py-1 text-sm w-48 bg-white outline-none"
               placeholder="Search patients..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
@@ -140,8 +140,8 @@ export default function VitalsMonitor({ admissionId }: { admissionId?: number | 
 
       <div className="flex flex-1 gap-4 overflow-hidden">
 
-        <aside className="w-80 border border-gray-400 bg-white shadow-sm flex flex-col shrink-0 overflow-hidden">
-          <div className="bg-gray-200 border-b border-gray-400 p-2 font-bold text-sm">
+        <aside className="w-80 border border-slate-200 bg-white shadow-sm flex flex-col shrink-0 overflow-hidden">
+          <div className="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200 p-2 font-bold text-sm">
             Active Monitored Patients
           </div>
           <div className="flex-1 overflow-y-auto p-2 bg-white">
@@ -155,25 +155,25 @@ export default function VitalsMonitor({ admissionId }: { admissionId?: number | 
               />
             ))}
             {loading && (
-              <div className="p-4 text-center text-gray-600 italic text-sm">Loading remote feed...</div>
+              <div className="p-4 text-center text-slate-500 italic text-sm">Loading remote feed...</div>
             )}
           </div>
         </aside>
 
-        <main className="flex-1 border border-gray-400 bg-white shadow-sm overflow-y-auto p-4 flex flex-col relative">
+        <main className="flex-1 border border-slate-200 bg-white shadow-sm overflow-y-auto p-4 flex flex-col relative">
           {selectedPatient ? (
             <div className="flex flex-col gap-4 h-full">
 
-              <div className="bg-gray-100 border border-gray-400 p-4 flex justify-between items-start shrink-0">
+              <div className="bg-slate-50 border border-slate-200 p-4 flex justify-between items-start shrink-0">
                 <div className="flex gap-4 items-center">
                   <img
                     src={selectedPatient.avatarUrl}
-                    className="w-20 h-20 border border-gray-400 bg-white"
+                    className="w-20 h-20 border border-slate-200 bg-white"
                     alt="Patient Avatar"
                   />
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">{selectedPatient.name}</h2>
-                    <div className="mt-1 text-sm text-gray-700">
+                    <h2 className="text-xl font-bold text-slate-800">{selectedPatient.name}</h2>
+                    <div className="mt-1 text-sm text-slate-600">
                       <strong>Location:</strong> {selectedPatient.ward} | {selectedPatient.bed} <br />
                       <strong>Age:</strong> {selectedPatient.age} Yrs
                     </div>
@@ -183,12 +183,12 @@ export default function VitalsMonitor({ admissionId }: { admissionId?: number | 
                   </div>
                 </div>
 
-                <div className="text-right border-l border-gray-400 pl-4 h-full flex flex-col justify-end">
-                  <p className="text-sm font-bold text-gray-600 mb-1">Live Feed Synchronized:</p>
-                  <p className="text-lg font-bold mb-3 text-gray-800">{lastUpdate.toLocaleTimeString()}</p>
+                <div className="text-right border-l border-slate-200 pl-4 h-full flex flex-col justify-end">
+                  <p className="text-sm font-bold text-slate-500 mb-1">Live Feed Synchronized:</p>
+                  <p className="text-lg font-bold mb-3 text-slate-700">{lastUpdate.toLocaleTimeString()}</p>
                   <div className={cn(
                     "px-4 py-1 text-sm font-bold border",
-                    selectedPatient.riskScore === 'critical' || selectedPatient.riskScore === 'high' ? 'bg-red-100 text-red-800 border-red-300' : 'bg-green-100 text-green-800 border-green-300'
+                    selectedPatient.riskScore === 'critical' || selectedPatient.riskScore === 'high' ? 'bg-rose-50 text-red-800 border-red-300' : 'bg-green-100 text-green-800 border-green-300'
                   )}>
                     Risk Status: {selectedPatient.riskScore}
                   </div>
@@ -218,14 +218,14 @@ export default function VitalsMonitor({ admissionId }: { admissionId?: number | 
                 />
               </div>
 
-              <div className="flex-1 bg-white border border-gray-400 p-4 flex flex-col relative min-h-[300px]">
-                <div className="border-b border-gray-300 pb-2 mb-4 flex justify-between items-end">
+              <div className="flex-1 bg-white border border-slate-200 p-4 flex flex-col relative min-h-[300px]">
+                <div className="border-b border-slate-100 pb-2 mb-4 flex justify-between items-end">
                   <div>
-                    <h3 className="text-md font-bold text-gray-800">Clinical Telemetry History</h3>
+                    <h3 className="text-md font-bold text-slate-700">Clinical Telemetry History</h3>
                   </div>
                   <div className="flex gap-4">
-                    <div className="text-sm font-bold text-gray-700"><span className="text-red-600">■</span> Heart Rate</div>
-                    <div className="text-sm font-bold text-gray-700"><span className="text-blue-600">■</span> SpO2%</div>
+                    <div className="text-sm font-bold text-slate-600"><span className="text-red-600">■</span> Heart Rate</div>
+                    <div className="text-sm font-bold text-slate-600"><span className="text-blue-600">■</span> SpO2%</div>
                   </div>
                 </div>
 
@@ -246,7 +246,7 @@ export default function VitalsMonitor({ admissionId }: { admissionId?: number | 
             </div>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center p-4">
-              <div className="text-center text-gray-500 italic">Please select a patient from the list to view telemetry.</div>
+              <div className="text-center text-slate-400 italic">Please select a patient from the list to view telemetry.</div>
             </div>
           )}
         </main>
@@ -263,18 +263,18 @@ function PatientSidebarCard({ patient, isSelected, onClick, vitals }: any) {
         "w-full p-2 border flex items-start gap-3 transition-colors mb-2 text-left",
         isSelected
           ? "bg-blue-50 border-blue-400"
-          : "bg-white border-gray-300 hover:bg-gray-100 text-gray-800"
+          : "bg-white border-slate-100 hover:bg-slate-50 text-slate-700"
       )}
     >
-      <img src={patient.avatarUrl} className="w-10 h-10 border border-gray-400 bg-white" alt="" />
+      <img src={patient.avatarUrl} className="w-10 h-10 border border-slate-200 bg-white" alt="" />
       <div className="flex-1 min-w-0 py-0.5">
-        <p className="text-sm font-bold text-gray-900 overflow-hidden whitespace-nowrap overflow-ellipsis">{patient.name}</p>
-        <p className={cn("text-xs text-gray-600 mt-1")}>
+        <p className="text-sm font-bold text-slate-800 overflow-hidden whitespace-nowrap overflow-ellipsis">{patient.name}</p>
+        <p className={cn("text-xs text-slate-500 mt-1")}>
           Location: {patient.ward}
         </p>
       </div>
       {(vitals?.heartRate && vitals.heartRate > 120 || vitals?.heartRate < 50 || patient.riskScore === 'critical') && (
-        <div className="mt-1 bg-red-100 text-red-800 px-1.5 py-0.5 text-[10px] font-bold border border-red-300 rounded-sm">
+        <div className="mt-1 bg-rose-50 text-red-800 px-1.5 py-0.5 text-[10px] font-bold border border-red-300 rounded-sm">
           ALERT
         </div>
       )}
@@ -284,11 +284,11 @@ function PatientSidebarCard({ patient, isSelected, onClick, vitals }: any) {
 
 function VitalCard({ label, value, unit }: any) {
   return (
-    <div className="bg-gray-50 border border-gray-400 p-3 shadow-sm flex flex-col justify-between">
-      <div className="text-sm font-bold text-gray-700 border-b border-gray-300 pb-1 mb-2">{label}</div>
+    <div className="bg-gray-50 border border-slate-200 p-3 shadow-sm flex flex-col justify-between">
+      <div className="text-sm font-bold text-slate-600 border-b border-slate-100 pb-1 mb-2">{label}</div>
       <div className="flex items-baseline gap-2">
-        <span className="text-3xl font-bold text-gray-900">{value}</span>
-        <span className="text-sm font-bold text-gray-500">{unit}</span>
+        <span className="text-3xl font-bold text-slate-800">{value}</span>
+        <span className="text-sm font-bold text-slate-400">{unit}</span>
       </div>
     </div>
   );
@@ -297,12 +297,12 @@ function VitalCard({ label, value, unit }: any) {
 function CustomTooltip({ active, payload }: any) {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white border border-gray-400 p-2 text-sm shadow-sm">
-        <div className="font-bold border-b border-gray-300 mb-2 pb-1 text-gray-800">Data Snapshot</div>
+      <div className="bg-white border border-slate-200 p-2 text-sm shadow-sm">
+        <div className="font-bold border-b border-slate-100 mb-2 pb-1 text-slate-700">Data Snapshot</div>
         {payload.map((p: any, i: number) => (
           <div key={i} className="flex justify-between gap-6 py-0.5">
-            <span className="text-gray-600">{p.name}:</span>
-            <span className="font-bold text-gray-900">{p.value}</span>
+            <span className="text-slate-500">{p.name}:</span>
+            <span className="font-bold text-slate-800">{p.value}</span>
           </div>
         ))}
       </div>

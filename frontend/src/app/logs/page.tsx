@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { cn } from '../../lib/utils';
 
-const API = 'http://localhost:3001/api';
+const API = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api`;
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
 const ah = () => ({ Authorization: `Bearer ${getToken()}` });
 
@@ -93,49 +93,49 @@ export default function AuditLogsPage() {
   };
 
   return (
-    <div className="max-w-[1200px] mx-auto p-4 font-sans text-gray-900">
-      <div className="border-b-2 border-black pb-2 mb-4 flex justify-between items-end">
+    <div className="max-w-[1200px] mx-auto p-4 font-sans text-slate-800">
+      <div className="border-b border-slate-200 pb-2 mb-4 flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold text-black m-0 tracking-widest uppercase">System Audit Logs</h1>
+          <h1 className="text-2xl font-bold text-slate-800 m-0 tracking-widest uppercase">System Audit Logs</h1>
         </div>
         <div className="flex gap-2 items-center">
-          <button onClick={() => fetchLogs(currentPage)} disabled={loading} className="bg-gray-200 border border-black px-3 py-1 font-bold text-sm shadow-sm hover:bg-gray-300">
+          <button onClick={() => fetchLogs(currentPage)} disabled={loading} className="bg-slate-50/80 backdrop-blur-sm border border-slate-200 shadow-sm rounded-xl px-3 py-1 font-bold text-sm shadow-sm hover:bg-white shadow-sm rounded-xl">
             [ REFRESH ]
           </button>
-          <button onClick={exportCSV} className="bg-gray-200 border border-black px-3 py-1 font-bold text-sm shadow-sm hover:bg-gray-300">
+          <button onClick={exportCSV} className="bg-slate-50/80 backdrop-blur-sm border border-slate-200 shadow-sm rounded-xl px-3 py-1 font-bold text-sm shadow-sm hover:bg-white shadow-sm rounded-xl">
             [ EXPORT CSV ]
           </button>
         </div>
       </div>
 
-      <p className="mb-4 text-xs font-bold text-gray-700 uppercase">Immutable cryptographic record of all system changes. {lastRefreshed && `LAST SYNC: ${lastRefreshed.toLocaleTimeString()}`}</p>
+      <p className="mb-4 text-xs font-bold text-slate-600 uppercase">Immutable cryptographic record of all system changes. {lastRefreshed && `LAST SYNC: ${lastRefreshed.toLocaleTimeString()}`}</p>
 
       { }
-      <div className="flex bg-white border border-black mb-4 text-sm divide-x divide-black">
-        <div className="flex-1 p-2 bg-gray-200 flex flex-col justify-center items-center font-mono">
-          <span className="font-bold text-black text-lg">{loading ? '...' : totalCount}</span>
+      <div className="flex bg-white border border-slate-200 shadow-sm rounded-xl mb-4 text-sm divide-x divide-black">
+        <div className="flex-1 p-2 bg-slate-50/80 backdrop-blur-sm flex flex-col justify-center items-center font-sans">
+          <span className="font-bold text-slate-800 text-lg">{loading ? '...' : totalCount}</span>
           <span className="text-xs uppercase font-bold">Total Audit Events</span>
         </div>
-        <div className="flex-1 p-2 bg-gray-200 flex flex-col justify-center items-center font-mono">
-          <span className="font-bold text-red-700 text-lg">{filtered.filter(l => l.action === 'DELETE').length}</span>
-          <span className="text-xs uppercase font-bold text-red-900">Delete Records (Page)</span>
+        <div className="flex-1 p-2 bg-slate-50/80 backdrop-blur-sm flex flex-col justify-center items-center font-sans">
+          <span className="font-bold text-rose-600 text-lg">{filtered.filter(l => l.action === 'DELETE').length}</span>
+          <span className="text-xs uppercase font-bold text-rose-700">Delete Records (Page)</span>
         </div>
-        <div className="flex-1 p-2 bg-gray-200 flex flex-col justify-center items-center font-mono">
-          <span className="font-bold text-black text-lg">{currentPage} / {totalPages || 1}</span>
+        <div className="flex-1 p-2 bg-slate-50/80 backdrop-blur-sm flex flex-col justify-center items-center font-sans">
+          <span className="font-bold text-slate-800 text-lg">{currentPage} / {totalPages || 1}</span>
           <span className="text-xs uppercase font-bold">Current Page</span>
         </div>
       </div>
 
-      <div className="bg-white border border-black flex flex-col mb-6">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-xl flex flex-col mb-6">
         { }
-        <div className="bg-gray-300 border-b border-black p-2 text-sm flex flex-wrap gap-4 items-center">
+        <div className="bg-white shadow-sm rounded-xl border-b border-slate-200 rounded-xl p-2 text-sm flex flex-wrap gap-4 items-center">
           <div className="flex items-center gap-2">
             <span className="font-bold uppercase text-xs">Search:</span>
-            <input type="text" className="border border-black px-2 py-0.5" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+            <input type="text" className="border border-slate-200 shadow-sm rounded-xl px-2 py-0.5" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
           </div>
           <div className="flex items-center gap-2">
             <span className="font-bold uppercase text-xs">Table:</span>
-            <select className="border border-black px-2 py-0.5 bg-white font-bold text-xs uppercase" value={filterTable} onChange={e => setFilterTable(e.target.value)}>
+            <select className="border border-slate-200 shadow-sm rounded-xl px-2 py-0.5 bg-white font-bold text-xs uppercase" value={filterTable} onChange={e => setFilterTable(e.target.value)}>
               <option value="">ALL TABLES</option>
               <option value="patients">PATIENTS</option>
               <option value="admissions">ADMISSIONS</option>
@@ -147,7 +147,7 @@ export default function AuditLogsPage() {
           </div>
           <div className="flex items-center gap-2">
             <span className="font-bold uppercase text-xs">Action:</span>
-            <select className="border border-black px-2 py-0.5 bg-white font-bold text-xs uppercase" value={filterAction} onChange={e => setFilterAction(e.target.value)}>
+            <select className="border border-slate-200 shadow-sm rounded-xl px-2 py-0.5 bg-white font-bold text-xs uppercase" value={filterAction} onChange={e => setFilterAction(e.target.value)}>
               <option value="">ALL ACTIONS</option>
               <option value="INSERT">INSERT</option>
               <option value="UPDATE">UPDATE</option>
@@ -160,47 +160,47 @@ export default function AuditLogsPage() {
         <div className="overflow-x-auto min-h-[400px]">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-gray-200 border-b border-black">
-                <th className="p-2 border-r border-black font-bold whitespace-nowrap">TIMESTAMP</th>
-                <th className="p-2 border-r border-black font-bold">TABLE</th>
-                <th className="p-2 border-r border-black font-bold text-center">OP</th>
-                <th className="p-2 border-r border-black font-bold text-center">REC ID</th>
-                <th className="p-2 border-r border-black font-bold w-1/2">DATA PAYLOAD</th>
+              <tr className="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200 rounded-xl">
+                <th className="p-2 border-r border-slate-200 rounded-xl font-bold whitespace-nowrap">TIMESTAMP</th>
+                <th className="p-2 border-r border-slate-200 rounded-xl font-bold">TABLE</th>
+                <th className="p-2 border-r border-slate-200 rounded-xl font-bold text-center">OP</th>
+                <th className="p-2 border-r border-slate-200 rounded-xl font-bold text-center">REC ID</th>
+                <th className="p-2 border-r border-slate-200 rounded-xl font-bold w-1/2">DATA PAYLOAD</th>
                 <th className="p-2 font-bold">AUTH USER</th>
               </tr>
             </thead>
             <tbody>
               {loading && filtered.length === 0 ? (
-                <tr><td colSpan={6} className="p-8 text-center bg-white text-gray-700 italic font-bold">READING CLUSTER LOG FILE...</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center bg-white text-slate-600 italic font-bold">READING CLUSTER LOG FILE...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={6} className="p-8 text-center bg-white text-red-700 italic font-bold">NO LOG ENTRY FOUND.</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center bg-white text-rose-600 italic font-bold">NO LOG ENTRY FOUND.</td></tr>
               ) : (
                 filtered.map((log) => {
-                  let actionClass = 'bg-gray-200 text-black border-black';
+                  let actionClass = 'bg-slate-50/80 backdrop-blur-sm text-slate-800 border-slate-200 rounded-xl';
                   if (log.action === 'INSERT') actionClass = 'bg-green-700 text-white border-green-900';
                   if (log.action === 'UPDATE') actionClass = 'bg-blue-700 text-white border-blue-900';
-                  if (log.action === 'DELETE') actionClass = 'bg-red-700 text-white border-red-900 blink_me_action';
+                  if (log.action === 'DELETE') actionClass = 'bg-rose-600 rounded-xl shadow-sm text-white border-red-900 blink_me_action';
 
                   return (
-                    <tr key={log.id} className="border-b border-gray-300 hover:bg-yellow-50 bg-white">
-                      <td className="p-2 border-r border-gray-300 font-mono whitespace-nowrap text-gray-700">
+                    <tr key={log.id} className="border-b border-slate-100 hover:bg-yellow-50 bg-white">
+                      <td className="p-2 border-r border-slate-100 font-sans whitespace-nowrap text-slate-600">
                         {new Date(log.changed_at).toLocaleString('en-GB')}
                       </td>
-                      <td className="p-2 border-r border-gray-300 font-bold uppercase text-gray-800">
+                      <td className="p-2 border-r border-slate-100 font-bold uppercase text-slate-700">
                         {log.table_name}
                       </td>
-                      <td className="p-2 border-r border-gray-300 font-bold font-mono text-center">
+                      <td className="p-2 border-r border-slate-100 font-bold font-sans text-center">
                         <span className={`px-1 py-0.5 border ${actionClass} text-[10px]`}>
                           {log.action}
                         </span>
                       </td>
-                      <td className="p-2 border-r border-gray-300 font-bold font-mono text-center">
+                      <td className="p-2 border-r border-slate-100 font-bold font-sans text-center">
                         #{log.record_id}
                       </td>
-                      <td className="p-2 border-r border-gray-300 font-mono text-[9px] text-gray-800 tracking-tight break-all">
+                      <td className="p-2 border-r border-slate-100 font-sans text-[9px] text-slate-700 tracking-tight break-all">
                         {JSON.stringify(log.changed_data || {})}
                       </td>
-                      <td className="p-2 font-bold uppercase text-gray-800">
+                      <td className="p-2 font-bold uppercase text-slate-700">
                         {log.changed_by_name || (log.changed_by ? `USER #${log.changed_by}` : 'SYSTEM BOT')}
                       </td>
                     </tr>
@@ -213,13 +213,13 @@ export default function AuditLogsPage() {
 
         { }
         {totalPages > 1 && (
-          <div className="bg-gray-300 p-2 border-t border-black flex justify-between items-center text-xs font-bold uppercase">
+          <div className="bg-white shadow-sm rounded-xl p-2 border-t border-slate-200 rounded-xl flex justify-between items-center text-xs font-bold uppercase">
             <span>RECORD {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, totalCount)} OF {totalCount}</span>
             <div className="flex gap-2">
-              <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="bg-white border border-black px-2 py-1 disabled:opacity-50 hover:bg-gray-200">
+              <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="bg-white border border-slate-200 shadow-sm rounded-xl px-2 py-1 disabled:opacity-50 hover:bg-slate-50/80 backdrop-blur-sm">
                 [ &lt; PREV ]
               </button>
-              <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="bg-white border border-black px-2 py-1 disabled:opacity-50 hover:bg-gray-200">
+              <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="bg-white border border-slate-200 shadow-sm rounded-xl px-2 py-1 disabled:opacity-50 hover:bg-slate-50/80 backdrop-blur-sm">
                 [ NEXT &gt; ]
               </button>
             </div>

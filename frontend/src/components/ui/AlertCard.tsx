@@ -17,10 +17,10 @@ export function AlertCard({ alert, onAcknowledge }: AlertCardProps) {
   const styles = alert.resolved
     ? {
         bg: 'bg-gray-50',
-        border: 'border-gray-200',
+        border: 'border-slate-100',
         icon: <CheckCircle2 className="w-5 h-5 text-gray-400" />,
-        text: 'text-gray-500',
-        title: 'text-gray-700 font-medium line-through'
+        text: 'text-slate-400',
+        title: 'text-slate-600 font-medium line-through'
       }
     : {
         bg: isCritical ? 'bg-red-50' : isWarning ? 'bg-amber-50' : 'bg-blue-50',
@@ -28,8 +28,8 @@ export function AlertCard({ alert, onAcknowledge }: AlertCardProps) {
         icon: isCritical ? <ShieldAlert className="w-6 h-6 text-red-600" /> :
               isWarning ? <AlertTriangle className="w-6 h-6 text-amber-600" /> :
               <Info className="w-6 h-6 text-blue-600" />,
-        text: isCritical ? 'text-red-700' : isWarning ? 'text-amber-800' : 'text-blue-700',
-        title: isCritical ? 'text-red-900 font-bold' : isWarning ? 'text-amber-900 font-bold' : 'text-blue-900 font-bold'
+        text: isCritical ? 'text-rose-600' : isWarning ? 'text-amber-800' : 'text-blue-700',
+        title: isCritical ? 'text-rose-700 font-bold' : isWarning ? 'text-amber-900 font-bold' : 'text-blue-900 font-bold'
       };
 
   const timeString = new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -59,7 +59,7 @@ export function AlertCard({ alert, onAcknowledge }: AlertCardProps) {
             onClick={() => onAcknowledge(alert.id)}
             className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-all flexshrink-0
               ${isCritical
-                ? 'bg-red-100 border-red-200 text-red-700 hover:bg-red-200'
+                ? 'bg-rose-50 border-red-200 text-rose-600 hover:bg-rose-50'
                 : isWarning
                 ? 'bg-amber-100 border-amber-200 text-amber-700 hover:bg-amber-200'
                 : 'bg-blue-100 border-blue-200 text-blue-700 hover:bg-blue-200'}`}
@@ -68,7 +68,7 @@ export function AlertCard({ alert, onAcknowledge }: AlertCardProps) {
           </button>
         )}
         {alert.resolved && (
-          <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
+          <span className="text-xs font-medium text-slate-400 bg-slate-50 px-2 py-1 rounded-md">
             Resolved
           </span>
         )}

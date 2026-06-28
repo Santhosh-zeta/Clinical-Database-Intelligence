@@ -14,7 +14,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
         try {
 
-            const res = await fetch('http://localhost:3001/api/auth/login', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: `${mockUser.id}@intellicare.demo`, password: 'password123' })
@@ -31,23 +31,23 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
     if (!currentUser) {
         return (
-            <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans text-gray-900">
-                <div className="w-full max-w-lg border border-gray-300 bg-white shadow-sm">
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans text-slate-800">
+                <div className="w-full max-w-lg border border-slate-100 bg-white shadow-sm">
 
                     <div className="p-8">
-                        <div className="text-center mb-8 border-b border-gray-200 pb-6">
-                            <h2 className="text-2xl font-bold text-gray-800">Welcome to IntelliCare</h2>
-                            <p className="mt-2 text-gray-600 text-sm">Please select your account type to sign in.</p>
+                        <div className="text-center mb-8 border-b border-slate-100 pb-6">
+                            <h2 className="text-2xl font-bold text-slate-700">Welcome to IntelliCare</h2>
+                            <p className="mt-2 text-slate-500 text-sm">Please select your account type to sign in.</p>
                         </div>
 
-                        <div className="flex bg-gray-50 border border-gray-200 rounded-lg overflow-hidden mb-8">
+                        <div className="flex bg-gray-50 border border-slate-100 rounded-lg overflow-hidden mb-8">
                             {['Admin', 'Doctor', 'Nurse', 'Patient'].map(role => (
                                 <button
                                     key={role}
                                     onClick={() => setSelectedRole(role.toLowerCase() as any)}
                                     className={cn(
                                         "flex-1 py-3 text-sm font-semibold transition-colors duration-200",
-                                        selectedRole === role.toLowerCase() ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
+                                        selectedRole === role.toLowerCase() ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"
                                     )}
                                 >
                                     {role}
@@ -76,7 +76,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                             )}
                         </div>
 
-                        <div className="mt-8 pt-4 border-t border-gray-200 text-center text-sm text-gray-500">
+                        <div className="mt-8 pt-4 border-t border-slate-100 text-center text-sm text-slate-400">
                             {isLoading ? "Signing in... Please wait." : "Demo system is active."}
                         </div>
                     </div>
@@ -98,13 +98,13 @@ function CleanLoginOption({ title, desc, onClick, loading }: any) {
             onClick={loading ? undefined : onClick}
             disabled={loading}
             className={cn(
-                "w-full px-5 py-4 border border-gray-300 rounded-lg bg-gray-50 hover:bg-white hover:border-blue-500 hover:shadow-sm transition-all flex items-center text-left",
+                "w-full px-5 py-4 border border-slate-100 rounded-lg bg-gray-50 hover:bg-white hover:border-blue-500 hover:shadow-sm transition-all flex items-center text-left",
                 loading ? "opacity-50 pointer-events-none" : ""
             )}
         >
             <div className="flex-1">
-                <p className="font-bold text-gray-900 text-base">{title}</p>
-                <p className="text-sm text-gray-500 mt-1">{desc}</p>
+                <p className="font-bold text-slate-800 text-base">{title}</p>
+                <p className="text-sm text-slate-400 mt-1">{desc}</p>
             </div>
             <div className="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-md">
                 {loading ? "Please wait..." : "Sign In"}

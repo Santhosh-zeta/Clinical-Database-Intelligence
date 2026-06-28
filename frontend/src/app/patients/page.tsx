@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { PermissionGuard } from '../../components/layout/PermissionGuard';
 import { cn } from '@/lib/utils';
 
-const API = 'http://localhost:3001/api';
+const API = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api`;
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
 const ah = () => ({ Authorization: `Bearer ${getToken()}` });
 
@@ -94,34 +94,34 @@ export default function PatientsPage({ admissionId, setAdmissionId }: { admissio
 
   return (
     <PermissionGuard requiredPermission="VIEW_ALL_PATIENTS">
-      <div className="max-w-[1200px] mx-auto p-4 font-sans text-gray-900">
+      <div className="max-w-[1200px] mx-auto p-4 font-sans text-slate-800">
 
-        <div className="border-b-2 border-blue-800 pb-2 mb-6 flex justify-between items-end">
+        <div className="border-b-2 border-blue-200 pb-2 mb-6 flex justify-between items-end">
           <div>
             <h1 className="text-2xl font-bold text-blue-900 m-0">Patient Directory</h1>
           </div>
-          <div className="text-sm font-bold text-gray-700">
+          <div className="text-sm font-bold text-slate-600">
             Total Active Admissions: {filteredPatients.length}
           </div>
         </div>
 
         { }
-        <div className="bg-gray-100 border border-gray-400 p-2 mb-4 flex gap-4 items-center">
+        <div className="bg-slate-50 border border-slate-200 p-2 mb-4 flex gap-4 items-center">
           <div className="flex items-center gap-2">
             <span className="font-bold text-sm">Search:</span>
             <input
               type="text"
-              className="border border-gray-400 px-2 py-1 text-sm w-64 bg-white"
+              className="border border-slate-200 px-2 py-1 text-sm w-64 bg-white"
               placeholder="Search by name, ID, ward..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
-          <div className="border-l border-gray-400 pl-4 flex items-center gap-2">
+          <div className="border-l border-slate-200 pl-4 flex items-center gap-2">
             <span className="font-bold text-sm">View Filter:</span>
             <select
-              className="border border-gray-400 px-2 py-1 text-sm bg-white cursor-pointer"
+              className="border border-slate-200 px-2 py-1 text-sm bg-white cursor-pointer"
               value={filterMode}
               onChange={(e) => setFilterMode(e.target.value as any)}
             >
@@ -134,36 +134,36 @@ export default function PatientsPage({ admissionId, setAdmissionId }: { admissio
         </div>
 
         { }
-        <div className="bg-white border border-gray-400 shadow-sm overflow-x-auto">
+        <div className="bg-white border border-slate-200 shadow-sm overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="bg-gray-200 border-b border-gray-400">
-                <th className="p-2 border-r border-gray-300 font-bold" onClick={() => requestSort('name')}>
+              <tr className="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
+                <th className="p-2 border-r border-slate-100 font-bold" onClick={() => requestSort('name')}>
                   Patient Name {sortConfig?.key === 'name' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
                 </th>
-                <th className="p-2 border-r border-gray-300 font-bold" onClick={() => requestSort('id')}>
+                <th className="p-2 border-r border-slate-100 font-bold" onClick={() => requestSort('id')}>
                   Registry ID {sortConfig?.key === 'id' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
                 </th>
-                <th className="p-2 border-r border-gray-300 font-bold" onClick={() => requestSort('ward')}>
+                <th className="p-2 border-r border-slate-100 font-bold" onClick={() => requestSort('ward')}>
                   Location {sortConfig?.key === 'ward' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
                 </th>
-                <th className="p-2 border-r border-gray-300 font-bold">Primary Diagnosis</th>
-                <th className="p-2 border-r border-gray-300 font-bold text-center" onClick={() => requestSort('riskScore')}>
+                <th className="p-2 border-r border-slate-100 font-bold">Primary Diagnosis</th>
+                <th className="p-2 border-r border-slate-100 font-bold text-center" onClick={() => requestSort('riskScore')}>
                   Risk Score {sortConfig?.key === 'riskScore' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
                 </th>
-                <th className="p-2 border-r border-gray-300 font-bold text-center">Current HR (BPM)</th>
+                <th className="p-2 border-r border-slate-100 font-bold text-center">Current HR (BPM)</th>
                 <th className="p-2 font-bold text-center">Action</th>
               </tr>
             </thead>
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={7} className="p-4 text-center text-gray-600 italic">Searching database...</td>
+                  <td colSpan={7} className="p-4 text-center text-slate-500 italic">Searching database...</td>
                 </tr>
               )}
               {!loading && paginatedPatients.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-4 text-center text-gray-600 italic">No matching records found.</td>
+                  <td colSpan={7} className="p-4 text-center text-slate-500 italic">No matching records found.</td>
                 </tr>
               )}
               {!loading && paginatedPatients.map((patient) => (
@@ -181,20 +181,20 @@ export default function PatientsPage({ admissionId, setAdmissionId }: { admissio
 
         { }
         {totalPages > 1 && (
-          <div className="bg-gray-100 border border-t-0 border-gray-400 p-2 flex justify-between items-center text-sm">
+          <div className="bg-slate-50 border border-t-0 border-slate-200 p-2 flex justify-between items-center text-sm">
             <div className="font-bold">Page {currentPage} of {totalPages}</div>
             <div className="flex gap-2">
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="bg-gray-200 border border-gray-400 px-3 py-1 font-bold shadow-sm hover:bg-gray-300 active:bg-gray-400 disabled:opacity-50"
+                className="bg-slate-50/80 backdrop-blur-sm border border-slate-200 px-3 py-1 font-bold shadow-sm hover:bg-white shadow-sm rounded-xl active:bg-gray-400 disabled:opacity-50"
               >
                 &laquo; Prev
               </button>
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="bg-gray-200 border border-gray-400 px-3 py-1 font-bold shadow-sm hover:bg-gray-300 active:bg-gray-400 disabled:opacity-50"
+                className="bg-slate-50/80 backdrop-blur-sm border border-slate-200 px-3 py-1 font-bold shadow-sm hover:bg-white shadow-sm rounded-xl active:bg-gray-400 disabled:opacity-50"
               >
                 Next &raquo;
               </button>
@@ -228,26 +228,26 @@ function PatientRow({ patient, patientDbId, isSelected, onSelect }: { patient: a
   const isCriticalHr = currentHr !== 'N/A' && (currentHr > 120 || currentHr < 50);
 
   return (
-    <tr className="border-b border-gray-200 hover:bg-yellow-50 text-sm">
-      <td className="p-2 border-r border-gray-200 font-bold">
+    <tr className="border-b border-slate-100 hover:bg-yellow-50 text-sm">
+      <td className="p-2 border-r border-slate-100 font-bold">
         {patient.name}
-        <div className="text-xs font-normal text-gray-600">{patient.age} yrs, {patient.gender}</div>
+        <div className="text-xs font-normal text-slate-500">{patient.age} yrs, {patient.gender}</div>
       </td>
-      <td className="p-2 border-r border-gray-200">
+      <td className="p-2 border-r border-slate-100">
         <span className="font-bold">{patient.id}</span>
-        <div className="text-xs text-gray-600">Admitted: {new Date(patient.admissionDate).toLocaleDateString()}</div>
+        <div className="text-xs text-slate-500">Admitted: {new Date(patient.admissionDate).toLocaleDateString()}</div>
       </td>
-      <td className="p-2 border-r border-gray-200">
+      <td className="p-2 border-r border-slate-100">
         <span className="font-bold">{patient.ward}</span>
-        <div className="text-xs text-gray-600">{patient.bed}</div>
+        <div className="text-xs text-slate-500">{patient.bed}</div>
       </td>
-      <td className="p-2 border-r border-gray-200">
+      <td className="p-2 border-r border-slate-100">
         {patient.diagnosis}
-        <div className="text-xs text-gray-600">Attn: Dr. {patient.doctor}</div>
+        <div className="text-xs text-slate-500">Attn: Dr. {patient.doctor}</div>
       </td>
-      <td className="p-2 border-r border-gray-200 text-center font-bold">
+      <td className="p-2 border-r border-slate-100 text-center font-bold">
         <span className={
-          patient.riskScore === 'Critical' ? 'text-red-700' :
+          patient.riskScore === 'Critical' ? 'text-rose-600' :
             patient.riskScore === 'High' ? 'text-orange-700' :
               patient.riskScore === 'Medium' ? 'text-blue-700' :
                 'text-green-700'
@@ -255,8 +255,8 @@ function PatientRow({ patient, patientDbId, isSelected, onSelect }: { patient: a
           {patient.riskScore}
         </span>
       </td>
-      <td className="p-2 border-r border-gray-200 text-center">
-        <span className={`font-bold ${isCriticalHr ? 'text-red-700 bg-red-100 border border-red-400 px-1' : 'text-black'}`}>
+      <td className="p-2 border-r border-slate-100 text-center">
+        <span className={`font-bold ${isCriticalHr ? 'text-rose-600 bg-rose-50 border border-red-400 px-1' : 'text-slate-800'}`}>
           {currentHr}
         </span>
       </td>
@@ -265,7 +265,7 @@ function PatientRow({ patient, patientDbId, isSelected, onSelect }: { patient: a
           <button
             onClick={onSelect}
             className={cn(
-              "text-[10px] font-black uppercase px-2 py-1 border border-black shadow-[2px_2px_0px_#000] transition-all",
+              "text-[10px] font-bold uppercase px-2 py-1 border border-slate-200 shadow-sm rounded-xl shadow-md rounded-xl transition-all",
               isSelected ? "bg-slate-900 text-white" : "bg-white text-slate-900 hover:bg-slate-50"
             )}
           >

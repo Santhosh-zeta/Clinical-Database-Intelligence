@@ -33,7 +33,7 @@ export function VitalsChart({ vitals }: VitalsChartProps) {
       animate={{ opacity: 1, y: 0 }}
       className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-4"
     >
-      <h3 className="text-lg font-semibold text-gray-800">Vitals Trend</h3>
+      <h3 className="text-lg font-semibold text-slate-700">Vitals Trend</h3>
       <div className="h-72 w-full">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>

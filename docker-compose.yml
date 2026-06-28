@@ -34,7 +34,7 @@ services:
       - NODE_ENV=production
       - DB_POOL_MAX=20
       - DB_POOL_MIN=5
-      - ALLOWED_ORIGINS=http://localhost:3000
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001
     depends_on:
       db:
         condition: service_healthy
