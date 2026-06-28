@@ -140,6 +140,9 @@ async function getUnbilledItems(admissionId, orgId) {
     `, [admissionId]);
 
     const { rows: [adm] } = await db.query('SELECT patient_id FROM admissions WHERE id = $1', [admissionId]);
+    if (!adm) {
+        return { labs: [], consults: [] };
+    }
     const consults = await db.query(`
         SELECT c.id, c.specialty as item_name, 150.00 as unit_price, c.completed_at as date
         FROM clinical_consults c
