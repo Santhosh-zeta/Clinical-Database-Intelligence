@@ -8,7 +8,7 @@ let io;
 function init(httpServer) {
     io = new Server(httpServer, {
         cors: {
-            origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+            origin: true,
             methods: ['GET', 'POST']
         }
     });
