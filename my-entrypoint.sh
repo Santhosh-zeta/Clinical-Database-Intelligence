@@ -31,7 +31,11 @@
   echo "[Setup] Starting Clinical Simulator..."
   cd /app/simulator
   export API_URL=http://127.0.0.1:10000
-  npm run simulate &
+  while true; do
+    npm run simulate
+    echo "[Setup] Simulator exited. Restarting in 10 seconds..."
+    sleep 10
+  done &
 ) &
 
 # Execute the original TimescaleDB entrypoint in the FOREGROUND
