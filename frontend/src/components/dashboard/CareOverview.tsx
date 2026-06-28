@@ -124,7 +124,7 @@ export default function DashboardSummary() {
                         </span>
                       </td>
                       <td className="p-2 text-center">
-                        <Link href={`/patients/${pt.admission_id}`} className="text-blue-600 hover:underline font-bold">
+                        <Link href={`/patient?id=${pt.admission_id}`} className="text-blue-600 hover:underline font-bold">
                           View Chart
                         </Link>
                       </td>

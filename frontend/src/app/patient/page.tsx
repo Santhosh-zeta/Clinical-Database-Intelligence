@@ -11,7 +11,7 @@ import {
   TrendingUp, TrendingDown, Minus, Tag, ClipboardList, History
 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const API = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api`;
@@ -70,8 +70,17 @@ function buildTimelineDesc(ev: any) {
   }
 }
 
-export default function PatientDetail({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
+export default function PatientDetail() {
+  return (
+    <React.Suspense fallback={<div className="p-10 text-center font-bold text-slate-400">Loading patient interface...</div>}>
+      <PatientDetailContent />
+    </React.Suspense>
+  );
+}
+
+function PatientDetailContent() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id');
   const router = useRouter();
 
   const [patient, setPatient] = useState<any>(null);
@@ -105,8 +114,9 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
 
   useEffect(() => {
     async function fetchPatientData() {
+      if (!id) return;
       try {
-        const admissionRes = await fetch(`${API}/admissions/${resolvedParams.id}`, { headers: authHeader() });
+        const admissionRes = await fetch(`${API}/admissions/${id}`, { headers: authHeader() });
         if (admissionRes.ok) {
           const d = await admissionRes.json();
           const p = d.data;
@@ -125,7 +135,7 @@ export default function PatientDetail({ params }: { params: Promise<{ id: string
       } catch (_) { }
     }
     fetchPatientData();
-  }, [resolvedParams.id]);
+  }, [id]);
 
   const markAlertResolved = async (alertId: string) => {
     try {

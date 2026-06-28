@@ -116,7 +116,7 @@ export function BedStatusGrid({ wardName, beds }: BedStatusGridProps) {
 
               {}
               {bed.occupant && (
-                <Link href={`/patients/${bed.occupant.id}`} className="absolute inset-0 z-20" aria-label={`View ${bed.occupant.name} details`} />
+                <Link href={`/patient?id=${bed.occupant.id}`} className="absolute inset-0 z-20" aria-label={`View ${bed.occupant.name} details`} />
               )}
             </motion.div>
           );

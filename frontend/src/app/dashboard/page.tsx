@@ -899,7 +899,7 @@ function UnifiedAppointmentsTab({ admissionId }: { admissionId?: number | null }
 
                       <div className="flex gap-2">
                         {role !== 'patient' && a.admission_id && (
-                          <Link href={`/patients/${a.admission_id}`} className="bg-slate-800 text-white px-4 py-2 text-[10px] font-bold hover:bg-gray-800 uppercase flex items-center gap-2 group-hover:scale-105 transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,0.2)]">
+                          <Link href={`/patient?id=${a.admission_id}`} className="bg-slate-800 text-white px-4 py-2 text-[10px] font-bold hover:bg-gray-800 uppercase flex items-center gap-2 group-hover:scale-105 transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,0.2)]">
                             <User size={14} /> Open Chart
                           </Link>
                         )}

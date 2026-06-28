@@ -280,7 +280,7 @@ function BedCard({ bed, index, compact = false }: { bed: BedStatus; index: numbe
   );
 
   if (bed.is_occupied && bed.admission_id) {
-    return <Link href={`/patients/${bed.admission_id}`} className="block">{content}</Link>;
+    return <Link href={`/patient?id=${bed.admission_id}`} className="block">{content}</Link>;
   }
   return content;
 }

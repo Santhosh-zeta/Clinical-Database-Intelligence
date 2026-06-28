@@ -272,7 +272,7 @@ function PatientRow({ patient, patientDbId, isSelected, onSelect }: { patient: a
             {isSelected ? "SELECTED" : "SELECT CASE"}
           </button>
         )}
-        <Link href={`/patients/${patient.id}`} className="text-blue-600 hover:underline font-bold text-[10px] uppercase">
+        <Link href={`/patient?id=${patient.id}`} className="text-blue-600 hover:underline font-bold text-[10px] uppercase">
           Open Chart &rarr;
         </Link>
       </td>
