@@ -28,7 +28,7 @@ const requireRole = (...roles) => (req, res, next) => {
     const userRole = (req.user.role || '').toLowerCase();
     const normalizedRoles = roles.map(r => r.toLowerCase());
 
-    if (normalizedRoles.includes(userRole) || normalizedRoles.includes('admin' && userRole.includes('admin'))) {
+    if (normalizedRoles.includes(userRole) || (userRole.includes('admin') && normalizedRoles.some(r => r.includes('admin')))) {
         return next();
     }
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { API } from '../../lib/config';
+
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '../../lib/utils';
@@ -14,7 +16,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
         try {
 
-            const res = await fetch(`https://clinical-database-intelligence.onrender.com/api/auth/login`, {
+            const res = await fetch(`${API}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: `${mockUser.id}@intellicare.demo`, password: 'password123' })

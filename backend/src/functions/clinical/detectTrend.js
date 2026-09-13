@@ -1,42 +1,94 @@
 'use strict';
 
-function detectTrend(rows, windowSize) {
+/**
+ * Trend detection using ordinary least-squares linear regression.
+ *
+ * For each vital, fits y = a + b*t over the window of recent readings.
+ * A trend is flagged as deteriorating when the slope (b) exceeds a
+ * clinically-meaningful threshold AND the R² confirms the trend is
+ * not random noise.
+ *
+ * This is intentionally a statistical heuristic, not a clinical predictor.
+ */
+
+// Minimum R² to trust the regression line (0.5 = moderate fit)
+const MIN_R2 = 0.40;
+
+// Thresholds: slope (per reading) that constitutes meaningful deterioration
+const THRESHOLDS = {
+    heart_rate:       { rising: 3,    falling: null },
+    spo2:             { rising: null, falling: -0.5 },
+    systolic_bp:      { rising: null, falling: -3   },
+    respiratory_rate: { rising: 1.5,  falling: null },
+    temperature:      { rising: 0.15, falling: null },
+};
+
+function ols(values) {
+    const n = values.length;
+    if (n < 2) return { slope: 0, r2: 0 };
+
+    const xs = values.map((_, i) => i);
+    const xMean = (n - 1) / 2;
+    const yMean = values.reduce((a, b) => a + b, 0) / n;
+
+    let sxy = 0, sxx = 0, syy = 0;
+    for (let i = 0; i < n; i++) {
+        const dx = xs[i] - xMean;
+        const dy = values[i] - yMean;
+        sxy += dx * dy;
+        sxx += dx * dx;
+        syy += dy * dy;
+    }
+
+    const slope = sxx === 0 ? 0 : sxy / sxx;
+    const r2 = (sxx === 0 || syy === 0) ? 0 : (sxy * sxy) / (sxx * syy);
+    return { slope: parseFloat(slope.toFixed(4)), r2: parseFloat(r2.toFixed(4)) };
+}
+
+function detectTrend(rows, windowSize = 10) {
     const alerts = [];
     const deltas = {};
+    const regressions = {};
     let deteriorating = false;
 
-    if (rows.length < 3) return { deteriorating, alerts, deltas };
+    if (!rows || rows.length < 3) return { deteriorating, alerts, deltas, regressions };
 
-    const vitals = ['heart_rate', 'systolic_bp', 'spo2', 'temperature', 'respiratory_rate'];
+    const vitals = Object.keys(THRESHOLDS);
 
-    vitals.forEach(v => {
-        const values = rows.map(r => r[v]).filter(val => val !== null && val !== undefined);
-        if (values.length < 3) return;
+    for (const key of vitals) {
+        const values = rows.map(r => r[key]).filter(v => v !== null && v !== undefined);
+        if (values.length < 3) continue;
 
-        const first = values[0];
-        const last = values[values.length - 1];
-        const delta = last - first;
-        deltas[v] = delta;
+        const { slope, r2 } = ols(values);
+        deltas[key]       = parseFloat((values[values.length - 1] - values[0]).toFixed(2));
+        regressions[key]  = { slope, r2 };
 
-        if (v === 'heart_rate' && delta > 20) {
+        const thr = THRESHOLDS[key];
+
+        if (r2 < MIN_R2) continue;
+
+        if (thr.rising !== null && slope >= thr.rising) {
             deteriorating = true;
-            alerts.push(`Rising heart rate (+${delta} bpm)`);
+            alerts.push(`${fmt(key)} rising (slope +${slope.toFixed(2)}/reading, R²=${r2.toFixed(2)})`);
         }
-        if (v === 'spo2' && delta < -3) {
-            deteriorating = true;
-            alerts.push(`Falling oxygen saturation (${delta}%)`);
-        }
-        if (v === 'systolic_bp' && delta < -20) {
-            deteriorating = true;
-            alerts.push(`Falling blood pressure (${delta} mmHg)`);
-        }
-        if (v === 'respiratory_rate' && delta > 5) {
-            deteriorating = true;
-            alerts.push(`Increasing respiratory distress (+${delta}/min)`);
-        }
-    });
 
-    return { deteriorating, alerts, deltas };
+        if (thr.falling !== null && slope <= thr.falling) {
+            deteriorating = true;
+            alerts.push(`${fmt(key)} falling (slope ${slope.toFixed(2)}/reading, R²=${r2.toFixed(2)})`);
+        }
+    }
+
+    return { deteriorating, alerts, deltas, regressions };
+}
+
+function fmt(key) {
+    return {
+        heart_rate:       'Heart rate',
+        spo2:             'SpO₂',
+        systolic_bp:      'Blood pressure',
+        respiratory_rate: 'Respiratory rate',
+        temperature:      'Temperature',
+    }[key] || key;
 }
 
 module.exports = { detectTrend };

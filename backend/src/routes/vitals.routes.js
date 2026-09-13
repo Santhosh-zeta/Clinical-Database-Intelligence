@@ -27,4 +27,7 @@ router.get('/:patientId/trend', requirePermission('VIEW_VITALS'), ctrl.trend);
 
 router.get('/ews/:admissionId', requirePermission('VIEW_VITALS'), ctrl.getEWS);
 
+// Queries the vitals_1m TimescaleDB continuous aggregate — minute-bucket averages
+router.get('/aggregate/:admissionId', requirePermission('VIEW_VITALS'), ctrl.aggregates);
+
 module.exports = router;

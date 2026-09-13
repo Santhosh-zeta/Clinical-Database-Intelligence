@@ -1,133 +1,208 @@
-# IntelliCare: Clinical Database Intelligence Platform
+# IntelliCare — Clinical Database Intelligence Platform
 
-A full-stack, real-time hospital management and clinical intelligence command center. This system seamlessly integrates a robust **relational database** with a high-frequency **time-series database**, enabling continuous patient vitals tracking, dynamic risk scoring, ICU escalation automation, and real-time medical alerting.
-
----
-
-## 🚀 Key Features
-
-* **Role-Based Access Control (RBAC)**: Secure, role-specific views and permissions tailored for System Admins, Doctors, Nurses, and Patients.
-* **Modern Minimalist UI**: A clean, professional, and responsive Next.js frontend built with Tailwind CSS, focusing on clinical legibility and frictionless UX.
-* **Real-Time Data Streaming**: Websocket-driven pipelines (Socket.io) that instantly reflect new telemetry data on live dashboard graphs without page reloads.
-* **Intelligent Alerting System**: Early Warning Scores (EWS) are calculated dynamically, pushing critical alerts immediately to staff when patient vitals cross safe thresholds.
-* **ICU & Ward Management**: Comprehensive digital twin of the hospital structure for easy bed assignments, patient tracking, and ward overviews.
-* **Clinical Workflows**: Integrated modules for daily rounds, shift handovers, medication administration, and discharge authorization.
-* **Hardware Telemetry Simulation**: Built-in NodeJS simulator that mimics continuous IoT biometric hardware sensors under heavy time-series loads.
+A full-stack hospital intelligence system built to demonstrate production-grade database engineering, real-time event pipelines, and clinical decision support. Every feature listed here exists in the committed code.
 
 ---
 
-## 🏛️ System Architecture
+## Architecture
 
-1. **Database** (`Docker: timescale/timescaledb:latest-pg16`): The central single-source-of-truth. Marries standard patient records (PostgreSQL) with high-frequency continuous aggregates (TimescaleDB) for vitals vectors.
-2. **Backend API** (`backend/`): Node.js/Express service responsible for authentication, complex business logic, prescription validation, and API REST routing.
-3. **Frontend Application** (`frontend/`): React (Next.js App Router) web application utilizing Tailwind CSS. Automatically syncs via Websockets to present analytical dashboards with Recharts.
-4. **Clinical Simulator** (`simulator/`): A headless continuous data generator pushing stochastic biometric variables directly to the backend to mimic real-world medical hardware.
-
----
-
-## 💻 Technology Stack
-
-* **Frontend:** Next.js (App Router), React, Tailwind CSS, Recharts, Lucide Icons
-* **Backend:** Node.js, Express.js, Socket.io, JSON Web Tokens (JWT)
-* **Database:** PostgreSQL, TimescaleDB (for high-frequency time-series data)
-* **Infrastructure & Deployment:** Docker, Docker Compose, Render (unified container deployment)
-
----
-
-## 🗄️ Database Features & Schema Architecture
-
-The platform leverages **PostgreSQL** combined with **TimescaleDB** extensions to handle both relational business logic and high-volume time-series telemetry. The extensive schema (37+ migrations) includes:
-
-* **TimescaleDB Hypertables & Continuous Aggregates**: Optimized specifically for storing, partitioning, and querying high-frequency patient vitals and biometric telemetry at IoT scale.
-* **Advanced Multi-Tenancy & RBAC**: Strict Row-Level Security (RLS) concepts and organization-based scoping ensures data isolation. Fine-grained roles dictate exact permissions for doctors, nurses, patients, and admins.
-* **Real-time Clinical Scoring (EWS)**: Automated calculation of Early Warning Scores and dynamic Risk Scores based on incoming vitals to predict patient deterioration.
-* **Automated Triggers & Alerts**: Database-level notification triggers that instantly push critical alerts (like abnormal blood pressure or SpO2 drops) to the real-time websocket layer.
-* **Hospital Digital Twin**: Comprehensive relational mapping of physical hospital assets (Wards, Beds, Ambulances) and staff hierarchies (Departments, Doctors, Nurses).
-* **Automated Billing & Invoicing**: Complex schema linking clinical events directly to billing. Automatically generates itemized invoices for ward accommodation, lab tests, prescriptions, and specialist consultations.
-* **Clinical Workflows**: Fully modeled schemas for Admissions, Discharges, Ward Handovers, Patient Appointments, Lab Orders, and Medication Administration.
-* **Regulatory Compliance**: Built-in Audit Logs for tracking critical systemic and clinical record changes to maintain accountability.
-* **Performance Indexes**: Carefully tuned database indexes designed to support rapid querying over massive historical clinical datasets.
-
----
-
-## 👥 Roles & Usage
-
-The platform provides dedicated modules based on the logged-in user's role:
-
-* **Admins**: Full overview of the hospital system. Can manage staff members, oversee all patient records, configure system settings, and view high-level analytics.
-* **Doctors**: Focused on clinical decision-making. Can view detailed patient histories, prescribe medications, authorize discharges, and manage specialist consults.
-* **Nurses**: Focused on bedside care. Access to shift handovers, medication administration rounds, vital signs monitoring, and immediate alerting.
-* **Patients**: Personal care portal. Can view their own vital history, upcoming appointments, billing details, and medication schedules.
-
----
-
-## ⚙️ Prerequisites
-
-Ensure your system has the following dependencies installed:
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Compose (for the database)
-* [Node.js](https://nodejs.org/) (Version 18 or higher)
-* [Git](https://git-scm.com/)
-
----
-
-## 🛠️ Quickstart Setup Guide
-
-Follow these sequential steps to bootstrap the entire development environment securely.
-
-### 1. Boot up the Database (Docker)
-Ensure Docker is running locally. The database will bind to port `5433`.
-```bash
-# In the root project directory:
-docker compose up -d
 ```
-> *Wait sequence: Give the database 15-20 seconds to fully initialize its internal PostgreSQL/TimescaleDB extensions.*
+┌─────────────────────────────────────────────────────────────┐
+│  Next.js 14 (App Router, static export)                     │
+│  AuthContext · RealtimeContext · RBAC-aware views           │
+└──────────────────────┬──────────────────────────────────────┘
+                       │ HTTP REST + Socket.io (JWT auth)
+┌──────────────────────▼──────────────────────────────────────┐
+│  Node.js / Express 5                                         │
+│  Auth · RBAC middleware · Rate limiting · Structured logs    │
+│  Controllers → Services → DB                                 │
+└──────────────────────┬──────────────────────────────────────┘
+                       │ pg driver + PG NOTIFY/LISTEN
+┌──────────────────────▼──────────────────────────────────────┐
+│  PostgreSQL 16 + TimescaleDB                                 │
+│  37 migrations · Hypertable · Continuous aggregates          │
+│  PL/pgSQL triggers · JSONB audit log · RBAC schema           │
+└─────────────────────────────────────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────────────┐
+│  Simulator (Node.js, headless)                               │
+│  Markov state machine · Box-Muller noise · 3% artefact rate  │
+└─────────────────────────────────────────────────────────────┘
+```
 
-### 2. Initialize the Backend Service
-Setup your backend dependencies, run relational migrations, and start the local API server.
+---
+
+## What Is Actually Implemented
+
+| Feature | Reality |
+|---|---|
+| TimescaleDB hypertable for vitals | ✅ migration 006; 7-day chunk interval, compression after 3 days |
+| Continuous aggregate `vitals_1m` | ✅ defined in migration 012; **and** queried via `GET /api/vitals/aggregate/:id` |
+| NEWS2 Early Warning Score | ✅ JS (`calculateEWS.js`) **and** PL/pgSQL trigger (`007_ews_trigger.sql`) — identical scoring logic |
+| OLS trend detection (R² ≥ 0.40) | ✅ `detectTrend.js` — linear regression, not first-vs-last delta |
+| Real-time alerting | ✅ PG NOTIFY trigger → PG LISTEN in Node → Socket.io org rooms |
+| Socket.io JWT authentication | ✅ server verifies token on `connection`; org room derived from JWT, not client input |
+| RBAC (roles, permissions) | ✅ DB schema + `requirePermission` / `requireRole` middleware |
+| Multi-tenancy | ✅ `org_id` on all tables; `tenancy` middleware injects from JWT — **not RLS** |
+| Drug interaction check | ✅ `drug_interactions` table; queried on every `POST /api/prescriptions` |
+| Audit log | ✅ PL/pgSQL trigger writes JSONB snapshots to `audit_logs` |
+| Billing / invoicing | ✅ `generateInvoice()` links clinical events (labs, meds, consults, accommodation) |
+| Rate limiting | ✅ 30 req/15 min on `/api/auth`, 300 req/min on `/api/*` |
+| Structured request logging | ✅ JSON lines per request with request ID, latency, org, user |
+| Markov state-machine simulator | ✅ 4 states (stable/moderate/critical/recovering) + temporal smoothing |
+| JWT + bcrypt authentication | ✅ real bcrypt verify; demo accounts allow-listed, disabled in production |
+| Unit test suite | ✅ 24 tests, 4 suites (Jest): EWS, trend detection, auth, RBAC |
+
+| Claim NOT implemented |
+|---|
+| Row-Level Security (RLS) — tenancy is application-layer only |
+| Machine-learning or predictive AI — EWS and trend are deterministic algorithms |
+| HIPAA / SOC 2 compliance — no compliance certification |
+
+---
+
+## Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 14 (App Router), React 18, Tailwind CSS, Recharts, Socket.io-client |
+| Backend | Node.js 18+, Express 5, Socket.io 4, jsonwebtoken, bcryptjs, express-rate-limit |
+| Database | PostgreSQL 16, TimescaleDB 2.x |
+| ORM / Query | node-postgres (`pg`) — raw SQL, no ORM |
+| Infrastructure | Docker, Docker Compose |
+| Testing | Jest 30 |
+
+---
+
+## Database Design Highlights
+
+- **37 migrations** in sequential order — no manual schema edits needed
+- **Hypertable** (`vitals`) with 7-day chunk interval; compression policy after 3 days
+- **Continuous aggregate** (`vitals_1m`) — pre-computes per-minute avg HR, BP, SpO2, RR, temp
+- **PL/pgSQL NEWS2 trigger** fires on every vitals insert; configurable per-org thresholds via `alert_thresholds` table
+- **PG NOTIFY** (`alert_notify` trigger) → Node `PG LISTEN` → Socket.io broadcast; reconnects automatically on PG connection drop
+- **Covering indexes** on `(org_id, admission_id, recorded_at)` for hot vitals queries
+- **Partial index** on alerts `WHERE acknowledged = false` for active-alert lookups
+- **pg_trgm** trigram index on patient name for fast free-text search
+- **JSONB audit snapshots** on critical tables via generic trigger function
+
+---
+
+## API Reference (Selected Endpoints)
+
+```
+POST   /api/auth/login                         # JWT login (demo accounts in dev)
+GET    /api/vitals/history/:admissionId        # Raw vitals (TimescaleDB hypertable)
+GET    /api/vitals/aggregate/:admissionId      # 1-min buckets (continuous aggregate)
+GET    /api/vitals/trend/:admissionId          # OLS regression result with R²
+GET    /api/alerts                             # Active alerts for org
+PATCH  /api/alerts/:id/acknowledge             # Acknowledge alert
+POST   /api/prescriptions                      # Create prescription (checks interactions)
+POST   /api/prescriptions/check                # Drug interaction check only
+GET    /health                                  # Liveness probe
+GET    /metrics                                 # In-process counters (vitals, alerts, WS)
+```
+
+---
+
+## Quickstart
+
+### Prerequisites
+- Docker Desktop
+- Node.js ≥ 18
+- Git
+
+### 1. Start the Database
+
+```bash
+docker compose up -d
+# Wait ~15 s for TimescaleDB to initialise
+```
+
+### 2. Configure the Backend
+
 ```bash
 cd backend
+cp .env.example .env
+# Edit .env: set JWT_SECRET to a real random value
+# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 npm install
-npm run migrate   # Generates RBAC, Tenancy, Triggers, & Roles
-npm run dev       # Starts API on http://localhost:3001
+npm run migrate
+npm run dev        # API on http://localhost:3001
 ```
 
-### 3. Initialize the Frontend Application
-In a **new terminal tab**, spin up the Next.js development server.
+### 3. Start the Frontend
+
 ```bash
 cd frontend
+cp .env.example .env.local    # set NEXT_PUBLIC_API_URL=http://localhost:3001
 npm install
-npm run dev       # Starts UI on http://localhost:3000
+npm run dev        # UI on http://localhost:3000
 ```
 
-### 4. Setup Default Staff & Data Simulation
-To see the system "thinking" and displaying active patient profiles, we must seed the tables and start the live simulator. Open a **third terminal**:
+### 4. Seed Data and Run Simulator
+
 ```bash
 cd simulator
 npm install
-node setup_db.js       # 1. Establish basic structural hierarchy (Wards, Beds, Test Staff)
-node seed.js           # 2. Register dummy patients into the system
-node admit_patients.js # 3. Formally admit patients into available ICU/General beds
-node simulate.js       # 4. Initiate continuous medical hardware telemetry
+node setup_db.js       # Wards, beds, staff
+node seed.js           # Demo patients
+node admit_patients.js # Admit patients to beds
+node simulate.js       # Continuous vitals stream
 ```
-> *The `simulate.js` process will remain running endlessly, POSTing stochastic heart rates and vital signs over the REST APIs to mimic living patients.*
+
+### 5. Demo Accounts (development only)
+
+| Email | Password | Role |
+|---|---|---|
+| `a1@intellicare.demo` | `password123` | Admin |
+| `d1@intellicare.demo` | `password123` | Doctor |
+| `n1@intellicare.demo` | `password123` | Nurse |
+| `p1@intellicare.demo` | `password123` | Patient |
+
+Demo accounts are disabled automatically when `NODE_ENV=production`.
 
 ---
 
-## 💻 Working on the Project 
+## Running Tests
 
-### Log In to the Dashboard
-Navigate to [**http://localhost:3000**](http://localhost:3000)
-
-Your root administrative clinical login operates on global defaults matching the simulator context:
-* **Email:** `a1@intellicare.demo`
-* **Password:** `password123`
-
-The login page also provides a simple quick-select menu to simulate logins as a Doctor, Nurse, or Patient.
-
-### Development Workflow
-* **Frontend Hot-Reloading:** Next.js natively updates styling and logic the moment you save a file in `frontend/src/*`.
-* **Backend Nodemon:** The backend utilizes `nodemon`, so modifying `backend/src/*` will automatically restart the Express API routes.
-* **Monitoring Telemetry:** If you wish to halt live graphs temporarily or test zero-load behavior, simply kill the process running `node simulate.js`. The dashboard will immediately reflect the paused hardware state gracefully.
+```bash
+cd backend
+npm test
+# 24 tests, 4 suites — all pass without a database connection
+```
 
 ---
-*Built to tightly integrate Medical IoT scaling constraints and enterprise capabilities natively.*
+
+## Known Limitations
+
+- Multi-tenancy uses application-layer `org_id` filtering, not PostgreSQL Row-Level Security. A bug in a service function could leak cross-org data.
+- The frontend is a static export (`output: 'export'` in `next.config.ts`). WebSocket works because Socket.io falls back to HTTP polling for static hosts; server-side rendering is not available.
+- The EWS trigger and the Node.js `calculateEWS` function implement the same NEWS2 algorithm independently. They should agree, but divergence is possible if one is updated without the other.
+- `DEMO_PASSWORD` defaults to `password123`. Change it in `.env` for any internet-exposed instance.
+
+---
+
+## Project Structure
+
+```
+├── backend/
+│   ├── src/
+│   │   ├── controllers/       # Thin HTTP handlers
+│   │   ├── services/          # Business logic (vitals, alerts, billing, realtime)
+│   │   ├── functions/clinical # calculateEWS.js, detectTrend.js
+│   │   ├── middleware/        # auth, rbac, tenancy, logger, errorHandler
+│   │   ├── routes/            # Express routers
+│   │   ├── config/db.js       # pg Pool
+│   │   ├── db/migrations/     # 37 SQL migrations (run sequentially)
+│   │   └── db/functions/      # PL/pgSQL triggers (EWS, NOTIFY, audit)
+│   └── __tests__/             # Jest unit tests
+├── frontend/
+│   └── src/
+│       ├── app/               # Next.js App Router pages
+│       ├── components/        # UI components
+│       ├── contexts/          # AuthContext, RealtimeContext
+│       └── lib/config.ts      # Central API base URL (NEXT_PUBLIC_API_URL)
+└── simulator/
+    └── simulate.js            # Markov state-machine vitals generator
+```

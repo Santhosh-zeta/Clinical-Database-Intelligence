@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
+import { API } from '../../lib/config';
+mport React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
 type TabType = 'profile' | 'thresholds' | 'notifications' | 'security';
@@ -19,7 +20,7 @@ export default function SettingsPage() {
 
    React.useEffect(() => {
       const token = localStorage.getItem('__intellicare_token');
-      fetch(`https://clinical-database-intelligence.onrender.com/api/admin/settings`, { headers: { 'Authorization': `Bearer ${token}` } })
+      fetch(`${API}/admin/settings`, { headers: { 'Authorization': `Bearer ${token}` } })
          .then(res => res.json())
          .then(res => {
             if (res.data) setSettings(res.data);
@@ -44,7 +45,7 @@ export default function SettingsPage() {
       setIsSaving(true);
       try {
          const token = localStorage.getItem('__intellicare_token');
-         await fetch(`https://clinical-database-intelligence.onrender.com/api/admin/settings`, {
+         await fetch(`${API}/admin/settings`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(settings)

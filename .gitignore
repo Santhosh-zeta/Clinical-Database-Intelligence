@@ -1,4 +1,4 @@
 node_modules/
 .env
 *.log
-server_log.txt
+backend/server_log.txt

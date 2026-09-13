@@ -1,5 +1,7 @@
 "use client";
 
+import { API } from '../../lib/config';
+
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
@@ -7,7 +9,6 @@ import { useRouter } from 'next/navigation';
 import { PermissionGuard } from '../../components/layout/PermissionGuard';
 import { cn } from '@/lib/utils';
 
-const API = `https://clinical-database-intelligence.onrender.com/api`;
 const getToken = () => localStorage.getItem('__intellicare_token') || '';
 const ah = () => ({ Authorization: `Bearer ${getToken()}` });
 

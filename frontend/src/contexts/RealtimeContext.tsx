@@ -30,16 +30,17 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             return;
         }
 
-        const API_URL = 'https://clinical-database-intelligence.onrender.com';
+        const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         const newSocket = io(API_URL, {
             withCredentials: true,
-            transports: ['websocket', 'polling']
+            transports: ['websocket', 'polling'],
+            auth: { token: token ?? '' },
         });
 
         newSocket.on('connect', () => {
             console.log('[Realtime] Connected');
             setIsConnected(true);
-            newSocket.emit('join-org', currentUser.org_id || 1);
         });
 
         newSocket.on('disconnect', () => {

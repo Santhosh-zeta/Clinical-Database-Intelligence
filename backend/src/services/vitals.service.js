@@ -117,4 +117,32 @@ async function getEWS(admissionId, orgId) {
     return result.rows[0] || null;
 }
 
-module.exports = { record, history, latest, trend, getEWS };
+/**
+ * Query the vitals_1m TimescaleDB continuous aggregate.
+ * Returns 1-minute bucket averages for a given admission over a configurable window.
+ */
+async function aggregates(admissionId, orgId, { hours = 1 } = {}) {
+    // Verify org access
+    const check = await db.query(
+        `SELECT a.id FROM admissions a WHERE a.id = $1 AND a.organization_id = $2`,
+        [admissionId, orgId]
+    );
+    if (!check.rowCount) throw createError('Admission not found for this organization', 404);
+
+    const result = await db.query(
+        `SELECT bucket,
+                avg_hr   AS heart_rate,
+                avg_sys  AS systolic_bp,
+                avg_dia  AS diastolic_bp,
+                avg_spo2 AS spo2,
+                avg_temp AS temperature
+         FROM vitals_1m
+         WHERE admission_id = $1
+           AND bucket >= NOW() - ($2 || ' hours')::INTERVAL
+         ORDER BY bucket ASC`,
+        [admissionId, hours]
+    );
+    return result.rows;
+}
+
+module.exports = { record, history, latest, trend, getEWS, aggregates };

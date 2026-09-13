@@ -6,10 +6,12 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
 
 const { authenticate } = require('./middleware/auth');
 const { tenancy } = require('./middleware/tenancy');
 const { errorHandler } = require('./middleware/errorHandler');
+const { requestLogger } = require('./middleware/logger');
 
 const authRoutes = require('./routes/auth.routes');
 const patientRoutes = require('./routes/patient.routes');
@@ -36,23 +38,62 @@ const PORT = process.env.PORT || 3001;
 
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors({
-    origin: ['https://intellicare.dropwinggroups.com', 'http://localhost:3000'],
+    origin: (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(','),
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
     optionsSuccessStatus: 200
 }));
 app.use(express.json({ limit: '1mb' }));
+app.use(requestLogger);
 app.use(morgan('dev'));
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many login attempts. Please try again in 15 minutes.' },
+});
+
+const apiLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'API rate limit exceeded. Please slow down.' },
+});
+
+// Metrics counters for observability
+const metrics = {
+    vitals_recorded: 0,
+    alerts_generated: 0,
+    ws_connections: 0,
+    api_requests: 0,
+    start_time: Date.now(),
+};
+app.locals.metrics = metrics;
+
+app.use((_req, _res, next) => { metrics.api_requests++; next(); });
 
 app.get('/health', (_req, res) => res.json({
     status: 'ok',
     service: 'Clinical Intelligence API',
-    architecture: 'routes → controllers → services → functions → DB',
+    uptime_seconds: Math.floor((Date.now() - metrics.start_time) / 1000),
     timestamp: new Date().toISOString(),
 }));
 
-app.use('/api/auth', authRoutes);
+app.get('/metrics', (_req, res) => res.json({
+    uptime_seconds: Math.floor((Date.now() - metrics.start_time) / 1000),
+    vitals_recorded: metrics.vitals_recorded,
+    alerts_generated: metrics.alerts_generated,
+    ws_connections: metrics.ws_connections,
+    api_requests_total: metrics.api_requests,
+    timestamp: new Date().toISOString(),
+}));
+
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api', apiLimiter);
 
 const guard = [authenticate, tenancy];
 
