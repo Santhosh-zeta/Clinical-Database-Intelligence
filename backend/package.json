@@ -1,11 +1,11 @@
 {
   "name": "clinical-db-intelligence-backend",
   "version": "1.0.0",
-  "description": "Clinical Decision Support & Hospital Intelligence System — Backend",
+  "description": "Clinical Decision Support & Hospital Intelligence System \u2014 Backend",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
+    "start": "node init && node src/server.js",
+    "dev": "node init && node --watch src/server.js",
     "migrate": "node src/db/migrate.js",
     "test": "jest --testPathPatterns=src/__tests__ --forceExit",
     "test:watch": "jest --testPathPatterns=src/__tests__ --watch"

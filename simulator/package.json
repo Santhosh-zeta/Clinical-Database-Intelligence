@@ -1,20 +1,20 @@
 {
-    "name": "clinical-simulator",
-    "version": "1.0.0",
-    "description": "Data simulator for Clinical Decision Support System",
-    "main": "index.js",
-    "scripts": {
-        "start": "node index.js",
-        "seed": "node seed.js",
-        "simulate": "node simulate.js",
-        "fleet": "node ambulance_sim.js"
-    },
-    "dependencies": {
-        "@googlemaps/google-maps-services-js": "^3.4.2",
-        "@mapbox/polyline": "^1.2.1",
-        "axios": "^1.6.0",
-        "bcryptjs": "^3.0.3",
-        "chalk": "^4.1.2",
-        "dotenv": "^16.0.0"
-    }
+  "name": "clinical-simulator",
+  "version": "1.0.0",
+  "description": "Data simulator for Clinical Decision Support System",
+  "main": "index.js",
+  "scripts": {
+    "start": "node init && node index.js",
+    "seed": "node seed.js",
+    "simulate": "node simulate.js",
+    "fleet": "node ambulance_sim.js"
+  },
+  "dependencies": {
+    "@googlemaps/google-maps-services-js": "^3.4.2",
+    "@mapbox/polyline": "^1.2.1",
+    "axios": "^1.6.0",
+    "bcryptjs": "^3.0.3",
+    "chalk": "^4.1.2",
+    "dotenv": "^16.0.0"
+  }
 }
