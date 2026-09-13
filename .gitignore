@@ -1,4 +1,4 @@
 node_modules/
-.env
 *.log
 backend/server_log.txt
+config.bat
